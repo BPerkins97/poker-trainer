@@ -2,27 +2,30 @@ package de.poker.trainer.engine;
 
 import org.junit.jupiter.api.Test;
 
-import java.util.ArrayList;
 import java.util.List;
+
+import static de.poker.trainer.engine.Action.fold;
+import static de.poker.trainer.engine.Position.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class PokerTest {
 
     @Test
-    public void test() {
-        List<Player> playerList = new ArrayList<>();
-        playerList.add(new Player(1, Position.BIG_BLIND, 10));
-        playerList.add(new Player(2, Position.SMALL_BLIND, 20));
+    public void ActionFoldsToBigBlindPreFlop() {
+        List<Player> players = PlayerBuilder.builder()
+                .stackSize(100)
+                .build();
 
-        List<Integer> order = new ArrayList<>(52);
-        for (int i=0;i<52;i++) {
-            order.add(i);
-        }
+        List<Card> cards = DeckBuilder.random().build();
 
-        GameState gameState = GameState.newGame(playerList, Deck.fullDeck(order));
-        gameState = GameState.flop(gameState);
-        gameState = GameState.turn(gameState);
-        gameState = GameState.river(gameState);
+        GameState result = GameState.newGame(players, cards)
+                .takeAction(fold(LOJACK))
+                .takeAction(fold(HIJACK))
+                .takeAction(fold(CUTOFF))
+                .takeAction(fold(BUTTON))
+                .takeAction(fold(SMALL_BLIND));
 
-        System.out.println(gameState);
+        assertEquals(101, result.players().stream().filter(player -> player.position().equals(Position.BIG_BLIND)).findAny().get().stack());
+        assertEquals(99, result.players().stream().filter(player -> player.position().equals(Position.SMALL_BLIND)).findAny().get().stack());
     }
 }

@@ -1,4 +1,4 @@
 package de.poker.trainer.engine;
 
-public record HoleCards(Player player, Card firstCard, Card secondCard) {
+public record HoleCards(Position position, Card firstCard, Card secondCard) {
 }

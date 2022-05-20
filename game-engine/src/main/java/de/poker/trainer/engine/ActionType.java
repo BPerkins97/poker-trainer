@@ -5,5 +5,7 @@ public enum ActionType {
     CHECK,
     CALL,
     BET,
-    RAISE;
+    RAISE,
+    SMALL_BLIND,
+    BIG_BLIND;
 }
