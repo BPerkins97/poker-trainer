@@ -1,0 +1,42 @@
+{
+  "gameId": 1,
+  "players": [
+    {
+      "playerId": 1,
+      "holeCards": [
+        "Ah",
+        "Ks"
+      ],
+      "stack": 100,
+      "position": "UTG"
+    }
+  ],
+  "bettingRound": "RIVER",
+  "communityCards": [
+    "Ks",
+    "9s",
+    "9h",
+    "Tc",
+    "Jc"
+  ],
+  "actions": {
+    "preflop": [
+      {
+        "action": "FOLD",
+        "playerId": 1
+      },
+      {
+        "action": "BET",
+        "playerId": 2,
+        "size": 2
+      },
+      {
+        "action": "CALL",
+        "playerId": 1
+      }
+    ],
+    "flop": [],
+    "turn": [],
+    "river": []
+  }
+}
