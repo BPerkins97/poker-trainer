@@ -1,6 +1,7 @@
 package de.poker.trainer.engine;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -47,7 +48,7 @@ public record GameState(List<Card> deck, List<Player> players, List<HoleCards> h
         cardCounter += 2;
         holeCards.add(new HoleCards(Position.BUTTON, getCardAt(deck, cardCounter), getCardAt(deck, cardCounter+1)));
 
-        return new GameState(deck, Collections.unmodifiableList(playersAfterBlindsArePaid), holeCards, null, null);
+        return new GameState(deck, Collections.unmodifiableList(playersAfterBlindsArePaid), holeCards, null, ActionHistory.blinds());
     }
 
     public static GameState flop(final GameState gameState) {
@@ -82,10 +83,23 @@ public record GameState(List<Card> deck, List<Player> players, List<HoleCards> h
 
     public static GameState takeAction(final GameState gameState, final Action action) {
         final ActionHistory actionHistory = gameState.actionHistory == null ? new ActionHistory(null, null, null, null) : gameState.actionHistory;
-        final List<Position> playersStillInHand = GameState.getPlayersStillInHand(gameState.actionHistory());
+        final List<Position> playersStillInHand = ActionHistory.positionsStillInHand(gameState.actionHistory());
+
+        if (playersStillInHand.size() == 2 && action.type().equals(ActionType.FOLD)) {
+            // Game End, evaluate winnings
+            Position winner = playersStillInHand.stream()
+                    .filter(position -> !position.equals(action.position()))
+                    .findFirst()
+                    .orElseThrow();
+            int potSize = ActionHistory.potSize(gameState.actionHistory());
+            List<Player> withWonPotAdded = gameState.players
+                    .stream()
+                    .map(player -> player.position().equals(winner) ? Player.winPot(player, potSize) : player)
+                    .toList();
+            return new GameState(gameState.deck, withWonPotAdded, gameState.holeCards(), gameState.communityCards(), gameState.actionHistory());
+        }
 
         if (gameState.communityCards == null) {
-            final List<Position> playersStillInHandOrdered = Position.preFlopOrder(playersStillInHand);
             final List<Action> preFlopActions = actionHistory.preflopActions() == null ? new ArrayList<>() : actionHistory.preflopActions();
             final List<Action> newPreFlopActions = Stream.concat(preFlopActions.stream(), Stream.of(action)).collect(Collectors.toList());
             return new GameState(gameState.deck, gameState.players, gameState.holeCards, gameState.communityCards, new ActionHistory(newPreFlopActions, null, null, null));
@@ -106,10 +120,6 @@ public record GameState(List<Card> deck, List<Player> players, List<HoleCards> h
             return new GameState(gameState.deck, gameState.players, gameState.holeCards, gameState.communityCards, new ActionHistory(actionHistory.preflopActions(), newFlopActions, null, null));
         }
         throw new IllegalStateException("Did not expect to reach this point. Should be unreachable");
-    }
-
-    private static List<Position> getPlayersStillInHand(ActionHistory actionHistory) {
-        return null;
     }
 
     private static Card getCardAt(List<Card> deck, int index) {

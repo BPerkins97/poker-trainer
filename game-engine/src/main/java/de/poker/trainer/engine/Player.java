@@ -4,4 +4,8 @@ public record Player(Position position, int stack) {
     public static Player pay(Player player, int amount) {
         return new Player(player.position, player.stack - amount);
     }
+
+    public static Player winPot(Player player, int potSize) {
+        return new Player(player.position, player.stack() + potSize);
+    }
 }
