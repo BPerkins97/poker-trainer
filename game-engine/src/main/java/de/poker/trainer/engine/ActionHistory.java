@@ -1,9 +1,8 @@
 package de.poker.trainer.engine;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Objects;
+import org.springframework.util.CollectionUtils;
+
+import java.util.*;
 
 public record ActionHistory(List<Action> preflopActions, List<Action> flopActions, List<Action> turnActions, List<Action> riverActions) {
     public static List<Position> positionsStillInHand(ActionHistory actionHistory) {
@@ -48,5 +47,42 @@ public record ActionHistory(List<Action> preflopActions, List<Action> flopAction
 
     public static ActionHistory blinds() {
         return new ActionHistory(Arrays.asList(new Action(Position.SMALL_BLIND, ActionType.BET, 1), new Action(Position.BIG_BLIND, ActionType.BET, 2)), null, null, null);
+    }
+
+    public static List<Position> playersLeftToAct(List<Action> actions, List<Position> playersInGame) {
+        int bet = 0;
+        List<Position> playersLeftToAct = new ArrayList<>(playersInGame);
+        List<Action> raises = actions.stream()
+                .filter(action -> action.type().equals(ActionType.RAISE))
+                .toList();
+        if (!CollectionUtils.isEmpty(raises)) {
+            int indexOfLastRaise = actions.indexOf(raises.get(raises.size()-1));
+            List<Position> actorsSinceLastRaise = actions.subList(indexOfLastRaise, actions.size())
+                    .stream()
+                    .map(Action::position)
+                    .toList();
+            playersLeftToAct.removeAll(actorsSinceLastRaise);
+            return playersLeftToAct;
+        }
+
+        List<Action> bets = actions.stream()
+                .filter(action -> action.type().equals(ActionType.BET))
+                .toList();
+        if (!CollectionUtils.isEmpty(bets)) {
+            int indexOfLastRaise = actions.indexOf(bets.get(bets.size()-1));
+            List<Position> actorsSinceLastRaise = actions.subList(indexOfLastRaise, actions.size())
+                    .stream()
+                    .map(Action::position)
+                    .toList();
+            playersLeftToAct.removeAll(actorsSinceLastRaise);
+            return playersLeftToAct;
+        }
+
+        List<Position> actorsSinceLastRaise = actions
+                .stream()
+                .map(Action::position)
+                .toList();
+        playersLeftToAct.removeAll(actorsSinceLastRaise);
+        return playersLeftToAct;
     }
 }
