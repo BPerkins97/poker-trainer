@@ -1,0 +1,14 @@
+<button mat-raised-button (click)="reload()">Reload</button>
+
+<div>
+  <h6>Small Blind</h6>
+  <span>Stack </span> {{player(positions.SMALL_BLIND)?.stack}}
+  <br />
+  <span>HoleCards </span> {{holeCards(positions.SMALL_BLIND) | json}}
+</div>
+
+<p></p>
+
+<p>{{game | json}}</p>
+
+<router-outlet></router-outlet>

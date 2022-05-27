@@ -1,14 +1,11 @@
 package de.poker.trainer.engine;
 
-import com.sun.source.tree.BreakTree;
-import org.springframework.util.CollectionUtils;
+import de.poker.trainer.utility.CollectionUtils;
 
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static org.springframework.util.Assert.isTrue;
-import static org.springframework.util.Assert.notNull;
 
 // TODO legality checks
 
@@ -20,8 +17,8 @@ public record GameState(List<Card> deck, List<Player> players, List<HoleCards> h
 
     // TODO potentially the small blind or the big blind could have less than the blinds which would put them all in which isn't accounted for here
     public static GameState newGame(final List<Player> players, final List<Card> deck) {
-        notNull(players, "This game can only be played with at least 2 players.");
-        isTrue(players.size() == 6, "6 max only");
+        assert players != null;
+        assert  players.size() == 6;
 
         List<Player> playersAfterBlindsArePaid = players.stream()
                 .map(player -> {

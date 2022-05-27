@@ -1,6 +1,7 @@
 package de.poker.trainer.engine;
 
-import org.springframework.util.CollectionUtils;
+
+import de.poker.trainer.utility.CollectionUtils;
 
 import java.util.*;
 
