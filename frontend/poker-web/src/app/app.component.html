@@ -1,13 +1,87 @@
 <button mat-raised-button (click)="reload()">Reload</button>
 
-<div>
-  <h6>Small Blind</h6>
-  <span>Stack </span> {{player(positions.SMALL_BLIND)?.stack}}
-  <br />
-  <span>HoleCards </span> {{holeCards(positions.SMALL_BLIND) | json}}
-</div>
-
-<p></p>
+<table>
+    <thead>
+    <tr>
+        <th>Position</th>
+        <th>Stack</th>
+        <th colspan="2">HoleCards</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr>
+        <td>Small Blind</td>
+        <td>{{player(positions.SMALL_BLIND)?.stack}}</td>
+        <td>
+            <app-card [card]="holeCards(positions.SMALL_BLIND)?.firstCard"></app-card>
+        </td>
+        <td>
+            <app-card [card]="holeCards(positions.SMALL_BLIND)?.secondCard"></app-card>
+        </td>
+    </tr>
+    <tr>
+        <td>Big Blind</td>
+        <td>{{player(positions.BIG_BLIND)?.stack}}</td>
+        <td>
+            <app-card [card]="holeCards(positions.BIG_BLIND)?.firstCard"></app-card>
+        </td>
+        <td>
+            <app-card [card]="holeCards(positions.BIG_BLIND)?.secondCard"></app-card>
+        </td>
+    </tr>
+    <tr>
+        <td>Lojack</td>
+        <td>{{player(positions.LOJACK)?.stack}}</td>
+        <td>
+            <app-card [card]="holeCards(positions.LOJACK)?.firstCard"></app-card>
+        </td>
+        <td>
+            <app-card [card]="holeCards(positions.LOJACK)?.secondCard"></app-card>
+        </td>
+    </tr>
+    <tr>
+        <td>Hijack</td>
+        <td>{{player(positions.HIJACK)?.stack}}</td>
+        <td>
+            <app-card [card]="holeCards(positions.HIJACK)?.firstCard"></app-card>
+        </td>
+        <td>
+            <app-card [card]="holeCards(positions.HIJACK)?.secondCard"></app-card>
+        </td>
+    </tr>
+    <tr>
+        <td>Cutoff</td>
+        <td>{{player(positions.CUTOFF)?.stack}}</td>
+        <td>
+            <app-card [card]="holeCards(positions.CUTOFF)?.firstCard"></app-card>
+        </td>
+        <td>
+            <app-card [card]="holeCards(positions.CUTOFF)?.secondCard"></app-card>
+        </td>
+    </tr>
+    <tr>
+        <td>Button</td>
+        <td>{{player(positions.BUTTON)?.stack}}</td>
+        <td>
+            <app-card [card]="holeCards(positions.BUTTON)?.firstCard"></app-card>
+        </td>
+        <td>
+            <app-card [card]="holeCards(positions.BUTTON)?.secondCard"></app-card>
+        </td>
+    </tr>
+    </tbody>
+</table>
+<br/>
+<ng-container *ngIf="game?.communityCards != undefined">
+    <h3>Community Cards</h3>
+    <div>
+        <app-card [card]="game?.communityCards?.flop?.firstCard"></app-card>
+        <app-card [card]="game?.communityCards?.flop?.secondCard"></app-card>
+        <app-card [card]="game?.communityCards?.flop?.thirdCard"></app-card>
+        <app-card [card]="game?.communityCards?.turn"></app-card>
+        <app-card [card]="game?.communityCards?.river"></app-card>
+    </div>
+</ng-container>
 
 <p>{{game | json}}</p>
 

@@ -1,0 +1,6 @@
+<ng-container *ngIf="card != undefined">
+    <span *ngIf="card.suit == suits.CLUB" style="color: blue;font-weight: bold;">{{card.value}}</span>
+    <span *ngIf="card.suit == suits.HEART" style="color: red;font-weight: bold;">{{card.value}}</span>
+    <span *ngIf="card.suit == suits.DIAMOND" style="color: green;font-weight: bold;">{{card.value}}</span>
+    <span *ngIf="card.suit == suits.SPADE" style="color: purple;font-weight: bold;">{{card.value}}</span>
+</ng-container>

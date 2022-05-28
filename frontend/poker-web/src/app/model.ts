@@ -54,3 +54,10 @@ export enum Position {
   HIJACK = "HIJACK",
   LOJACK = "LOJACK"
 }
+
+export enum Suits {
+  SPADE = "SPADE",
+  DIAMOND = "DIAMOND",
+  HEART = "HEART",
+  CLUB = "CLUB"
+}
