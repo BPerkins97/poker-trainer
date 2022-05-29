@@ -1,4 +1,4 @@
-<button mat-raised-button (click)="reload()">Reload</button>
+<button (click)="reload()">Reload</button>
 
 <table>
     <thead>
@@ -6,6 +6,10 @@
         <th>Position</th>
         <th>Stack</th>
         <th colspan="2">HoleCards</th>
+        <th>Fold</th>
+        <th>Check</th>
+        <th>Call</th>
+        <th>Bet</th>
     </tr>
     </thead>
     <tbody>
@@ -17,6 +21,9 @@
         </td>
         <td>
             <app-card [card]="holeCards(positions.SMALL_BLIND)?.secondCard"></app-card>
+        </td>
+        <td>
+            <button (click)="fold(positions.SMALL_BLIND)">Fold</button>
         </td>
     </tr>
     <tr>

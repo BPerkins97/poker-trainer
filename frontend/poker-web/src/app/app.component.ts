@@ -1,6 +1,6 @@
 import {Component, OnInit} from '@angular/core';
 import {PokerApiService} from "./poker-api.service";
-import {GameState, Position} from "./model";
+import {GameState, Position, Actions} from "./model";
 
 @Component({
   selector: 'app-root',
@@ -36,5 +36,18 @@ export class AppComponent implements OnInit {
   holeCards(position: Position) {
     return this.game?.holeCards
       .find(p => p.position == position);
+  }
+
+  fold(position: Position) {
+  console.log(position);
+      if (this.id != undefined) {
+      console.log("takeAction");
+      this.pokerAPI.takeAction(this.id, {
+              position: position,
+              type: Actions.FOLD,
+              amount: 0
+          });
+      }
+
   }
 }

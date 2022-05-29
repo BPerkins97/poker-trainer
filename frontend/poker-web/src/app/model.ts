@@ -61,3 +61,11 @@ export enum Suits {
   HEART = "HEART",
   CLUB = "CLUB"
 }
+
+export enum Actions {
+    FOLD = "FOLD",
+    CHECK = "CHECK",
+    CALL = "CALL",
+    BET = "BET",
+    RAISE = "RAISE"
+}

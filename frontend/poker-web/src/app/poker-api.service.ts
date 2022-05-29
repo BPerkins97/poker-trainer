@@ -21,6 +21,6 @@ export class PokerApiService {
   }
 
   public takeAction(id: number, action: Action) : Observable<GameState> {
-    return this.http.post<GameState>("api/games/" + id, action);
+    return this.http.post<GameState>("api/games/" + id + "/actions", action);
   }
 }
