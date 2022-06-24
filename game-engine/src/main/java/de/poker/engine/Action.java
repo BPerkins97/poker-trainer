@@ -15,6 +15,10 @@ public class Action {
         this(type, position, 0);
     }
 
+    public static Action fold(Player.Position position) {
+        return new Action(Type.FOLD, position);
+    }
+
     public Player.Position position() {
         return position;
     }
@@ -24,10 +28,11 @@ public class Action {
     }
 
     public static Action check(Player.Position position) {
-        return new Action(Type.CHECK, position, 0);
+        return new Action(Type.CHECK, position);
     }
 
     public static enum Type {
+        FOLD,
         CHECK
     }
 }

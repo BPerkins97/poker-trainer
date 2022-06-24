@@ -47,6 +47,8 @@ public class GameTest {
         game.check(Player.Position.HI_JACK);
         game.check(Player.Position.CUT_OFF);
         game.check(Player.Position.BUTTON);
+        game.check(Player.Position.SMALL_BLIND);
+        game.check(Player.Position.BIG_BLIND);
 
         // Postflop
         game.check(Player.Position.SMALL_BLIND);
@@ -78,5 +80,35 @@ public class GameTest {
         Assertions.assertEquals(100, game.hiJack().stack());
         Assertions.assertEquals(99, game.smallBlind().stack());
         Assertions.assertEquals(98, game.bigBlind().stack());
+    }
+
+    @Test
+    public void givenItIsFoldedToSmallBlind_WhenSmallBlindFolds_ThenBigBlindWins() {
+        Game game = Game.Factory.newGame()
+                .startingStacks(100)
+                .smallBlind("9d", "5h")
+                .bigBlind("9h", "Qd")
+                .loJack("6h", "Kd")
+                .hiJack("Ah", "As")
+                .cutOff("Kc", "Qc")
+                .button("Ac", "2s")
+                .flop("Qc", "Tc", "3c")
+                .turn("5c")
+                .river("5s")
+                .build();
+
+        // Preflop
+        game.fold(Player.Position.LO_JACK);
+        game.fold(Player.Position.HI_JACK);
+        game.fold(Player.Position.CUT_OFF);
+        game.fold(Player.Position.BUTTON);
+        game.fold(Player.Position.SMALL_BLIND);
+
+        Assertions.assertEquals(100, game.button().stack());
+        Assertions.assertEquals(100, game.cutOff().stack());
+        Assertions.assertEquals(100, game.loJack().stack());
+        Assertions.assertEquals(100, game.hiJack().stack());
+        Assertions.assertEquals(99, game.smallBlind().stack());
+        Assertions.assertEquals(101, game.bigBlind().stack());
     }
 }
