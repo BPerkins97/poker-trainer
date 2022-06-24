@@ -10,7 +10,39 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 // TODO everyone is all in test
 // TODO test reraise
 // TODO test error raise then someone checks
+// TODO test that when a player with a smaller stack goes all in and wins he only gets sidepot
 public class GameTest {
+    @Test
+    public void givenEveryoneIsAllIn_WhenLastPlayerGoesAllIn_GameAutomaticallySkipsToShowdown() {
+        Game game = Game.Factory.newGame()
+                .startingStacks(100)
+                .smallBlind("9d", "5h")
+                .bigBlind("9h", "Qd")
+                .loJack("6h", "Kd")
+                .hiJack("Ah", "As")
+                .cutOff("Kc", "Qc")
+                .button("Ac", "2s")
+                .flop("Qc", "Tc", "3c")
+                .turn("5c")
+                .river("5s")
+                .build();
+
+        // Preflop
+        game.raise(Player.Position.LO_JACK, 100);
+        game.call(Player.Position.HI_JACK);
+        game.call(Player.Position.CUT_OFF);
+        game.call(Player.Position.BUTTON);
+        game.call(Player.Position.SMALL_BLIND);
+        game.call(Player.Position.BIG_BLIND);
+
+        Assertions.assertEquals(600, game.button().stack());
+        Assertions.assertEquals(0, game.cutOff().stack());
+        Assertions.assertEquals(0, game.loJack().stack());
+        Assertions.assertEquals(0, game.hiJack().stack());
+        Assertions.assertEquals(0, game.smallBlind().stack());
+        Assertions.assertEquals(0, game.bigBlind().stack());
+    }
+
     @Test
     public void givenAValidGameSetup_WhenConstructingGame_ThenGetGame() {
         Game game = Game.Factory.newGame()

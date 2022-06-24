@@ -64,6 +64,16 @@ public class Game {
                 .filter(player -> !player.hasFolded())
                 .toList();
 
+        List<Player> playersNotAllIn = players().stream()
+                .filter(player -> !player.isAllIn())
+                .toList();
+
+        boolean isEndOfBettingRound = actionsSinceLastRaise >= playersStillInGame.size();
+
+        if (playersNotAllIn.size() <= 1 && isEndOfBettingRound) {
+            handleShowdown(playersStillInGame);
+        }
+
         if (playersStillInGame.size() == 1) {
             handleEveryoneFolded(playersStillInGame.get(0));
         }
@@ -84,7 +94,7 @@ public class Game {
 
         boolean determineNextPlayer = false;
 
-        if (!investementsDiffer && actionsSinceLastRaise >= playersStillInGame.size()) {
+        if (!investementsDiffer && isEndOfBettingRound) {
             bettingRound = switch (bettingRound) {
                 case PRE_FLOP -> BettingRound.POST_FLOP;
                 case POST_FLOP -> BettingRound.TURN;

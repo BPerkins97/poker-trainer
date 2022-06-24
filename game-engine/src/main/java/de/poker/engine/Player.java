@@ -6,6 +6,7 @@ public class Player {
     private final Position position;
     private double investment = 0;
     private boolean hasFolded = false;
+    private boolean isAllIn = false;
 
     public Player(double startingStack, HoleCards holeCards, Position position) {
         this.stack = startingStack;
@@ -50,8 +51,18 @@ public class Player {
     }
 
     public void pay(double amount) {
-        stack -= amount;
-        investment += amount;
+        if (amount >= stack) {
+            investment += stack;
+            stack = 0;
+            isAllIn = true;
+        } else {
+            stack -= amount;
+            investment += amount;
+        }
+    }
+
+    public boolean isAllIn() {
+        return isAllIn;
     }
 
     public Position position() {
