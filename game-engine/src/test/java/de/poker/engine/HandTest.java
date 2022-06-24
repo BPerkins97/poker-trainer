@@ -51,11 +51,16 @@ public class HandTest {
         assertEquals("Flush: As-Ks-Qs-9s-6s", hand.toString());
     }
 
-    @Test
-    public void fullHouseTest() {
-        Hand hand = Hand.of("As", "Ks", "Kd", "Ad", "Td", "Kh", "6s");
+    @ParameterizedTest
+    @CsvSource({
+            "As-Ks-Kd-Ad-Td-Kh-6s,Full House: Ks-Kh-Kd-As-Ad",
+            "As-Ks-Kd-Ad-Ac-Kc-6s,Full House: As-Ad-Ac-Ks-Kd",
+            "As-Ks-Kd-Ad-6c-Kc-6s,Full House: Ks-Kd-Kc-As-Ad"
+    })
+    public void fullHouseTest(String inputs, String expected) {
+        Hand hand = buildHand(inputs);
 
-        assertEquals("Full House: Ks-Kh-Kd-As-Ad", hand.toString());
+        assertEquals(expected, hand.toString());
     }
 
     @Test
@@ -85,8 +90,8 @@ public class HandTest {
             "Ks-Qs-Jd-Td-9h-6h-5c,8h-7c-6c-5c-4d-Ah-Qd"
     })
     public void compareUnequalHands(String strongerHand, String weakerHand) {
-        Hand hand = Hand.of(strongerHand.split("-"));
-        Hand hand1 = Hand.of(weakerHand.split("-"));
+        Hand hand = buildHand(strongerHand);
+        Hand hand1 = buildHand(weakerHand);
 
         Assertions.assertEquals(ComparisonConstants.X_GREATER_THAN_Y, hand.compareTo(hand1));
     }
@@ -95,10 +100,14 @@ public class HandTest {
     @CsvSource({
             "As-Ks-Qs-Js-Ts-9s-8s,Ah-Kh-Qh-Jh-Th-9h-8h"
     })
-    public void compareEqualHands(String strongerHand, String weakerHand) {
-        Hand hand = Hand.of(strongerHand.split("-"));
-        Hand hand1 = Hand.of(weakerHand.split("-"));
+    public void compareEqualHands(String hand1, String hand2) {
+        Hand hand3 = buildHand(hand1);
+        Hand hand4 = buildHand(hand2);
 
-        Assertions.assertEquals(ComparisonConstants.X_EQUAL_TO_Y, hand.compareTo(hand1));
+        Assertions.assertEquals(ComparisonConstants.X_EQUAL_TO_Y, hand3.compareTo(hand4));
+    }
+
+    private Hand buildHand(String input) {
+        return Hand.of(input.split("-"));
     }
 }

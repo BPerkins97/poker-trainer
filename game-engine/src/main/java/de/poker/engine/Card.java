@@ -4,8 +4,6 @@ package de.poker.engine;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static de.poker.engine.utility.Assert.assertThat;
-
 public class Card implements Comparable<Card> {
     private final Value value;
     private final Suit suit;
@@ -26,18 +24,12 @@ public class Card implements Comparable<Card> {
     }
 
     public static Card of(String card) {
-        assertThat(card != null, "You can not instantiate a card from a null value");
-        assertThat(card.length() == 2, "The value you provided can not be a valid card: " + card);
-        assertThat(isLegalCard(card), card + " is not a valid card"); // TODO redundant check?
+        assert card != null : "You can not instantiate a card from a null value";
+        assert card.length() == 2 : "The value you provided can not be a valid card: " + card;
+
         Value value = Value.parse(card.charAt(0));
         Suit suit = Suit.parse(card.charAt(1));
         return new Card(value, suit);
-    }
-
-    private static boolean isLegalCard(String card) {
-        Pattern compile = Pattern.compile("[23456789TJQKA][dsch]");
-        Matcher matcher = compile.matcher(card);
-        return matcher.matches();
     }
 
     @Override
@@ -95,6 +87,7 @@ public class Card implements Comparable<Card> {
                     return value;
                 }
             }
+            assert false : "Illegal value " + symbol;
             throw new IllegalArgumentException("Illegal value " + symbol);
         }
 
@@ -129,6 +122,7 @@ public class Card implements Comparable<Card> {
                     return suit;
                 }
             }
+            assert false : "Illegal suit " + symbol;
             throw new IllegalArgumentException("Illegal suit " + symbol);
         }
 

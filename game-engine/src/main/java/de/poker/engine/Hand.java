@@ -42,18 +42,18 @@ public class Hand implements Comparable<Hand> {
         value = tempSum;
     }
 
-    // TODO throw exception when cards are double
-    public static Hand of(String... cardsInput) {
-        assert cardsInput.length == 7 : "Expected 7 cards but only got " + cardsInput.length;
+    public static Hand of(List<Card> cardsInput) {
+        assert cardsInput != null : "Cant instantiate a Hand from null";
+        assert cardsInput.size() == 7 : "Expected 7 cards but only got " + cardsInput.size();
 
         List<Card> cards = new ArrayList<>(7);
-        cards.add(Card.of(cardsInput[0]));
-        cards.add(Card.of(cardsInput[1]));
-        cards.add(Card.of(cardsInput[2]));
-        cards.add(Card.of(cardsInput[3]));
-        cards.add(Card.of(cardsInput[4]));
-        cards.add(Card.of(cardsInput[5]));
-        cards.add(Card.of(cardsInput[6]));
+        cards.add(cardsInput.get(0));
+        cards.add(cardsInput.get(1));
+        cards.add(cardsInput.get(2));
+        cards.add(cardsInput.get(3));
+        cards.add(cardsInput.get(4));
+        cards.add(cardsInput.get(5));
+        cards.add(cardsInput.get(6));
 
         cards.sort(Collections.reverseOrder());
 
@@ -156,6 +156,23 @@ public class Hand implements Comparable<Hand> {
         return new Hand(Rank.HIGH_CARD, cards.subList(0, 5));
     }
 
+    public static Hand of(HoleCards holeCards, Flop flop, Card turn, Card river) {
+        List<Card> cards = new ArrayList<>(7);
+        cards.addAll(holeCards.cards());
+        cards.addAll(flop.cards());
+        cards.add(turn);
+        cards.add(river);
+        return of (cards);
+    }
+
+    // TODO throw exception when cards are double
+    public static Hand of(String... cardsInput) {
+        return of(Arrays.stream(cardsInput)
+                .map(Card::of)
+                .toList());
+    }
+
+
     private static List<Card> findStraight(Map<Card.Value, List<Card>> cardByValue) {
         for (int j = 0; j < 10; j++) {
             if (
@@ -192,19 +209,6 @@ public class Hand implements Comparable<Hand> {
 
     public String toString() {
         return rank + ": " + cards.stream().map(Card::toString).collect(Collectors.joining("-"));
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        Hand hand = (Hand) o;
-        return rank == hand.rank && Objects.equals(cards, hand.cards);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(rank, cards);
     }
 
     @Override

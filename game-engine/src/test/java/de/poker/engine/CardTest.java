@@ -11,13 +11,13 @@ import static org.junit.jupiter.api.Assertions.*;
 // TODO Cards of same value have same hash value
 public class CardTest {
     @ParameterizedTest
-    @ValueSource(strings = {"99", "65", "dd", "", "9d8d"})
+    @ValueSource(strings = {"99", "65", "dd", "", "9d8d", "xx"})
     public void GivenAnIllegalString_WhenCreatingACard_ThenThrowAnException(String value) {
         try {
             Card.of(value);
             fail();
-        } catch (Exception e) {
-            assertTrue(e instanceof IllegalArgumentException);
+        } catch (AssertionError e) {
+            assertTrue(true);
         }
     }
 
@@ -26,8 +26,8 @@ public class CardTest {
         try {
             Card.of(null);
             fail();
-        } catch (Exception e) {
-            assertTrue(e instanceof IllegalArgumentException);
+        } catch (AssertionError e) {
+            assertTrue(true);
         }
     }
 

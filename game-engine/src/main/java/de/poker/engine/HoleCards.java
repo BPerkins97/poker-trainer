@@ -2,6 +2,8 @@ package de.poker.engine;
 
 import de.poker.engine.utility.ComparisonConstants;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.Objects;
 
 public class HoleCards {
@@ -21,6 +23,10 @@ public class HoleCards {
             holeCards.card2 = tempC1;
         }
         return holeCards;
+    }
+
+    public List<Card> cards() {
+        return Arrays.asList(card1, card2);
     }
 
     @Override
