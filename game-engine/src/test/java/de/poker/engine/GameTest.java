@@ -5,7 +5,6 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-// TODO shared pot test
 // TODO all in test
 // TODO caller must go all in test
 // TODO everyone is all in test
@@ -160,6 +159,49 @@ public class GameTest {
         Assertions.assertEquals(100, game.loJack().stack());
         Assertions.assertEquals(98, game.hiJack().stack());
         Assertions.assertEquals(95, game.smallBlind().stack());
+        Assertions.assertEquals(98, game.bigBlind().stack());
+    }
+
+    @Test
+    public void givenARaiseAndCall_WhenItIsCheckedToShowdown_ThenPotIsShared() {
+        Game game = Game.Factory.newGame()
+                .startingStacks(100)
+                .smallBlind("Qd", "2h")
+                .bigBlind("9h", "Qd")
+                .loJack("6h", "Kd")
+                .hiJack("Ah", "As")
+                .cutOff("Kc", "2c")
+                .button("Qs", "2s")
+                .flop("Qc", "Tc", "3c")
+                .turn("5c")
+                .river("5s")
+                .build();
+
+        // Preflop
+        game.fold(Player.Position.LO_JACK);
+        game.fold(Player.Position.HI_JACK);
+        game.fold(Player.Position.CUT_OFF);
+        game.raise(Player.Position.BUTTON, 5);
+        game.call(Player.Position.SMALL_BLIND);
+        game.fold(Player.Position.BIG_BLIND);
+
+        // Postflop
+        game.check(Player.Position.SMALL_BLIND);
+        game.check(Player.Position.BUTTON);
+
+        // Turn
+        game.check(Player.Position.SMALL_BLIND);
+        game.check(Player.Position.BUTTON);
+
+        // River
+        game.check(Player.Position.SMALL_BLIND);
+        game.check(Player.Position.BUTTON);
+
+        Assertions.assertEquals(101, game.button().stack());
+        Assertions.assertEquals(100, game.cutOff().stack());
+        Assertions.assertEquals(100, game.loJack().stack());
+        Assertions.assertEquals(100, game.hiJack().stack());
+        Assertions.assertEquals(101, game.smallBlind().stack());
         Assertions.assertEquals(98, game.bigBlind().stack());
     }
 }

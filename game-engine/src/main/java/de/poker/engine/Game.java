@@ -50,10 +50,8 @@ public class Game {
             payBlinds();
             nextPlayer = loJack();
         }
-        // determine if the player who took the action is actually at turn
         assert action.position() == nextPlayer.position();
 
-        // based on action do some stuff
         switch (action.type()) {
             case FOLD -> handleFold();
             case CALL -> handleCall();
@@ -113,12 +111,6 @@ public class Game {
             } while (nextPlayer.hasFolded());
         }
 
-
-        // determine next player
-        // Rules -> Next player must still be in game
-        // Rules -> Next player cant be all in because he then doesnt have a decision to make
-        // Maybe move to next betting round
-
         // TODO add action to history
     }
 
@@ -147,7 +139,7 @@ public class Game {
         int winnerIndex = positionWinners.size() - 1;
         winners.add(positionWinners.get(winnerIndex).key());
         int index = winnerIndex-1;
-        while (positionWinners.get(index).value().compareTo(positionWinners.get(winnerIndex).value()) == ComparisonConstants.X_EQUAL_TO_Y) {
+        while (index >= 0 && positionWinners.get(index).value().compareTo(positionWinners.get(winnerIndex).value()) == ComparisonConstants.X_EQUAL_TO_Y) {
             winners.add(positionWinners.get(index).key());
             index--;
         }
@@ -167,17 +159,6 @@ public class Game {
             case LO_JACK -> loJack();
         };
     }
-
-    // Call/ Check -> Player pays raise amount, if no one has raised before him, he pays 0
-    // Exceptions -> if he doesnt have enough money that puts him all in
-    // Comment -> Check and Call are viewed as the same
-
-    // Raise/Bet -> Player raises some amount
-    // Rules -> Player actually has enough money to raise that amount
-    // Rules -> If he reraises someone he has to raise at least the double amount -> research this rule, not sure about this
-    // Rules -> Player has to raise at least the big blind
-    // Rules -> if the player raises with all his money that puts him all in and for the rest of the game he has no decision to make
-    // Comment -> Raise and Bet are viewed as the same
 
     private void handleRaise(double amount) {
         nextPlayer.pay(amount);
