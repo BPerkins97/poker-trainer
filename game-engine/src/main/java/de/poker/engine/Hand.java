@@ -8,7 +8,7 @@ import java.util.stream.Collectors;
 import static de.poker.engine.Card.Value.*;
 import static de.poker.engine.utility.CollectionsUtils.isNotEmpty;
 
-public class Hand {
+public class Hand implements Comparable<Hand> {
     private static final Card.Value[][] POSSIBLE_STRAIGHTS;
 
     static {
@@ -27,22 +27,33 @@ public class Hand {
 
     private final Rank rank;
     private final List<Card> cards;
+    private final long value;
 
     private Hand(Rank rank, List<Card> cards) {
         this.rank = rank;
         this.cards = cards;
+        long tempSum = 0;
+        long multiplier = 1;
+        for (int i=4;i>=0;i--) {
+            tempSum += cards.get(i).value().value() * multiplier;
+            multiplier *= 14;
+        }
+        tempSum += rank.value() * multiplier;
+        value = tempSum;
     }
 
     // TODO throw exception when cards are double
-    public static Hand of(String card1, String card2, String card3, String card4, String card5, String card6, String card7) {
+    public static Hand of(String... cardsInput) {
+        assert cardsInput.length == 7 : "Expected 7 cards but only got " + cardsInput.length;
+
         List<Card> cards = new ArrayList<>(7);
-        cards.add(Card.of(card1));
-        cards.add(Card.of(card2));
-        cards.add(Card.of(card3));
-        cards.add(Card.of(card4));
-        cards.add(Card.of(card5));
-        cards.add(Card.of(card6));
-        cards.add(Card.of(card7));
+        cards.add(Card.of(cardsInput[0]));
+        cards.add(Card.of(cardsInput[1]));
+        cards.add(Card.of(cardsInput[2]));
+        cards.add(Card.of(cardsInput[3]));
+        cards.add(Card.of(cardsInput[4]));
+        cards.add(Card.of(cardsInput[5]));
+        cards.add(Card.of(cardsInput[6]));
 
         cards.sort(Collections.reverseOrder());
 
@@ -196,22 +207,32 @@ public class Hand {
         return Objects.hash(rank, cards);
     }
 
+    @Override
+    public int compareTo(Hand hand) {
+        return Long.compare(this.value, hand.value);
+    }
+
     private enum Rank {
-        ROYAL_FLUSH("Royal Flush"),
-        STRAIGHT_FLUSH("Straight Flush"),
-        QUADS("Quads"),
-        FULL_HOUSE("Full House"),
-        FLUSH("Flush"),
-        STRAIGHT("Straight"),
-        THREE_OF_A_KIND("Three of a kind"),
-        TWO_PAIR("Two Pair"),
-        HIGH_CARD("High Card"),
-        PAIR("Pair");
+        ROYAL_FLUSH(9,"Royal Flush"),
+        STRAIGHT_FLUSH(8,"Straight Flush"),
+        QUADS(7,"Quads"),
+        FULL_HOUSE(6,"Full House"),
+        FLUSH(5,"Flush"),
+        STRAIGHT(4,"Straight"),
+        THREE_OF_A_KIND(3,"Three of a kind"),
+        TWO_PAIR(2,"Two Pair"),
+        HIGH_CARD(0,"High Card"),
+        PAIR(1,"Pair");
 
         private final String representationString;
-
-        Rank(String representationString) {
+        private final int value;
+        Rank(int value, String representationString) {
+            this.value = value;
             this.representationString = representationString;
+        }
+
+        public int value() {
+            return value;
         }
 
         @Override

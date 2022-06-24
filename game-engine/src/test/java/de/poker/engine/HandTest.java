@@ -1,6 +1,10 @@
 package de.poker.engine;
 
+import de.poker.engine.utility.ComparisonConstants;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -73,5 +77,28 @@ public class HandTest {
         Hand hand = Hand.of("Qs", "Ks", "Js", "As", "Td", "9s", "Ts");
 
         assertEquals("Royal Flush: As-Ks-Qs-Js-Ts", hand.toString());
+    }
+
+    @ParameterizedTest
+    @CsvSource({
+            "As-Ks-Qs-Js-Ts-9s-8s,Ah-Kh-Qs-Jh-9c-8c-7s",
+            "Ks-Qs-Jd-Td-9h-6h-5c,8h-7c-6c-5c-4d-Ah-Qd"
+    })
+    public void compareUnequalHands(String strongerHand, String weakerHand) {
+        Hand hand = Hand.of(strongerHand.split("-"));
+        Hand hand1 = Hand.of(weakerHand.split("-"));
+
+        Assertions.assertEquals(ComparisonConstants.X_GREATER_THAN_Y, hand.compareTo(hand1));
+    }
+
+    @ParameterizedTest
+    @CsvSource({
+            "As-Ks-Qs-Js-Ts-9s-8s,Ah-Kh-Qh-Jh-Th-9h-8h"
+    })
+    public void compareEqualHands(String strongerHand, String weakerHand) {
+        Hand hand = Hand.of(strongerHand.split("-"));
+        Hand hand1 = Hand.of(weakerHand.split("-"));
+
+        Assertions.assertEquals(ComparisonConstants.X_EQUAL_TO_Y, hand.compareTo(hand1));
     }
 }
