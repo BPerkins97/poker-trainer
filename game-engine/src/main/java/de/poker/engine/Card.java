@@ -7,83 +7,31 @@ import java.util.regex.Pattern;
 import static de.poker.engine.utility.Assert.assertThat;
 
 public class Card implements Comparable<Card> {
-    private final short value;
-    private final byte suit;
+    private final Value value;
+    private final Suit suit;
     private final int card;
 
-    private Card(short value, byte suit) {
+    private Card(Value value, Suit suit) {
         this.value = value;
         this.suit = suit;
-        this.card = value * 4 + suit;
+        this.card = value.value * 4 + suit.value;
+    }
+
+    public Value value() {
+        return value;
+    }
+
+    public Suit suit() {
+        return suit;
     }
 
     public static Card of(String card) {
         assertThat(card != null, "You can not instantiate a card from a null value");
         assertThat(card.length() == 2, "The value you provided can not be a valid card: " + card);
         assertThat(isLegalCard(card), card + " is not a valid card"); // TODO redundant check?
-        short value = parseCardValue(card.charAt(0));
-        byte suit = parseCardSuit(card.charAt(1));
+        Value value = Value.parse(card.charAt(0));
+        Suit suit = Suit.parse(card.charAt(1));
         return new Card(value, suit);
-    }
-
-    private static char toCardSuit(byte suit) {
-        switch (suit) {
-            case 0: return 'd';
-            case 1: return 's';
-            case 2: return 'c';
-            case 3: return 'h';
-            default: throw new IllegalArgumentException("Illegal card suit " + suit);
-        }
-    }
-
-    private static byte parseCardSuit(char suit) {
-        switch (suit) {
-            case 'd': return 0;
-            case 's': return 1;
-            case 'c': return 2;
-            case 'h': return 3;
-            default: throw new IllegalArgumentException("Illegal card suit " + suit);
-        }
-    }
-
-    private char toCardValue(short value) {
-        switch (value) {
-            case 0: return '2';
-            case 1: return '3';
-            case 2: return '4';
-            case 3: return '5';
-            case 4: return '6';
-            case 5: return '7';
-            case 6: return '8';
-            case 7: return '9';
-            case 8: return 'T';
-            case 9: return 'J';
-            case 10: return 'Q';
-            case 11: return 'K';
-            case 12: return 'A';
-            default: throw new IllegalArgumentException("Illegal card value " + value);
-        }
-    }
-
-    private static short parseCardValue(char value) {
-        switch (value) {
-            case '2': return 0;
-            case '3': return 1;
-            case '4': return 2;
-            case '5': return 3;
-            case '6': return 4;
-            case '7': return 5;
-            case '8': return 6;
-            case '9': return 7;
-            case 'T': return 8;
-            case 'J': return 9;
-            case 'Q': return 10;
-            case 'K': return 11;
-            case 'A': return 12;
-            default: {
-                throw new IllegalArgumentException("Illegal card value " + value);
-            }
-        }
     }
 
     private static boolean isLegalCard(String card) {
@@ -95,8 +43,8 @@ public class Card implements Comparable<Card> {
     @Override
     public String toString() {
         return new StringBuilder()
-                .append(toCardValue(value))
-                .append(toCardSuit(suit))
+                .append(value)
+                .append(suit)
                 .toString();
     }
 
@@ -110,11 +58,79 @@ public class Card implements Comparable<Card> {
 
     @Override
     public int hashCode() {
-        return value * 4 + suit;
+        return card;
     }
 
     @Override
     public int compareTo(Card card1) {
         return Integer.compare(this.card, card1.card);
+    }
+
+    public enum Value {
+        TWO(0, '2'),
+        THREE(1, '3'),
+        FOUR(2, '4'),
+        FIVE(3, '5'),
+        SIX(4, '6'),
+        SEVEN(5, '7'),
+        EIGHT(6, '8'),
+        NINE(7, '9'),
+        TEN(8, 'T'),
+        JACK(9, 'J'),
+        QUEEN(10, 'Q'),
+        KING(11, 'K'),
+        ACE(12, 'A');
+
+        private final int value;
+        private final char symbol;
+
+        Value(int value, char symbol) {
+            this.value = value;
+            this.symbol = symbol;
+        }
+
+        public static Value parse(char symbol) {
+            for (Value value : Value.values()) {
+                if (value.symbol == symbol) {
+                    return value;
+                }
+            }
+            throw new IllegalArgumentException("Illegal value " + symbol);
+        }
+
+        @Override
+        public String toString() {
+            return String.valueOf(symbol);
+        }
+    }
+
+    public enum Suit {
+        SPADES(3, 's'),
+        CLUB(0, 'c'),
+        HEART(2, 'h'),
+        DIAMOND(1, 'd')
+        ;
+
+        private final int value;
+        private final char symbol;
+
+        Suit(int value, char symbol) {
+            this.value = value;
+            this.symbol = symbol;
+        }
+
+        public static Suit parse(char symbol) {
+            for (Suit suit : Suit.values()) {
+                if (suit.symbol == symbol) {
+                    return suit;
+                }
+            }
+            throw new IllegalArgumentException("Illegal suit " + symbol);
+        }
+
+        @Override
+        public String toString() {
+            return String.valueOf(symbol);
+        }
     }
 }
