@@ -47,4 +47,9 @@ public class CardTest {
 
         assertEquals(ComparisonConstants.X_GREATER_THAN_Y, card1.compareTo(card2));
     }
+
+    @Test
+    public void testToString() {
+        assertEquals("Ah", Card.of("Ah").toString());
+    }
 }

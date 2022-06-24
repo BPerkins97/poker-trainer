@@ -26,6 +26,16 @@ public class Card implements Comparable<Card> {
         return new Card(value, suit);
     }
 
+    private static char toCardSuit(byte suit) {
+        switch (suit) {
+            case 0: return 'd';
+            case 1: return 's';
+            case 2: return 'c';
+            case 3: return 'h';
+            default: throw new IllegalArgumentException("Illegal card suit " + suit);
+        }
+    }
+
     private static byte parseCardSuit(char suit) {
         switch (suit) {
             case 'd': return 0;
@@ -33,6 +43,25 @@ public class Card implements Comparable<Card> {
             case 'c': return 2;
             case 'h': return 3;
             default: throw new IllegalArgumentException("Illegal card suit " + suit);
+        }
+    }
+
+    private char toCardValue(short value) {
+        switch (value) {
+            case 0: return '2';
+            case 1: return '3';
+            case 2: return '4';
+            case 3: return '5';
+            case 4: return '6';
+            case 5: return '7';
+            case 6: return '8';
+            case 7: return '9';
+            case 8: return 'T';
+            case 9: return 'J';
+            case 10: return 'Q';
+            case 11: return 'K';
+            case 12: return 'A';
+            default: throw new IllegalArgumentException("Illegal card value " + value);
         }
     }
 
@@ -62,6 +91,15 @@ public class Card implements Comparable<Card> {
         Matcher matcher = compile.matcher(card);
         return matcher.matches();
     }
+
+    @Override
+    public String toString() {
+        return new StringBuilder()
+                .append(toCardValue(value))
+                .append(toCardSuit(suit))
+                .toString();
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

@@ -22,4 +22,9 @@ public class HoleCardTest {
         assertEquals(holeCards1, holeCards2);
         assertEquals(holeCards1.hashCode(), holeCards2.hashCode());
     }
+
+    @Test
+    public void testToString() {
+        assertEquals("9d5h", HoleCards.of("5h", "9d").toString());
+    }
 }

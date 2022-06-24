@@ -35,4 +35,12 @@ public class HoleCards {
     public int hashCode() {
         return Objects.hash(card1, card2);
     }
+
+    @Override
+    public String toString() {
+        return new StringBuilder()
+                .append(card1)
+                .append(card2)
+                .toString();
+    }
 }
