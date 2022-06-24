@@ -8,14 +8,15 @@ import java.util.*;
 import static de.poker.engine.Player.Position.*;
 
 public class Game {
-    private static final Player.Position[][] BETTING_ORDER_PER_ROUND;
+    private static final Map<BettingRound, List<Player.Position>> BETTING_ORDER_PER_ROUND;
 
     static {
-        BETTING_ORDER_PER_ROUND = new Player.Position[4][];
-        BETTING_ORDER_PER_ROUND[0] = new Player.Position[]{LO_JACK, HI_JACK, CUT_OFF, BUTTON, SMALL_BLIND, BIG_BLIND};
-        BETTING_ORDER_PER_ROUND[1] = new Player.Position[]{SMALL_BLIND, BIG_BLIND, LO_JACK, HI_JACK, CUT_OFF, BUTTON};
-        BETTING_ORDER_PER_ROUND[2] = new Player.Position[]{SMALL_BLIND, BIG_BLIND, LO_JACK, HI_JACK, CUT_OFF, BUTTON};
-        BETTING_ORDER_PER_ROUND[3] = new Player.Position[]{SMALL_BLIND, BIG_BLIND, LO_JACK, HI_JACK, CUT_OFF, BUTTON};
+        BETTING_ORDER_PER_ROUND = new HashMap<>();
+        BETTING_ORDER_PER_ROUND.put(BettingRound.PRE_FLOP, Arrays.asList(LO_JACK, HI_JACK, CUT_OFF, BUTTON, SMALL_BLIND, BIG_BLIND));
+        List<Player.Position> normalOrder = Arrays.asList(SMALL_BLIND, BIG_BLIND, LO_JACK, HI_JACK, CUT_OFF, BUTTON);
+        BETTING_ORDER_PER_ROUND.put(BettingRound.POST_FLOP, normalOrder);
+        BETTING_ORDER_PER_ROUND.put(BettingRound.TURN, normalOrder);
+        BETTING_ORDER_PER_ROUND.put(BettingRound.RIVER, normalOrder);
     }
 
     private Player smallBlind;
@@ -27,16 +28,17 @@ public class Game {
     private Flop flop;
     private Card turn;
     private Card river;
-    private double pot = 0;
 
-    private List<Action> actionHistory = new LinkedList<>(); // TODO Decide later if this linked list makes sense here or if ArrayList is better
+    private BettingRound bettingRound = BettingRound.PRE_FLOP;
+    private Player nextPlayer;
+    private int actionsSinceLastRaise = 0;
 
-    private Game() {}
+    private Game() {
+    }
 
     private void payBlinds() {
-        smallBlind.pay(1);
-        bigBlind.pay(2);
-        pot = 3;
+        smallBlind().pay(1);
+        bigBlind().pay(2);
     }
 
     public void check(Player.Position position) {
@@ -44,36 +46,95 @@ public class Game {
     }
 
     private void action(Action action) {
-        if (actionHistory.isEmpty()) {
+        if (nextPlayer == null) {
             payBlinds();
+            nextPlayer = loJack();
         }
-        actionHistory.add(action);
-        testAndHandleGameOver();
-    }
+        // determine if the player who took the action is actually at turn
+        assert action.position() == nextPlayer.position();
 
-    private Player getPlayer(Player.Position position) {
-        return switch (position) {
-            case LO_JACK -> loJack;
-            case CUT_OFF -> cutOff;
-            case HI_JACK -> hiJack;
-            case BUTTON -> button;
-            case BIG_BLIND -> bigBlind;
-            case SMALL_BLIND -> smallBlind;
-        };
-    }
-
-    private void handleGameOver(List<Player.Position> playersStillInGame) {
-        if (playersStillInGame.size() == 1) {
-            Player winner = getPlayer(playersStillInGame.get(0));
-            winner.win(pot);
-            return;
+        // based on action do some stuff
+        switch (action.type()) {
+            case FOLD -> handleFold();
+            case CALL -> handleCall();
+            case RAISE -> handleRaise(action.amount());
         }
 
-        List<Player> players = playersStillInGame.stream()
-                .map(this::getPlayer)
+        actionsSinceLastRaise++;
+
+        List<Player> playersStillInGame = players().stream()
+                .filter(player -> !player.hasFolded())
                 .toList();
 
+        if (playersStillInGame.size() == 1) {
+            handleEveryoneFolded(playersStillInGame.get(0));
+        }
 
+        boolean investementsDiffer = false;
+        int lastPlayerToActIndex = BETTING_ORDER_PER_ROUND.get(bettingRound).indexOf(playersStillInGame.get(0).position());
+        double investment = playersStillInGame.get(0).investment();
+        for (int i = 1; i < playersStillInGame.size(); i++) {
+            if (investment != playersStillInGame.get(i).investment()) {
+                investementsDiffer = true;
+            }
+            int actIndex = BETTING_ORDER_PER_ROUND.get(bettingRound).indexOf(playersStillInGame.get(i).position());
+            if (actIndex > lastPlayerToActIndex) {
+                lastPlayerToActIndex = actIndex;
+            }
+        }
+        int currentPlayerIndex = BETTING_ORDER_PER_ROUND.get(bettingRound).indexOf(nextPlayer.position());
+
+        boolean determineNextPlayer = false;
+
+        if (!investementsDiffer && actionsSinceLastRaise >= playersStillInGame.size()) {
+            bettingRound = switch (bettingRound) {
+                case PRE_FLOP -> BettingRound.POST_FLOP;
+                case POST_FLOP -> BettingRound.TURN;
+                case TURN -> BettingRound.RIVER;
+                case RIVER -> null;
+            };
+            actionsSinceLastRaise = 0;
+            if (bettingRound == null) {
+                handleShowdown(playersStillInGame);
+            } else {
+                determineNextPlayer = true;
+                currentPlayerIndex = 5;
+            }
+        } else {
+            determineNextPlayer = true;
+        }
+
+        if (determineNextPlayer) {
+            int nextPlayerIndex = currentPlayerIndex;
+            do {
+                nextPlayerIndex = nextPlayerIndex >= 5 ? 0 : nextPlayerIndex + 1;
+
+                nextPlayer = getPlayer(BETTING_ORDER_PER_ROUND.get(bettingRound).get(nextPlayerIndex));
+            } while (nextPlayer.hasFolded());
+        }
+
+
+        // determine next player
+        // Rules -> Next player must still be in game
+        // Rules -> Next player cant be all in because he then doesnt have a decision to make
+        // Maybe move to next betting round
+
+        // TODO add action to history
+    }
+
+    private void handleEveryoneFolded(Player winner) {
+        winner.win(calculatePot());
+    }
+
+    private double calculatePot() {
+        double pot = players().stream()
+                .map(Player::investment)
+                .reduce(Double::sum)
+                .orElse(0.0);
+        return pot;
+    }
+
+    private void handleShowdown(List<Player> players) {
         // Winner is at the bottom of the list
         List<KeyValue<Player.Position, Hand>> positionWinners = players.stream()
                 .map(player -> {
@@ -83,64 +144,74 @@ public class Game {
                 .sorted(Comparator.comparing(KeyValue::value))
                 .toList();
         List<Player.Position> winners = new ArrayList<>();
-        winners.add(positionWinners.get(5).key());
-        int index = 4;
-        while (positionWinners.get(index).value().compareTo(positionWinners.get(5).value()) == ComparisonConstants.X_EQUAL_TO_Y) {
+        int winnerIndex = positionWinners.size() - 1;
+        winners.add(positionWinners.get(winnerIndex).key());
+        int index = winnerIndex-1;
+        while (positionWinners.get(index).value().compareTo(positionWinners.get(winnerIndex).value()) == ComparisonConstants.X_EQUAL_TO_Y) {
             winners.add(positionWinners.get(index).key());
+            index--;
         }
-        double sharedPot = pot / winners.size();
+        double sharedPot = calculatePot() / winners.size();
         winners.stream()
                 .map(this::getPlayer)
                 .forEach(player -> player.win(sharedPot));
     }
 
-    // TODO instead of calculating this each time someone takes an action only calculate the effect of the action he took
-    private void testAndHandleGameOver() {
-        int bettingRound = 0;
-        int playerIndex = 0;
-        List<Player.Position> positionsStillInGame = new LinkedList<>(List.of(values()));
+    private Player getPlayer(Player.Position position) {
+        return switch (position) {
+            case SMALL_BLIND -> smallBlind();
+            case BIG_BLIND -> bigBlind();
+            case BUTTON -> button();
+            case HI_JACK -> hiJack();
+            case CUT_OFF -> cutOff();
+            case LO_JACK -> loJack();
+        };
+    }
 
-        for (Action action : actionHistory) {
-            if (BETTING_ORDER_PER_ROUND[bettingRound][playerIndex].equals(action.position())) {
-                if (action.type().equals(Action.Type.CHECK)) {
-                    do {
-                        if (playerIndex >= 5) {
-                            if (bettingRound < 3) {
-                                bettingRound++;
-                                playerIndex = 0;
-                            } else {
-                                handleGameOver(positionsStillInGame);
-                                return;
-                            }
-                        } else {
-                            playerIndex++;
-                        }
-                    } while (!positionsStillInGame.contains(BETTING_ORDER_PER_ROUND[bettingRound][playerIndex]));
-                }
-                if (action.type().equals(Action.Type.FOLD)) {
-                    positionsStillInGame.remove(action.position());
-                    if (positionsStillInGame.size() == 1) {
-                        handleGameOver(positionsStillInGame);
-                    }
-                    do {
-                        if (playerIndex >= 5) {
-                            if (bettingRound < 3) {
-                                bettingRound++;
-                                playerIndex = 0;
-                            } else {
-                                handleGameOver(positionsStillInGame);
-                                return;
-                            }
-                        } else {
-                            playerIndex++;
-                        }
-                    } while (!positionsStillInGame.contains(BETTING_ORDER_PER_ROUND[bettingRound][playerIndex]));
-                }
-            } else {
-                assert false : "We took a wrong action at some point";
-            }
-        }
-        return;
+    // Call/ Check -> Player pays raise amount, if no one has raised before him, he pays 0
+    // Exceptions -> if he doesnt have enough money that puts him all in
+    // Comment -> Check and Call are viewed as the same
+
+    // Raise/Bet -> Player raises some amount
+    // Rules -> Player actually has enough money to raise that amount
+    // Rules -> If he reraises someone he has to raise at least the double amount -> research this rule, not sure about this
+    // Rules -> Player has to raise at least the big blind
+    // Rules -> if the player raises with all his money that puts him all in and for the rest of the game he has no decision to make
+    // Comment -> Raise and Bet are viewed as the same
+
+    private void handleRaise(double amount) {
+        nextPlayer.pay(amount);
+        actionsSinceLastRaise = 0;
+        // TODO If he reraises someone he has to raise at least the double amount -> research this rule, not sure about this
+        // TODO check if player is all in
+        // TODO Player has to raise at least the big blind
+    }
+
+    private void handleCall() {
+        // find biggest investment of all players
+        // pay the difference between biggest investment and your investment
+        // TODO check if player is all in
+        double max = players().stream()
+                .map(Player::investment)
+                .max(Double::compareTo)
+                .orElse(0.0);
+        double hasToPay = max - nextPlayer.investment();
+        nextPlayer.pay(hasToPay);
+    }
+
+    private void handleFold() {
+        nextPlayer.fold();
+    }
+
+    private List<Player> players() {
+        return Arrays.asList(
+                smallBlind(),
+                bigBlind(),
+                loJack(),
+                hiJack(),
+                cutOff(),
+                button()
+        );
     }
 
     public Player smallBlind() {
@@ -169,6 +240,14 @@ public class Game {
 
     public void fold(Player.Position position) {
         action(Action.fold(position));
+    }
+
+    public void raise(Player.Position position, double amount) {
+        action(Action.raise(position, amount));
+    }
+
+    public void call(Player.Position position) {
+        action(Action.call(position));
     }
 
     public static class Factory {
@@ -232,5 +311,12 @@ public class Game {
         public Game build() {
             return game;
         }
+    }
+
+    private enum BettingRound {
+        PRE_FLOP,
+        POST_FLOP,
+        TURN,
+        RIVER
     }
 }

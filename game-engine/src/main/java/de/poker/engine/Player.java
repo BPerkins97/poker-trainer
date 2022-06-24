@@ -4,6 +4,8 @@ public class Player {
     private double stack;
     private final HoleCards holeCards;
     private final Position position;
+    private double investment = 0;
+    private boolean hasFolded = false;
 
     public Player(double startingStack, HoleCards holeCards, Position position) {
         this.stack = startingStack;
@@ -39,12 +41,17 @@ public class Player {
         return new Player(startingStack, HoleCards.of(card1, card2), position);
     }
 
+    public double investment() {
+        return investment;
+    }
+
     public void win(double amount) {
         stack += amount;
     }
 
     public void pay(double amount) {
         stack -= amount;
+        investment += amount;
     }
 
     public Position position() {
@@ -57,6 +64,14 @@ public class Player {
 
     public HoleCards holeCards() {
         return holeCards;
+    }
+
+    public void fold() {
+        hasFolded = true;
+    }
+
+    public boolean hasFolded() {
+        return hasFolded;
     }
 
     public static enum Position {

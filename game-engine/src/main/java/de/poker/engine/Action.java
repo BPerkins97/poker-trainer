@@ -19,6 +19,14 @@ public class Action {
         return new Action(Type.FOLD, position);
     }
 
+    public static Action raise(Player.Position position, double amount) {
+        return new Action(Type.RAISE, position, amount);
+    }
+
+    public static Action call(Player.Position position) {
+        return new Action(Type.CALL, position);
+    }
+
     public Player.Position position() {
         return position;
     }
@@ -27,11 +35,15 @@ public class Action {
         return type;
     }
 
+    public double amount() {return amount;}
+
     public static Action check(Player.Position position) {
         return new Action(Type.CHECK, position);
     }
 
     public static enum Type {
+        CALL,
+        RAISE,
         FOLD,
         CHECK
     }
