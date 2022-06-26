@@ -7,7 +7,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 // TODO all in test
 // TODO caller must go all in test
-// TODO everyone is all in test
 // TODO test reraise
 // TODO test error raise then someone checks
 // TODO test that when a player with a smaller stack goes all in and wins he only gets sidepot
@@ -41,6 +40,42 @@ public class GameTest {
         Assertions.assertEquals(0, game.hiJack().stack());
         Assertions.assertEquals(0, game.smallBlind().stack());
         Assertions.assertEquals(0, game.bigBlind().stack());
+    }
+
+    @Test
+    public void givenARaise_WhenSomeoneReraises_ThenEverythingWorksAsExpected() {
+        Game game = Game.Factory.newGame()
+                .startingStacks(100)
+                .smallBlind("9d", "5h")
+                .bigBlind("9h", "Qd")
+                .loJack("6h", "Kd")
+                .hiJack("Ah", "As")
+                .cutOff("Kc", "Qc")
+                .button("Ac", "2s")
+                .flop("Qc", "Tc", "3c")
+                .turn("5c")
+                .river("5s")
+                .build();
+
+        // Preflop
+        game.fold(Player.Position.LO_JACK);
+        game.fold(Player.Position.HI_JACK);
+        game.fold(Player.Position.CUT_OFF);
+        game.call(Player.Position.BUTTON);
+        game.call(Player.Position.SMALL_BLIND);
+        game.fold(Player.Position.BIG_BLIND);
+
+        // Postflop
+        game.raise(Player.Position.SMALL_BLIND, 50);
+        game.raise(Player.Position.BUTTON, 98);
+        game.call(Player.Position.SMALL_BLIND);
+
+        Assertions.assertEquals(200, game.button().stack());
+        Assertions.assertEquals(100, game.cutOff().stack());
+        Assertions.assertEquals(100, game.loJack().stack());
+        Assertions.assertEquals(100, game.hiJack().stack());
+        Assertions.assertEquals(0, game.smallBlind().stack());
+        Assertions.assertEquals(98, game.bigBlind().stack());
     }
 
     @Test

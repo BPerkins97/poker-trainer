@@ -5,6 +5,7 @@
 	<packaging>pom</packaging>
 	<modules>
 		<module>game-engine</module>
+        <module>solver</module>
     </modules>
 	<parent>
 		<groupId>org.springframework.boot</groupId>
