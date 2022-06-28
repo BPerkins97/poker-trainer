@@ -249,10 +249,22 @@ public class GameState {
 
         if (!investementsDiffer && isEndOfBettingRound) {
             switch (bettingRound) {
-                case PRE_FLOP: nextBettingRound(POST_FLOP);
-                case POST_FLOP: nextBettingRound(TURN);
-                case TURN: nextBettingRound(RIVER);
-                case RIVER: isGameOverByShowdown = true;
+                case PRE_FLOP: {
+                    nextBettingRound(POST_FLOP);
+                    break;
+                }
+                case POST_FLOP: {
+                    nextBettingRound(TURN);
+                    break;
+                }
+                case TURN: {
+                    nextBettingRound(RIVER);
+                    break;
+                }
+                case RIVER: {
+                    isGameOverByShowdown = true;
+                    break;
+                }
             }
         } else {
             int nextPlayerIndex = currentPlayerIndex;
