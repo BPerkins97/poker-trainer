@@ -1,15 +1,15 @@
 package de.poker.solver.tree;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import de.poker.solver.cfr.Card;
+
+import java.util.*;
 
 public class GameConfiguration {
     public double smallBlind;
     public double bigBlind;
     public Map<BettingRound, List<Double>> raiseAmountsPerRound = new HashMap<>();
     public Map<Position, Double> stacks = new HashMap<>();
+    public List<Card> cards = new ArrayList<>(17);
 
     public static GameConfiguration defaultConfig() {
         GameConfiguration config = new GameConfiguration();
@@ -26,5 +26,10 @@ public class GameConfiguration {
         config.smallBlind = 0.5;
         config.bigBlind = 1;
         return config;
+    }
+
+    public GameConfiguration withCards(List<Card> cards) {
+        this.cards = cards;
+        return this;
     }
 }

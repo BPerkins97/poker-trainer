@@ -1,15 +1,36 @@
 package de.poker.solver.cfr;
 
+import de.poker.solver.tree.GameConfiguration;
 import de.poker.solver.tree.Position;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 public class Solver {
-    private NodeDAO nodeDAO;
+    private NodeDAO nodeDAO = new InMemoryNodeDAO();
 
+    public static void main(String[] args) {
+        List<Card> cards = count17Cards();
+        GameConfiguration gameConfiguration = GameConfiguration.defaultConfig().withCards(cards);
+        GameState gameState = new GameState(gameConfiguration);
+        Solver solver = new Solver();
+        Map<Position, Double> cfr = solver.cfr(gameState);
+        System.out.println(cfr);
+    }
+
+    private static List<Card> count17Cards() {
+        List<Card> cards = new ArrayList<>(17);
+        int cardCounter = 0;
+        for (Card.Suit suit : Card.Suit.values()) {
+            for (Card.Value value : Card.Value.values()) {
+                cards.add(new Card(value, suit));
+                cardCounter++;
+                if (cardCounter == 17) {
+                    return cards;
+                }
+            }
+        }
+        return Collections.emptyList();
+    }
 
     public Map<Position, Double> cfr(GameState gameState) {
         if (gameState.isGameOver()) {
@@ -43,6 +64,7 @@ public class Solver {
         for (Action action : actions) {
             node.addRegret(action, actionUtility.get(action) - utilitySums.get(gameState.currentPlayer()));
         }
+        nodeDAO.persist(infoSet, node);
         return utilitySums;
     }
 }

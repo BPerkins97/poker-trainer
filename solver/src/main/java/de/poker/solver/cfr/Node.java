@@ -3,6 +3,7 @@ package de.poker.solver.cfr;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 public class Node {
     private Map<Action, Double> regretSum = new HashMap<>();
@@ -22,7 +23,8 @@ public class Node {
     public Map<Action, Double> getStrategy(List<Action> actions) {
         double normalizingSum = 0;
         for (Action a : actions) {
-            strategy.put(a, Math.max(regretSum.get(a), 0));
+            double max = Math.max(Objects.isNull(regretSum.get(a)) ? 0 : regretSum.get(a), 0);
+            strategy.put(a, max);
             normalizingSum += strategy.get(a);
         }
 
