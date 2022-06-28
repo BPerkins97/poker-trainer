@@ -1,4 +1,4 @@
-package de.poker.solver;
+package de.poker.solver.tree;
 
 public enum Position {
     SMALL_BLIND,

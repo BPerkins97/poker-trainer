@@ -1,4 +1,4 @@
-package de.poker.solver;
+package de.poker.solver.tree;
 
 public class Player {
     public double stack = 0;

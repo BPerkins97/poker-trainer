@@ -1,4 +1,4 @@
-package de.poker.solver;
+package de.poker.solver.tree;
 
 import java.util.Collections;
 import java.util.HashMap;
