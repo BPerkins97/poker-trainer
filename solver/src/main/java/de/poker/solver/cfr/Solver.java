@@ -4,17 +4,47 @@ import de.poker.solver.tree.GameConfiguration;
 import de.poker.solver.tree.Position;
 
 import java.util.*;
+import java.util.concurrent.ThreadLocalRandom;
 
 public class Solver {
     private NodeDAO nodeDAO = new InMemoryNodeDAO();
 
     public static void main(String[] args) {
-        List<Card> cards = count17Cards();
-        GameConfiguration gameConfiguration = GameConfiguration.defaultConfig().withCards(cards);
-        GameState gameState = new GameState(gameConfiguration);
-        Solver solver = new Solver();
-        Map<Position, Double> cfr = solver.cfr(gameState);
-        System.out.println(cfr);
+        int iterations = 3;
+        Map<Position, Double> values = new HashMap<>();
+        List<List<Card>> cards = buildDecks(17, iterations);
+        for (int i=0;i<iterations;i++) {
+            GameConfiguration gameConfiguration = GameConfiguration.defaultConfig().withCards(cards.get(i));
+            GameState gameState = new GameState(gameConfiguration);
+            Solver solver = new Solver();
+            Map<Position, Double> cfr = solver.cfr(gameState);
+            for (Map.Entry<Position, Double> e : cfr.entrySet()) {
+                if (!values.containsKey(e.getKey())) {
+                    values.put(e.getKey(), 0.0);
+                }
+                values.put(e.getKey(), values.get(e.getKey()) + e.getValue());
+            }
+        }
+        System.out.println(values);
+    }
+
+    private static List<List<Card>> buildDecks(int numOfCards, int numDecks) {
+        List<List<Card>> result = new ArrayList<>(numDecks);
+
+        for (int i=0;i<numDecks;i++) {
+            List<Card> cards = new ArrayList<>(numOfCards);
+            for (int j=0;j<numOfCards;j++) {
+
+                Card card;
+                do {
+                    int nextCard = ThreadLocalRandom.current().nextInt(4, 56);
+                    card = Card.of(nextCard);
+                } while(cards.contains(card));
+                cards.add(card);
+            }
+            result.add(cards);
+        }
+        return result;
     }
 
     private static List<Card> count17Cards() {

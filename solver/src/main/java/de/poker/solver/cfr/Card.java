@@ -33,6 +33,12 @@ public class Card implements Comparable<Card> {
         return new Card(value, suit);
     }
 
+    public static Card of(int card) {
+        Value value = Value.of(card / 4);
+        Suit suit = Suit.of(card % 4);
+        return new Card(value, suit);
+    }
+
     @Override
     public String toString() {
         return new StringBuilder()
@@ -91,6 +97,15 @@ public class Card implements Comparable<Card> {
             assert false : "Illegal value " + symbol;
             throw new IllegalArgumentException("Illegal value " + symbol);
         }
+        public static Value of(int value) {
+            for (Value v : Value.values()) {
+                if (v.value == value) {
+                    return v;
+                }
+            }
+            assert false : "Illegal value " + value;
+            throw new IllegalArgumentException("Illegal value " + value);
+        }
 
         public int value() {
             return value;
@@ -115,6 +130,16 @@ public class Card implements Comparable<Card> {
         Suit(int value, char symbol) {
             this.value = value;
             this.symbol = symbol;
+        }
+
+        public static Suit of(int value) {
+            for (Suit suit : Suit.values()) {
+                if (suit.value == value) {
+                    return suit;
+                }
+            }
+            assert false : "Illegal suit " + value;
+            throw new IllegalArgumentException("Illegal suit " + value);
         }
 
         public static Suit parse(char symbol) {
