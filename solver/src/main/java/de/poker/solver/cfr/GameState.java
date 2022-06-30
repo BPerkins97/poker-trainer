@@ -32,6 +32,7 @@ public class GameState {
     private GameConfiguration configuration = GameConfiguration.defaultConfig();
     private boolean isGameOverByAllFolded = false;
     private boolean isGameOverByShowdown = false;
+    private List<Position> playersStillInGame;
 
     public GameState(GameConfiguration configuration) {
         this.configuration = configuration;
@@ -52,6 +53,7 @@ public class GameState {
         flop = Flop.of(configuration.cards.get(cardCounter), configuration.cards.get(cardCounter+1), configuration.cards.get(cardCounter+2));
         turn = configuration.cards.get(cardCounter+3);
         river = configuration.cards.get(cardCounter+4);
+        playersStillInGame = new ArrayList<>(players.keySet());
         determineNextPlayer();
     }
     public GameState(GameState gameState) {
@@ -65,7 +67,7 @@ public class GameState {
         this.flop = gameState.flop;
         this.turn = gameState.turn;
         this.river = gameState.river;
-
+        this.playersStillInGame = gameState.playersStillInGame;
     }
 
     public String toInfoSetFor(Position position) {
@@ -126,7 +128,6 @@ public class GameState {
     }
 
     public Map<Position, Double> handleGameOver() {
-        List<Position> playersStillInGame = getPlayersStillInGame();
         Map<Position, Double> winnings = new HashMap<>();
         players.forEach((key, value) -> winnings.put(key, -value.investment()));
 
@@ -221,9 +222,6 @@ public class GameState {
     private void determineNextPlayer() {
         actionsSinceLastRaise++;
 
-        // TODO we could cache this value in order to improve performance
-        List<Position> playersStillInGame = getPlayersStillInGame();
-
         boolean isEndOfBettingRound = actionsSinceLastRaise >= playersStillInGame.size();
 
         if (playersStillInGame.size() == 1) {
@@ -274,14 +272,6 @@ public class GameState {
         }
     }
 
-    private List<Position> getPlayersStillInGame() {
-        List<Position> playersStillInGame = players.entrySet().stream()
-                .filter(player -> !player.getValue().hasFolded())
-                .map(Map.Entry::getKey)
-                .toList();
-        return playersStillInGame;
-    }
-
     private void nextBettingRound(BettingRound nextBettingRound) {
         bettingRound = nextBettingRound;
         actionsSinceLastRaise = 0;
@@ -313,6 +303,8 @@ public class GameState {
     }
 
     private void fold() {
+        playersStillInGame = new ArrayList<>(playersStillInGame);
+        playersStillInGame.remove(currentPlayer);
         players.get(currentPlayer).fold();
     }
 }
