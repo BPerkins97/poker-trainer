@@ -2,6 +2,7 @@ package de.poker.solver.cfr;
 
 import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.stream.Collectors;
 
 public class Solver {
     private NodeDAO nodeDAO = new InMemoryNodeDAO();
@@ -23,6 +24,12 @@ public class Solver {
                 values.put(e.getKey(), values.get(e.getKey()) + (e.getValue() / iterations));
             }
         }
+        List<String> all = solver.nodeDAO.findInfoSets()
+                .stream().filter(infoset -> infoset.length() < 5 || infoset.substring(5).startsWith("Action")).toList();
+        List<Map.Entry<String, Node>> sorted = solver.nodeDAO.findAll()
+                .entrySet().stream()
+                .sorted(Comparator.comparing(entry -> entry.getKey().length()))
+                .toList();
         System.out.println(solver.counter);
         System.out.println(values);
     }
@@ -44,21 +51,6 @@ public class Solver {
             result.add(cards);
         }
         return result;
-    }
-
-    private static List<Card> count17Cards() {
-        List<Card> cards = new ArrayList<>(17);
-        int cardCounter = 0;
-        for (Card.Suit suit : Card.Suit.values()) {
-            for (Card.Value value : Card.Value.values()) {
-                cards.add(new Card(value, suit));
-                cardCounter++;
-                if (cardCounter == 17) {
-                    return cards;
-                }
-            }
-        }
-        return Collections.emptyList();
     }
 
     public Map<Position, Double> cfr(GameState gameState) {

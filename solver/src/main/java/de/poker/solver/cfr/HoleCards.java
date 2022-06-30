@@ -25,6 +25,37 @@ public record HoleCards(Card card1, Card card2) {
         return card1.forInfoSet() + card2.forInfoSet();
     }
 
+    public void appendReducedInfoSet(StringBuilder stringBuilder) {
+        if (card1.suit().equals(card2.suit())) {
+            if (card1.value().compareTo(card2.value()) == ComparisonConstants.X_GREATER_THAN_Y) {
+                stringBuilder
+                        .append(card1.value())
+                        .append(card2.value());
+            } else {
+                stringBuilder
+                        .append(card2.value())
+                        .append(card1.value());
+            }
+            stringBuilder.append('s');
+        } else if (card1.value().equals(card2.value())) {
+            String value = card1.value().toString();
+            stringBuilder.append(value)
+                    .append(value)
+                    .append('p');
+        } else {
+            if (card1.value().compareTo(card2.value()) == ComparisonConstants.X_GREATER_THAN_Y) {
+                stringBuilder
+                        .append(card1.value())
+                        .append(card2.value());
+            } else {
+                stringBuilder
+                        .append(card2.value())
+                        .append(card1.value());
+            }
+            stringBuilder.append('o');
+        }
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

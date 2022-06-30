@@ -81,10 +81,15 @@ public class GameState {
                     case BUTTON -> "6";
                 }
         );
+
+        // TODO order by round. Because river is the last round it will be always called least often. Therefore we can increase performance by calling postflop first
+        // TODO Refactor these asInfoSet Methods to accept a StringBuilder and use that one to reduce String creation overhead
         Player player = players.get(position);
-        infoSetBuilder.append(player.holeCards().asInfoSet());
-        if (bettingRound.equals(RIVER)) {
+        if (bettingRound.equals(PRE_FLOP)) {
+            player.holeCards().appendReducedInfoSet(infoSetBuilder);
+        } else if (bettingRound.equals(RIVER)) {
             infoSetBuilder
+                    .append(player.holeCards().asInfoSet())
                     .append(flop.card1().forInfoSet())
                     .append(flop.card2().forInfoSet())
                     .append(flop.card3().forInfoSet())
@@ -92,16 +97,19 @@ public class GameState {
                     .append(river.forInfoSet());
         } else if (bettingRound.equals(TURN)) {
             infoSetBuilder
+                    .append(player.holeCards().asInfoSet())
                     .append(flop.card1().forInfoSet())
                     .append(flop.card2().forInfoSet())
                     .append(flop.card3().forInfoSet())
                     .append(turn.forInfoSet());
         } else if(bettingRound.equals(POST_FLOP)) {
             infoSetBuilder
+                    .append(player.holeCards().asInfoSet())
                     .append(flop.card1().forInfoSet())
                     .append(flop.card2().forInfoSet())
                     .append(flop.card3().forInfoSet());
         }
+        // TODO action to string
         Iterator<Action> iterator = actions.iterator();
         while (iterator.hasNext()) {
             infoSetBuilder.append(iterator.next().toString());
