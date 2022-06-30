@@ -49,7 +49,7 @@ public class GameState {
             players.put(stack.getKey(), player);
             cardCounter += 2;
         }
-        flop = new Flop(configuration.cards.get(cardCounter), configuration.cards.get(cardCounter+1), configuration.cards.get(cardCounter+2));
+        flop = Flop.of(configuration.cards.get(cardCounter), configuration.cards.get(cardCounter+1), configuration.cards.get(cardCounter+2));
         turn = configuration.cards.get(cardCounter+3);
         river = configuration.cards.get(cardCounter+4);
         determineNextPlayer();
