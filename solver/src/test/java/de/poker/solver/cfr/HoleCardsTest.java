@@ -8,7 +8,7 @@ public class HoleCardsTest {
 
     @ParameterizedTest
     @CsvSource({
-            "Ah,As,A",
+            "Ah,As,AAp",
             "Qs,Js,QJs",
             "Qs,Jh,QJo",
             "Js,Qs,QJs",
@@ -19,5 +19,17 @@ public class HoleCardsTest {
         StringBuilder sb = new StringBuilder();
         of.appendReducedInfoSet(sb);
         Assertions.assertEquals(result, sb.toString());
+    }
+
+    @ParameterizedTest
+    @CsvSource({
+            "Ah,Qs,Ah,Qs",
+            "Qs,Ah,Ah,Qs",
+    })
+    public void testHoleCardsOrdering(String card1, String card2, String shouldBeCard1, String shouldBeCard2) {
+        HoleCards of = HoleCards.of(card1, card2);
+
+        Assertions.assertEquals(Card.of(shouldBeCard1), of.card1());
+        Assertions.assertEquals(Card.of(shouldBeCard2), of.card2());
     }
 }

@@ -18,15 +18,15 @@ public class PerformanceTest {
     public static void main(String[] args) throws RunnerException {
         Options opt = new OptionsBuilder()
                 .include(PerformanceTest.class.getSimpleName())
-                .addProfiler(StackProfiler.class)
+//                .addProfiler(StackProfiler.class)
                     //.addProfiler(GCProfiler.class)
                 .build();
         new Runner(opt).run();
     }
 
     // Benchmark with 1 second warmup and measurement time
-//      Benchmark                    Mode  Cnt   Score   Error  Units
-//      PerformanceTest.solverTest  thrpt   25  12,366 ± 0,574  ops/s
+    //Benchmark                    Mode  Cnt   Score   Error  Units
+    //PerformanceTest.solverTest  thrpt   25  14,825 ± 0,383  ops/s
 
     @Benchmark
     @Warmup(time = 1)

@@ -2,6 +2,7 @@ package de.poker.solver.cfr;
 
 import java.util.Objects;
 
+// TODO convert this double from amount to integer. Actually do this for all the stacks
 public class Action {
     private static final char RAISE_SYMBOL = 'r';
     private static final char CALL_SYMBOL = 'c';
@@ -42,11 +43,10 @@ public class Action {
         return Objects.hash(type, amount);
     }
 
-    @Override
-    public String toString() {
-        return "Action{" +
-                "type=" + type +
-                ", amount=" + amount +
-                '}';
+    public void appendInfoSet(StringBuilder actionInfoSetBuilder) {
+        actionInfoSetBuilder.append(type);
+        if  (type == RAISE_SYMBOL) {
+            actionInfoSetBuilder.append(amount);
+        }
     }
 }

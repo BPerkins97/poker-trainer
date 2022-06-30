@@ -21,10 +21,6 @@ public record HoleCards(Card card1, Card card2) {
         return Arrays.asList(card1, card2);
     }
 
-    public String asInfoSet() {
-        return card1.forInfoSet() + card2.forInfoSet();
-    }
-
     public void appendReducedInfoSet(StringBuilder stringBuilder) {
         if (card1.suit().equals(card2.suit())) {
             if (card1.value().compareTo(card2.value()) == ComparisonConstants.X_GREATER_THAN_Y) {
@@ -69,11 +65,7 @@ public record HoleCards(Card card1, Card card2) {
         return Objects.hash(card1, card2);
     }
 
-    @Override
-    public String toString() {
-        return new StringBuilder()
-                .append(card1)
-                .append(card2)
-                .toString();
+    public void appendInfoSet(StringBuilder infoSetBuilder) {
+        card1.appendInfoSet(infoSetBuilder);
     }
 }

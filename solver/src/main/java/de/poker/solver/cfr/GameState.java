@@ -29,6 +29,7 @@ public class GameState {
     private BettingRound bettingRound;
     private Position currentPlayer;
     private int actionsSinceLastRaise = 0;
+    private StringBuilder communityCardsBuilder = new StringBuilder();
     private StringBuilder actionInfoSetBuilder = new StringBuilder();
     private GameConfiguration configuration = GameConfiguration.defaultConfig();
     private boolean isGameOverByAllFolded = false;
@@ -72,45 +73,24 @@ public class GameState {
     }
 
     public String toInfoSetFor(Position position) {
-        // TODO when we are in pre flop phase, then only print cards out like 98o, 65s, etc.
         StringBuilder infoSetBuilder = new StringBuilder();
         infoSetBuilder.append(
                 switch (position) {
-                    case SMALL_BLIND -> "1";
-                    case BIG_BLIND -> "2";
-                    case LO_JACK -> "3";
-                    case HI_JACK -> "4";
-                    case CUT_OFF -> "5";
-                    case BUTTON -> "6";
+                    case SMALL_BLIND -> '1';
+                    case BIG_BLIND -> '2';
+                    case LO_JACK -> '3';
+                    case HI_JACK -> '4';
+                    case CUT_OFF -> '5';
+                    case BUTTON -> '6';
                 }
         );
 
-        // TODO order by round. Because river is the last round it will be always called least often. Therefore we can increase performance by calling postflop first
-        // TODO Refactor these asInfoSet Methods to accept a StringBuilder and use that one to reduce String creation overhead
         Player player = players.get(position);
         if (bettingRound.equals(PRE_FLOP)) {
             player.holeCards().appendReducedInfoSet(infoSetBuilder);
-        } else if (bettingRound.equals(RIVER)) {
-            infoSetBuilder
-                    .append(player.holeCards().asInfoSet())
-                    .append(flop.card1().forInfoSet())
-                    .append(flop.card2().forInfoSet())
-                    .append(flop.card3().forInfoSet())
-                    .append(turn.forInfoSet())
-                    .append(river.forInfoSet());
-        } else if (bettingRound.equals(TURN)) {
-            infoSetBuilder
-                    .append(player.holeCards().asInfoSet())
-                    .append(flop.card1().forInfoSet())
-                    .append(flop.card2().forInfoSet())
-                    .append(flop.card3().forInfoSet())
-                    .append(turn.forInfoSet());
-        } else if(bettingRound.equals(POST_FLOP)) {
-            infoSetBuilder
-                    .append(player.holeCards().asInfoSet())
-                    .append(flop.card1().forInfoSet())
-                    .append(flop.card2().forInfoSet())
-                    .append(flop.card3().forInfoSet());
+        } else  {
+            player.holeCards().appendInfoSet(infoSetBuilder);
+            infoSetBuilder.append(communityCardsBuilder);
         }
         // TODO action to string
         infoSetBuilder.append(actionInfoSetBuilder.toString());
@@ -178,7 +158,6 @@ public class GameState {
         return winnings;
     }
 
-    // Annahme: Diese Funkion wird nur gecalled, wenn eine Action auch legal wäre
     public List<Action> nextActions() {
         List<Action> result = new ArrayList<>();
 
@@ -218,7 +197,7 @@ public class GameState {
         } else {
             next.raise(action.amount);
         }
-        actionInfoSetBuilder.append(action);
+        action.appendInfoSet(actionInfoSetBuilder);
         next.determineNextPlayer();
         return next;
     }
@@ -251,14 +230,19 @@ public class GameState {
             switch (bettingRound) {
                 case PRE_FLOP: {
                     nextBettingRound(POST_FLOP);
+                    flop.card1().appendInfoSet(communityCardsBuilder);
+                    flop.card2().appendInfoSet(communityCardsBuilder);
+                    flop.card3().appendInfoSet(communityCardsBuilder);
                     break;
                 }
                 case POST_FLOP: {
                     nextBettingRound(TURN);
+                    turn.appendInfoSet(communityCardsBuilder);
                     break;
                 }
                 case TURN: {
                     nextBettingRound(RIVER);
+                    river.appendInfoSet(communityCardsBuilder);
                     break;
                 }
                 case RIVER: {

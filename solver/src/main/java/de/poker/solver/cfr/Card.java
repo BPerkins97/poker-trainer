@@ -20,10 +20,6 @@ public class Card implements Comparable<Card> {
         return suit;
     }
 
-    public String forInfoSet() {
-        return value.toString() + suit.toString();
-    }
-
     public static Card of(String card) {
         assert card != null : "You can not instantiate a card from a null value";
         assert card.length() == 2 : "The value you provided can not be a valid card: " + card;
@@ -63,6 +59,11 @@ public class Card implements Comparable<Card> {
     @Override
     public int compareTo(Card card1) {
         return Integer.compare(this.card, card1.card);
+    }
+
+    public void appendInfoSet(StringBuilder infoSetBuilder) {
+        value.appendInfoSet(infoSetBuilder);
+        suit.appendInfoSet(infoSetBuilder);
     }
 
     public enum Value {
@@ -105,6 +106,10 @@ public class Card implements Comparable<Card> {
             }
             assert false : "Illegal value " + value;
             throw new IllegalArgumentException("Illegal value " + value);
+        }
+
+        public void appendInfoSet(StringBuilder stringBuilder) {
+            stringBuilder.append(symbol);
         }
 
         public int value() {
@@ -150,6 +155,10 @@ public class Card implements Comparable<Card> {
             }
             assert false : "Illegal suit " + symbol;
             throw new IllegalArgumentException("Illegal suit " + symbol);
+        }
+
+        public void appendInfoSet(StringBuilder stringBuilder) {
+            stringBuilder.append(symbol);
         }
 
         @Override
