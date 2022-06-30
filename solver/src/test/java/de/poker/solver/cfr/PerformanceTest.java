@@ -26,7 +26,7 @@ public class PerformanceTest {
 
     // Benchmark with 1 second warmup and measurement time
 //      Benchmark                    Mode  Cnt   Score   Error  Units
-//      PerformanceTest.solverTest  thrpt   25  10,140 ± 0,430  ops/s
+//      PerformanceTest.solverTest  thrpt   25  12,366 ± 0,574  ops/s
 
     @Benchmark
     @Warmup(time = 1)

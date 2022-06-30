@@ -29,7 +29,7 @@ public class GameState {
     private BettingRound bettingRound;
     private Position currentPlayer;
     private int actionsSinceLastRaise = 0;
-    private LinkedList<Action> actions = new LinkedList<>();
+    private StringBuilder actionInfoSetBuilder = new StringBuilder();
     private GameConfiguration configuration = GameConfiguration.defaultConfig();
     private boolean isGameOverByAllFolded = false;
     private boolean isGameOverByShowdown = false;
@@ -64,7 +64,7 @@ public class GameState {
         this.bettingRound = gameState.bettingRound;
         gameState.players.forEach((key, value) -> this.players.put(key, new Player(value)));
         this.actionsSinceLastRaise = gameState.actionsSinceLastRaise;
-        this.actions = (LinkedList<Action>) gameState.actions.clone();
+        this.actionInfoSetBuilder = new StringBuilder(gameState.actionInfoSetBuilder);
         this.flop = gameState.flop;
         this.turn = gameState.turn;
         this.river = gameState.river;
@@ -113,10 +113,7 @@ public class GameState {
                     .append(flop.card3().forInfoSet());
         }
         // TODO action to string
-        Iterator<Action> iterator = actions.iterator();
-        while (iterator.hasNext()) {
-            infoSetBuilder.append(iterator.next().toString());
-        }
+        infoSetBuilder.append(actionInfoSetBuilder.toString());
         return infoSetBuilder.toString();
     }
 
@@ -221,7 +218,7 @@ public class GameState {
         } else {
             next.raise(action.amount);
         }
-        next.actions.add(action);
+        actionInfoSetBuilder.append(action);
         next.determineNextPlayer();
         return next;
     }
