@@ -1,30 +1,29 @@
 package de.poker.solver.cfr;
 
-import de.poker.solver.tree.GameConfiguration;
-import de.poker.solver.tree.Position;
-
 import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
 
 public class Solver {
     private NodeDAO nodeDAO = new InMemoryNodeDAO();
+    private int counter = 0;
 
     public static void main(String[] args) {
-        int iterations = 3;
+        int iterations = 100;
         Map<Position, Double> values = new HashMap<>();
         List<List<Card>> cards = buildDecks(17, iterations);
+        Solver solver = new Solver();
         for (int i=0;i<iterations;i++) {
             GameConfiguration gameConfiguration = GameConfiguration.defaultConfig().withCards(cards.get(i));
             GameState gameState = new GameState(gameConfiguration);
-            Solver solver = new Solver();
             Map<Position, Double> cfr = solver.cfr(gameState);
             for (Map.Entry<Position, Double> e : cfr.entrySet()) {
                 if (!values.containsKey(e.getKey())) {
                     values.put(e.getKey(), 0.0);
                 }
-                values.put(e.getKey(), values.get(e.getKey()) + e.getValue());
+                values.put(e.getKey(), values.get(e.getKey()) + (e.getValue() / iterations));
             }
         }
+        System.out.println(solver.counter);
         System.out.println(values);
     }
 
@@ -63,6 +62,7 @@ public class Solver {
     }
 
     public Map<Position, Double> cfr(GameState gameState) {
+        counter++;
         if (gameState.isGameOver()) {
             return gameState.handleGameOver();
         }

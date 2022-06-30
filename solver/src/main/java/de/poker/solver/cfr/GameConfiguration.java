@@ -1,6 +1,4 @@
-package de.poker.solver.tree;
-
-import de.poker.solver.cfr.Card;
+package de.poker.solver.cfr;
 
 import java.util.*;
 

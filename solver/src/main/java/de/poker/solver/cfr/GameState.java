@@ -1,15 +1,12 @@
 package de.poker.solver.cfr;
 
-import de.poker.solver.tree.BettingRound;
-import de.poker.solver.tree.GameConfiguration;
-import de.poker.solver.tree.KeyValue;
-import de.poker.solver.tree.Position;
 import de.poker.solver.utility.ComparisonConstants;
+import de.poker.solver.utility.KeyValue;
 
 import java.util.*;
 
-import static de.poker.solver.tree.BettingRound.*;
-import static de.poker.solver.tree.Position.*;
+import static de.poker.solver.cfr.BettingRound.*;
+import static de.poker.solver.cfr.Position.*;
 
 public class GameState {
     private static final Map<BettingRound, List<Position>> BETTING_ORDER_PER_ROUND;

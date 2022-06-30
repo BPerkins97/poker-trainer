@@ -1,4 +1,4 @@
-package de.poker.solver.tree;
+package de.poker.solver.cfr;
 
 public enum BettingRound {
     PRE_FLOP,
