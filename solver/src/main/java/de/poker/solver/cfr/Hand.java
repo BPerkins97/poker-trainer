@@ -55,15 +55,45 @@ public class Hand implements Comparable<Hand> {
 
         cards.sort(Collections.reverseOrder());
 
-        List<List<Card>> flushCards = cards.stream()
-                .collect(Collectors.groupingBy(Card::suit))
-                .values().stream()
-                .filter(list -> list.size() >= 5)
-                .toList();
+        int clubCount = 0;
+        int heartCount = 0;
+        int spadeCount = 0;
+        int diamondCount = 0;
+        for (int i=0;i<7;i++) {
+            switch (cards.get(i).suit()) {
+                case CLUB:
+                    clubCount++;
+                    break;
+                case HEART:
+                    heartCount++;
+                    break;
+                case SPADES:
+                    spadeCount++;
+                    break;
+                case DIAMOND:
+                    diamondCount++;
+                    break;
+            }
+        }
+        boolean isFlush = clubCount >= 5 || heartCount >= 5 || spadeCount >= 5 || diamondCount >= 5;
 
-        if (!flushCards.isEmpty()) {
+
+        if (isFlush) {
+            Card.Suit flushSuit;
+            if (clubCount >= 5) {
+                flushSuit = Card.Suit.CLUB;
+            } else if (heartCount >= 5) {
+                flushSuit = Card.Suit.HEART;
+            } else if (spadeCount >= 5) {
+                flushSuit = Card.Suit.SPADES;
+            } else {
+                flushSuit = Card.Suit.DIAMOND;
+            }
+            List<Card> flushCards = cards.stream()
+                    .filter(card -> card.suit().equals(flushSuit))
+                    .toList();
             List<Card> straightFlush = findStraight(
-                    flushCards.get(0).stream()
+                    flushCards.stream()
                             .collect(Collectors.groupingBy(Card::value))
             );
             if (isNotEmpty(straightFlush)) {
@@ -120,8 +150,21 @@ public class Hand implements Comparable<Hand> {
             return new Hand(Rank.FULL_HOUSE, finalHand);
         }
 
-        if (!flushCards.isEmpty()) {
-            List<Card> finalHand = flushCards.get(0).subList(0, 5);
+        if (isFlush) {
+            Card.Suit flushSuit;
+            if (clubCount >= 5) {
+                flushSuit = Card.Suit.CLUB;
+            } else if (heartCount >= 5) {
+                flushSuit = Card.Suit.HEART;
+            } else if (spadeCount >= 5) {
+                flushSuit = Card.Suit.SPADES;
+            } else {
+                flushSuit = Card.Suit.DIAMOND;
+            }
+            List<Card> flushCards = cards.stream()
+                    .filter(card -> card.suit().equals(flushSuit))
+                    .collect(Collectors.toList());
+            List<Card> finalHand = flushCards.subList(0, 5);
             finalHand.sort(Collections.reverseOrder());
             return new Hand(Rank.FLUSH, finalHand);
         }

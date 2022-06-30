@@ -18,7 +18,7 @@ public class PerformanceTest {
     public static void main(String[] args) throws RunnerException {
         Options opt = new OptionsBuilder()
                 .include(PerformanceTest.class.getSimpleName())
-//                .addProfiler(StackProfiler.class)
+              //  .addProfiler(StackProfiler.class)
                     //.addProfiler(GCProfiler.class)
                 .build();
         new Runner(opt).run();
@@ -28,7 +28,7 @@ public class PerformanceTest {
     //Benchmark                    Mode  Cnt   Score   Error  Units
     //PerformanceTest.solverTest  thrpt   25  14,825 ± 0,383  ops/s
 
-    @Benchmark
+    //@Benchmark
     @Warmup(time = 1)
     @Measurement(time = 1)
     public void solverTest(Blackhole blackhole) {
@@ -37,5 +37,18 @@ public class PerformanceTest {
         GameState gameState = new GameState(gameConfiguration);
         Map<Position, Double> cfr = new Solver().cfr(gameState);
         blackhole.consume(cfr);
+    }
+//Benchmark                  Mode  Cnt       Score       Error  Units
+//PerformanceTest.handTest  thrpt   25  338411,826 ± 32154,831  ops/s
+    // PerformanceTest.handTest  thrpt   25  396848,597 ± 4749,007  ops/s -> Map Implementation
+    // PerformanceTest.handTest  thrpt   25  426855,927 ± 5050,528  ops/s -> Raw Implementation
+
+    @Benchmark
+    @Warmup(time = 1)
+    @Measurement(time = 1)
+    public Hand handTest() {
+        List<List<Card>> cards = Solver.buildDecks(7, 1);
+        Hand of = Hand.of(cards.get(0));
+        return of;
     }
 }
