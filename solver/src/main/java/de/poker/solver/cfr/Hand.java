@@ -25,7 +25,7 @@ public class Hand implements Comparable<Hand> {
 
     private final Rank rank;
     private final List<Card> cards;
-    private final long value;
+    final long value;
 
     private Hand(Rank rank, List<Card> cards) {
         this.rank = rank;

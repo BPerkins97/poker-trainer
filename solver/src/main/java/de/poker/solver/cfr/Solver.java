@@ -34,7 +34,7 @@ public class Solver {
         System.out.println(values);
     }
 
-    private static List<List<Card>> buildDecks(int numOfCards, int numDecks) {
+    public static List<List<Card>> buildDecks(int numOfCards, int numDecks) {
         List<List<Card>> result = new ArrayList<>(numDecks);
 
         for (int i=0;i<numDecks;i++) {

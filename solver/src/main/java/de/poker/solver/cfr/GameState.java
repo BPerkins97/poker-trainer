@@ -4,6 +4,7 @@ import de.poker.solver.utility.ComparisonConstants;
 import de.poker.solver.utility.KeyValue;
 
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static de.poker.solver.cfr.BettingRound.*;
 import static de.poker.solver.cfr.Position.*;
@@ -131,6 +132,7 @@ public class GameState {
         Map<Position, Double> winnings = new HashMap<>();
         players.forEach((key, value) -> winnings.put(key, -value.investment()));
 
+        // TODO Potentially cache this on object
         double pot = players.values().stream()
                 .map(Player::investment)
                 .reduce(Double::sum)
@@ -143,6 +145,7 @@ public class GameState {
             return winnings;
         }
 
+        AtomicInteger maxValue = new AtomicInteger(0);
         List<KeyValue<Position, Hand>> hands = players.entrySet()
                 .stream()
                 .filter(entry -> !entry.getValue().hasFolded())
@@ -155,7 +158,11 @@ public class GameState {
                     cards.add(river);
                     cards.add(entry.getValue().holeCards().card1());
                     cards.add(entry.getValue().holeCards().card2());
-                    return new KeyValue<>(entry.getKey(), Hand.of(cards));
+                    Hand of = Hand.of(cards);
+                    if (of.value > maxValue.get()) {
+                        //maxValue.set(of.value);
+                    }
+                    return new KeyValue<>(entry.getKey(), of);
                 })
                 .sorted(Comparator.comparing(KeyValue::value))
                 .toList();
