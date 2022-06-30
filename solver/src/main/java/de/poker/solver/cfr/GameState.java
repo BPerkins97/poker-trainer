@@ -184,41 +184,34 @@ public class GameState {
                 .orElseThrow();
         double callAmount = maxInvestment - player.investment();
         if (callAmount > 0) {
-            result.add(new Action(Action.Type.FOLD, 0));
+            result.add(Action.FOLD);
         }
         assert callAmount >= 0 : "This can't be the player with the biggest investment is at turn";
-        result.add(new Action(Action.Type.CALL, callAmount));
+        result.add(Action.CALL);
 
         List<Double> raiseAmounts = configuration.raiseAmountsPerRound.get(bettingRound);
         for (double raiseAmount : raiseAmounts) {
             double raiseAmountAbsolute = raiseAmount * pot;
             if (player.stack() > raiseAmountAbsolute) {
-                result.add(new Action(Action.Type.RAISE, raiseAmountAbsolute));
+                result.add(Action.raise(raiseAmountAbsolute));
             }
         }
 
         double allInAmount = player.stack();
         if (allInAmount > callAmount) {
-            result.add(new Action(Action.Type.RAISE, allInAmount));
+            result.add(Action.raise(allInAmount));
         }
         return result;
     }
 
     public GameState takeAction(Action action) {
         GameState next = new GameState(this);
-        switch (action.type()) {
-            case FOLD: {
-                next.fold();
-                break;
-            }
-            case CALL: {
-                next.call();
-                break;
-            }
-            case RAISE: {
-                next.raise(action.amount());
-                break;
-            }
+        if (action.isFold()) {
+            next.fold();
+        } else if (action.isCall()) {
+            next.call();
+        } else {
+            next.raise(action.amount);
         }
         next.actions.add(action);
         next.determineNextPlayer();

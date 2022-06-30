@@ -9,7 +9,7 @@ public class Solver {
     private int counter = 0;
 
     public static void main(String[] args) {
-        int iterations = 100;
+        int iterations = 1;
         Map<Position, Double> values = new HashMap<>();
         List<List<Card>> cards = buildDecks(17, iterations);
         Solver solver = new Solver();
