@@ -43,7 +43,7 @@ public class Solver {
 
                 Card card;
                 do {
-                    int nextCard = ThreadLocalRandom.current().nextInt(4, 56);
+                    int nextCard = ThreadLocalRandom.current().nextInt(0, 52);
                     card = Card.of(nextCard);
                 } while(cards.contains(card));
                 cards.add(card);

@@ -1,15 +1,91 @@
 package de.poker.solver.cfr;
 
 
-public class Card implements Comparable<Card> {
+import static de.poker.solver.cfr.Suit.*;
+import static de.poker.solver.cfr.Value.*;
+
+// TODO I dont know if i like this yet, maybe revert later, doesnt seem to bring performance improvements
+public enum Card implements Comparable<Card> {
+    TWO_SPADE(TWO, SPADES),
+    TWO_HEARTS(TWO, HEART),
+    TWO_DIAMONDS(TWO, DIAMOND),
+    TWO_CLUB(TWO, CLUB),
+
+    THREE_SPADE(THREE, SPADES),
+    THREE_HEART(THREE, HEART),
+    THREE_DIAMONDS(THREE, DIAMOND),
+    THREE_CLUB(THREE, CLUB),
+
+    FOUR_SPADE(FOUR, SPADES),
+    FOUR_HEART(FOUR, HEART),
+    FOUR_DIAMONDS(FOUR, DIAMOND),
+    FOUR_CLUB(FOUR, CLUB),
+
+    FIVE_SPADE(FIVE, SPADES),
+    FIVE_HEART(FIVE, HEART),
+    FIVE_DIAMONDS(FIVE, DIAMOND),
+    FIVE_CLUB(FIVE, CLUB),
+
+    SIX_SPADE(SIX, SPADES),
+    SIX_HEART(SIX, HEART),
+    SIX_DIAMONDS(SIX, DIAMOND),
+    SIX_CLUB(SIX, CLUB),
+
+    SEVEN_SPADE(SEVEN, SPADES),
+    SEVEN_HEART(SEVEN, HEART),
+    SEVEN_DIAMONDS(SEVEN, DIAMOND),
+    SEVEN_CLUB(SEVEN, CLUB),
+
+    EIGHT_SPADE(EIGHT, SPADES),
+    EIGHT_HEART(EIGHT, HEART),
+    EIGHT_DIAMONDS(EIGHT, DIAMOND),
+    EIGHT_CLUB(EIGHT, CLUB),
+
+    NINE_SPADE(NINE, SPADES),
+    NINE_HEART(NINE, HEART),
+    NINE_DIAMONDS(NINE, DIAMOND),
+    NINE_CLUB(NINE, CLUB),
+
+    TEN_SPADE(TEN, SPADES),
+    TEN_HEART(TEN, HEART),
+    TEN_DIAMONDS(TEN, DIAMOND),
+    TEN_CLUB(TEN, CLUB),
+
+    JACK_SPADE(JACK, SPADES),
+    JACK_HEART(JACK, HEART),
+    JACK_DIAMONDS(JACK, DIAMOND),
+    JACK_CLUB(JACK, CLUB),
+
+    QUEEN_SPADE(QUEEN, SPADES),
+    QUEEN_HEART(QUEEN, HEART),
+    QUEEN_DIAMONDS(QUEEN, DIAMOND),
+    QUEEN_CLUB(QUEEN, CLUB),
+
+    KING_SPADE(KING, SPADES),
+    KING_HEART(KING, HEART),
+    KING_DIAMONDS(KING, DIAMOND),
+    KING_CLUB(KING, CLUB),
+
+    ACE_SPADE(ACE, SPADES),
+    ACE_HEART(ACE, HEART),
+    ACE_DIAMONDS(ACE, DIAMOND),
+    ACE_CLUB(ACE, CLUB),
+    ;
+
+    private static final Card[] CARDS = new Card[52];
+
+    static {
+        for (Card card : Card.values()) {
+            CARDS[card.ordinal()] = card;
+        }
+    }
+
     private final Value value;
     private final Suit suit;
-    private final int card;
 
-    public Card(Value value, Suit suit) {
+    Card(Value value, Suit suit) {
         this.value = value;
         this.suit = suit;
-        this.card = value.value * 4 + suit.value;
     }
 
     public Value value() {
@@ -21,149 +97,22 @@ public class Card implements Comparable<Card> {
     }
 
     public static Card of(String card) {
-        assert card != null : "You can not instantiate a card from a null value";
-        assert card.length() == 2 : "The value you provided can not be a valid card: " + card;
-
         Value value = Value.parse(card.charAt(0));
         Suit suit = Suit.parse(card.charAt(1));
-        return new Card(value, suit);
+        return CARDS[value.value() * 4 + suit.value()];
     }
 
     public static Card of(int card) {
-        Value value = Value.of(card / 4);
-        Suit suit = Suit.of(card % 4);
-        return new Card(value, suit);
+        return CARDS[card];
     }
 
     @Override
     public String toString() {
-        return new StringBuilder()
-                .append(value)
-                .append(suit)
-                .toString();
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        Card card1 = (Card) o;
-        return value == card1.value && suit == card1.suit;
-    }
-
-    @Override
-    public int hashCode() {
-        return card;
-    }
-
-    @Override
-    public int compareTo(Card card1) {
-        return Integer.compare(this.card, card1.card);
+        return String.valueOf(value) +
+                suit;
     }
 
     public void appendInfoSet(StringBuilder infoSetBuilder) {
-        value.appendInfoSet(infoSetBuilder);
-        suit.appendInfoSet(infoSetBuilder);
-    }
-
-    public enum Value {
-        TWO(1, '2'),
-        THREE(2, '3'),
-        FOUR(3, '4'),
-        FIVE(4, '5'),
-        SIX(5, '6'),
-        SEVEN(6, '7'),
-        EIGHT(7, '8'),
-        NINE(8, '9'),
-        TEN(9, 'T'),
-        JACK(10, 'J'),
-        QUEEN(11, 'Q'),
-        KING(12, 'K'),
-        ACE(13, 'A');
-
-        private final int value;
-        private final char symbol;
-
-        Value(int value, char symbol) {
-            this.value = value;
-            this.symbol = symbol;
-        }
-
-        public static Value parse(char symbol) {
-            for (Value value : Value.values()) {
-                if (value.symbol == symbol) {
-                    return value;
-                }
-            }
-            assert false : "Illegal value " + symbol;
-            throw new IllegalArgumentException("Illegal value " + symbol);
-        }
-        public static Value of(int value) {
-            for (Value v : Value.values()) {
-                if (v.value == value) {
-                    return v;
-                }
-            }
-            assert false : "Illegal value " + value;
-            throw new IllegalArgumentException("Illegal value " + value);
-        }
-
-        public void appendInfoSet(StringBuilder stringBuilder) {
-            stringBuilder.append(symbol);
-        }
-
-        public int value() {
-            return value;
-        }
-
-        @Override
-        public String toString() {
-            return String.valueOf(symbol);
-        }
-    }
-
-    public enum Suit {
-        SPADES(3, 's'),
-        CLUB(0, 'c'),
-        HEART(2, 'h'),
-        DIAMOND(1, 'd')
-        ;
-
-        private final int value;
-        private final char symbol;
-
-        Suit(int value, char symbol) {
-            this.value = value;
-            this.symbol = symbol;
-        }
-
-        public static Suit of(int value) {
-            for (Suit suit : Suit.values()) {
-                if (suit.value == value) {
-                    return suit;
-                }
-            }
-            assert false : "Illegal suit " + value;
-            throw new IllegalArgumentException("Illegal suit " + value);
-        }
-
-        public static Suit parse(char symbol) {
-            for (Suit suit : Suit.values()) {
-                if (suit.symbol == symbol) {
-                    return suit;
-                }
-            }
-            assert false : "Illegal suit " + symbol;
-            throw new IllegalArgumentException("Illegal suit " + symbol);
-        }
-
-        public void appendInfoSet(StringBuilder stringBuilder) {
-            stringBuilder.append(symbol);
-        }
-
-        @Override
-        public String toString() {
-            return String.valueOf(symbol);
-        }
+        infoSetBuilder.append(value.symbol).append(suit.symbol);
     }
 }

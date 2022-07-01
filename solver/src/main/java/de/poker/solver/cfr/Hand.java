@@ -3,24 +3,24 @@ package de.poker.solver.cfr;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static de.poker.solver.cfr.Card.Value.*;
+import static de.poker.solver.cfr.Value.*;
 import static de.poker.solver.utility.CollectionsUtils.isNotEmpty;
 
 public class Hand implements Comparable<Hand> {
-    private static final Card.Value[][] POSSIBLE_STRAIGHTS;
+    private static final Value[][] POSSIBLE_STRAIGHTS;
 
     static {
-        POSSIBLE_STRAIGHTS = new Card.Value[10][];
-        POSSIBLE_STRAIGHTS[0] = new Card.Value[]{ACE, KING, QUEEN, JACK, TEN};
-        POSSIBLE_STRAIGHTS[1] = new Card.Value[]{KING, QUEEN, JACK, TEN, NINE};
-        POSSIBLE_STRAIGHTS[2] = new Card.Value[]{QUEEN, JACK, TEN, NINE, EIGHT};
-        POSSIBLE_STRAIGHTS[3] = new Card.Value[]{JACK, TEN, NINE, EIGHT, SEVEN};
-        POSSIBLE_STRAIGHTS[4] = new Card.Value[]{TEN, NINE, EIGHT, SEVEN, SIX};
-        POSSIBLE_STRAIGHTS[5] = new Card.Value[]{NINE, EIGHT, SEVEN, SIX, FIVE};
-        POSSIBLE_STRAIGHTS[6] = new Card.Value[]{EIGHT, SEVEN, SIX, FIVE, FOUR};
-        POSSIBLE_STRAIGHTS[7] = new Card.Value[]{SEVEN, SIX, FIVE, FOUR, THREE};
-        POSSIBLE_STRAIGHTS[8] = new Card.Value[]{SIX, FIVE, FOUR, THREE, TWO};
-        POSSIBLE_STRAIGHTS[9] = new Card.Value[]{FIVE, FOUR, THREE, TWO, ACE};
+        POSSIBLE_STRAIGHTS = new Value[10][];
+        POSSIBLE_STRAIGHTS[0] = new Value[]{ACE, KING, QUEEN, JACK, TEN};
+        POSSIBLE_STRAIGHTS[1] = new Value[]{KING, QUEEN, JACK, TEN, NINE};
+        POSSIBLE_STRAIGHTS[2] = new Value[]{QUEEN, JACK, TEN, NINE, EIGHT};
+        POSSIBLE_STRAIGHTS[3] = new Value[]{JACK, TEN, NINE, EIGHT, SEVEN};
+        POSSIBLE_STRAIGHTS[4] = new Value[]{TEN, NINE, EIGHT, SEVEN, SIX};
+        POSSIBLE_STRAIGHTS[5] = new Value[]{NINE, EIGHT, SEVEN, SIX, FIVE};
+        POSSIBLE_STRAIGHTS[6] = new Value[]{EIGHT, SEVEN, SIX, FIVE, FOUR};
+        POSSIBLE_STRAIGHTS[7] = new Value[]{SEVEN, SIX, FIVE, FOUR, THREE};
+        POSSIBLE_STRAIGHTS[8] = new Value[]{SIX, FIVE, FOUR, THREE, TWO};
+        POSSIBLE_STRAIGHTS[9] = new Value[]{FIVE, FOUR, THREE, TWO, ACE};
     }
 
     private final Rank rank;
@@ -79,15 +79,15 @@ public class Hand implements Comparable<Hand> {
 
 
         if (isFlush) {
-            Card.Suit flushSuit;
+            Suit flushSuit;
             if (clubCount >= 5) {
-                flushSuit = Card.Suit.CLUB;
+                flushSuit = Suit.CLUB;
             } else if (heartCount >= 5) {
-                flushSuit = Card.Suit.HEART;
+                flushSuit = Suit.HEART;
             } else if (spadeCount >= 5) {
-                flushSuit = Card.Suit.SPADES;
+                flushSuit = Suit.SPADES;
             } else {
-                flushSuit = Card.Suit.DIAMOND;
+                flushSuit = Suit.DIAMOND;
             }
             List<Card> flushCards = cards.stream()
                     .filter(card -> card.suit().equals(flushSuit))
@@ -105,7 +105,7 @@ public class Hand implements Comparable<Hand> {
             }
         }
 
-        Map<Card.Value, List<Card>> cardsByValue = cards.stream()
+        Map<Value, List<Card>> cardsByValue = cards.stream()
                 .collect(Collectors.groupingBy(Card::value));
 
         List<List<Card>> quads = cardsByValue
@@ -151,15 +151,15 @@ public class Hand implements Comparable<Hand> {
         }
 
         if (isFlush) {
-            Card.Suit flushSuit;
+            Suit flushSuit;
             if (clubCount >= 5) {
-                flushSuit = Card.Suit.CLUB;
+                flushSuit = Suit.CLUB;
             } else if (heartCount >= 5) {
-                flushSuit = Card.Suit.HEART;
+                flushSuit = Suit.HEART;
             } else if (spadeCount >= 5) {
-                flushSuit = Card.Suit.SPADES;
+                flushSuit = Suit.SPADES;
             } else {
-                flushSuit = Card.Suit.DIAMOND;
+                flushSuit = Suit.DIAMOND;
             }
             List<Card> flushCards = cards.stream()
                     .filter(card -> card.suit().equals(flushSuit))
@@ -214,7 +214,7 @@ public class Hand implements Comparable<Hand> {
     }
 
 
-    private static List<Card> findStraight(Map<Card.Value, List<Card>> cardByValue) {
+    private static List<Card> findStraight(Map<Value, List<Card>> cardByValue) {
         for (int j = 0; j < 10; j++) {
             if (
                     isNotEmpty(cardByValue.get(POSSIBLE_STRAIGHTS[j][0])) &&
