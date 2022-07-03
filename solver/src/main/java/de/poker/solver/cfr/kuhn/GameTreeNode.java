@@ -7,8 +7,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
-import java.util.stream.Collectors;
 
+// TODO Reduced Hole Cards set, when preflop
+// TODO Order Flop cards in order to reduce space size
 public class GameTreeNode {
     private static final int POSITION_SMALL_BLIND = 0;
     private static final int POSITION_BIG_BLIND = 1;

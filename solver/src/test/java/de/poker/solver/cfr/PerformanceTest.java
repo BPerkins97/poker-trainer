@@ -1,6 +1,5 @@
 package de.poker.solver.cfr;
 
-import de.poker.solver.cfr.kuhn.Hand;
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.Measurement;
 import org.openjdk.jmh.annotations.Warmup;
@@ -11,17 +10,9 @@ import org.openjdk.jmh.runner.RunnerException;
 import org.openjdk.jmh.runner.options.Options;
 import org.openjdk.jmh.runner.options.OptionsBuilder;
 
-import java.util.List;
-import java.util.Map;
+import java.util.Random;
+import java.util.concurrent.ThreadLocalRandom;
 
-// GC Test
-// PerformanceTest.solverTest:·gc.alloc.rate                    thrpt   25       1056,117 ±      83,279  MB/sec
-// PerformanceTest.solverTest:·gc.count                         thrpt   25        166,000                counts
-// PerformanceTest.solverTest:·gc.time                          thrpt   25        486,000                    ms
-
-// PerformanceTest.solverTest:·gc.alloc.rate                    thrpt   25       1087,345 ±      38,796  MB/sec
-// PerformanceTest.solverTest:·gc.count                         thrpt   25        172,000                counts
-// PerformanceTest.solverTest:·gc.time                          thrpt   25        508,000                    ms
 public class PerformanceTest {
     public static void main(String[] args) throws RunnerException {
         Options opt = new OptionsBuilder()
@@ -32,31 +23,14 @@ public class PerformanceTest {
         new Runner(opt).run();
     }
 
-    // Benchmark with 1 second warmup and measurement time
-    //Benchmark                    Mode  Cnt   Score   Error  Units
-    //PerformanceTest.solverTest  thrpt   25  16,145 ± 0,978  ops/s
-
+    //Benchmark                    Mode  Cnt  Score   Error  Units
+    //PerformanceTest.solverTest  thrpt   25  1,150 ± 0,085  ops/s
     @Benchmark
     @Warmup(time = 1)
     @Measurement(time = 1)
     public void solverTest(Blackhole blackhole) {
-        List<List<Card>> cards = Solver.buildDecks(17, 1);
-        GameConfiguration gameConfiguration = GameConfiguration.defaultConfig().withCards(cards.get(0));
-        GameState gameState = new GameState(gameConfiguration);
-        Map<Position, Double> cfr = new Solver().cfr(gameState);
-        blackhole.consume(cfr);
-    }
-//Benchmark                  Mode  Cnt       Score       Error  Units
-//PerformanceTest.handTest  thrpt   25  338411,826 ± 32154,831  ops/s
-    // PerformanceTest.handTest  thrpt   25  396848,597 ± 4749,007  ops/s -> Map Implementation
-    // PerformanceTest.handTest  thrpt   25  426855,927 ± 5050,528  ops/s -> Raw Implementation
-
-    //@Benchmark
-    @Warmup(time = 1)
-    @Measurement(time = 1)
-    public Hand handTest() {
-        List<List<Card>> cards = Solver.buildDecks(7, 1);
-        Hand of = Hand.of(cards.get(0));
-        return of;
+        de.poker.solver.cfr.kuhn.Solver solver = new de.poker.solver.cfr.kuhn.Solver();
+        double[] train = solver.train(1, ThreadLocalRandom.current());
+        blackhole.consume(train);
     }
 }

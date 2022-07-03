@@ -10,6 +10,7 @@ public class Node {
     double[] strategy;
     double reachProbability;
     double reachProbabilitySum;
+    boolean touched = false;
 
     public Node(String key, int numActions) {
         this.key = key;

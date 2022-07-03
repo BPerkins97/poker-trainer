@@ -13,23 +13,24 @@ public class Solver {
     public static void main(String[] args) {
         Solver solver = new Solver();
         solver.random = new Random(123L);
-        solver.train(5);
+        solver.train(5, solver.random);
     }
 
-    public void train(int iterations) {
+    public double[] train(int iterations, Random random) {
         double[] expectedGameValue = new double[NUM_PLAYERS];
-        for (int i=0;i<iterations;i++) {
+        for (int i = 0; i < iterations; i++) {
             GameTreeNode gameTree = GameTreeNode.noLimitHoldEm6Max(random);
             double[] cfr = cfr(gameTree);
-            for (int p=0;p<NUM_PLAYERS;p++) {
+            for (int p = 0; p < NUM_PLAYERS; p++) {
                 expectedGameValue[p] += cfr[p];
             }
-            nodeMap.values().forEach(Node::updateStrategy);
+            nodeMap.values().forEach(node -> {
+                if (node.touched) {
+                    node.updateStrategy();
+                }
+            });
         }
-        for (int p=0;p<NUM_PLAYERS;p++) {
-            expectedGameValue[p] /= iterations;
-            System.out.println(expectedGameValue[p]);
-        }
+        return expectedGameValue;
     }
 
     public double[] cfr(GameTreeNode gameTree) {
@@ -44,25 +45,25 @@ public class Solver {
         double[] strategy = node.strategy;
         double[][] actionUtility = new double[node.numActions][];
 
-        for (int i=0;i<node.numActions;i++) {
+        for (int i = 0; i < node.numActions; i++) {
             GameTreeNode nextNode = gameTree.takeAction(i, strategy[i]);
             actionUtility[i] = cfr(nextNode);
         }
 
         double[] utilitySum = new double[NUM_PLAYERS];
-        for (int p=0;p<NUM_PLAYERS;p++) {
-            for (int i=0;i<node.numActions;i++) {
+        for (int p = 0; p < NUM_PLAYERS; p++) {
+            for (int i = 0; i < node.numActions; i++) {
                 utilitySum[p] += actionUtility[i][p] * strategy[i];
             }
         }
         double[] regrets = new double[node.numActions];
-        for (int i=0;i<node.numActions;i++) {
+        for (int i = 0; i < node.numActions; i++) {
             regrets[i] = actionUtility[i][currentPlayer] - utilitySum[currentPlayer];
         }
 
         node.reachProbability += gameTree.reachProbability();
 
-        for (int i=0;i<node.numActions;i++) {
+        for (int i = 0; i < node.numActions; i++) {
             // TODO check if this makes a difference when the probability is gone
             double probabilty = gameTree.reachProbabiltyForRegret();
             node.regretSum[i] += probabilty * regrets[i];
@@ -75,7 +76,9 @@ public class Solver {
         if (!nodeMap.containsKey(infoSet)) {
             nodeMap.put(infoSet, gameTree.toNode(infoSet));
         }
-        return nodeMap.get(infoSet);
+        Node node = nodeMap.get(infoSet);
+        node.touched = true;
+        return node;
     }
 
     @Override
