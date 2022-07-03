@@ -73,7 +73,7 @@ public class Solver {
     private Node getNode(GameTreeNode gameTree) {
         String infoSet = gameTree.infoSet();
         if (!nodeMap.containsKey(infoSet)) {
-            nodeMap.put(infoSet, gameTree.toNode());
+            nodeMap.put(infoSet, gameTree.toNode(infoSet));
         }
         return nodeMap.get(infoSet);
     }

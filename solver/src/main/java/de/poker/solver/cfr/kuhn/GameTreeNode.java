@@ -35,6 +35,8 @@ public class GameTreeNode {
     }
 
     String history;
+    String communityCards;
+    String[] holeCards;
     int currentPlayer;
     Player[] players;
     Hand[] hands;
@@ -61,6 +63,8 @@ public class GameTreeNode {
         this.lastRaiser = gameTreeNode.lastRaiser;
         this.bettingRound = gameTreeNode.bettingRound;
         this.isGameOver = gameTreeNode.isGameOver;
+        this.communityCards = gameTreeNode.communityCards;
+        this.holeCards = gameTreeNode.holeCards;
     }
 
     public static GameTreeNode noLimitHoldEm6Max(Random random) {
@@ -76,6 +80,7 @@ public class GameTreeNode {
         gameTreeNode.players[POSITION_BIG_BLIND].pay(1.0);
         gameTreeNode.pot = 1.5;
         gameTreeNode.currentPlayer = BETTING_ORDER_PER_ROUND[0][0];
+        gameTreeNode.communityCards = "";
         return gameTreeNode;
     }
 
@@ -90,7 +95,7 @@ public class GameTreeNode {
         }
 
         hands = new Hand[6];
-
+        holeCards = new String[6];
         for (int i=0;i<6;i++) {
             int startIndex = 2 * i;
             List<Card> cards = new ArrayList<>(7);
@@ -102,6 +107,16 @@ public class GameTreeNode {
             cards.add(deck[15]);
             cards.add(deck[16]);
             hands[i] = Hand.of(cards);
+
+            holeCards[i] = switch (currentPlayer) {
+                case POSITION_SMALL_BLIND -> "Small Blind";
+                case POSITION_BIG_BLIND -> "Big Blind";
+                case POSITION_LO_JACK -> "Lo Jack";
+                case POSITION_HI_JACK -> "Hi Jack";
+                case POSITION_CUT_OFF -> "Cut off";
+                case POSITION_BUTTON -> "Button";
+                default -> throw new IllegalStateException();
+            } + deck[startIndex] + deck[startIndex+1];
         }
     }
 
@@ -163,29 +178,10 @@ public class GameTreeNode {
     }
 
     public String infoSet() {
-        int startIndex = currentPlayer * 2;
         StringBuilder sb = new StringBuilder();
-        String currentPlayerStr = switch (currentPlayer) {
-            case POSITION_SMALL_BLIND -> "Small Blind";
-            case POSITION_BIG_BLIND -> "Big Blind";
-            case POSITION_LO_JACK -> "Lo Jack";
-            case POSITION_HI_JACK -> "Hi Jack";
-            case POSITION_CUT_OFF -> "Cut off";
-            case POSITION_BUTTON -> "Button";
-            default -> throw new IllegalStateException();
-        };
-        sb.append(currentPlayerStr).append(" ");
-        sb.append(deck[startIndex].toString()).append(deck[startIndex + 1].toString());
+        sb.append(holeCards[currentPlayer]);
         if (bettingRound >= ROUND_POST_FLOP) {
-            sb.append(deck[12]);
-            sb.append(deck[13]);
-            sb.append(deck[14]);
-        }
-        if (bettingRound >= ROUND_TURN) {
-            sb.append(deck[15]);
-        }
-        if (bettingRound >= ROUND_RIVER) {
-            sb.append(deck[16]);
+            sb.append(communityCards);
         }
         sb.append(history);
         return sb.toString();
@@ -223,8 +219,8 @@ public class GameTreeNode {
         return true;
     }
 
-    public Node toNode() {
-        return new Node(infoSet(), legalActions());
+    public Node toNode(String infoSet) {
+        return new Node(infoSet, legalActions());
     }
 
     public void takeAction(int actionId) {
@@ -344,14 +340,17 @@ public class GameTreeNode {
             switch (bettingRound) {
                 case ROUND_PRE_FLOP: {
                     nextBettingRound(ROUND_POST_FLOP);
+                    communityCards += deck[12].toString() + deck[13].toString() + deck[14].toString();
                     break;
                 }
                 case ROUND_POST_FLOP: {
                     nextBettingRound(ROUND_TURN);
+                    communityCards += deck[15].toString();
                     break;
                 }
                 case ROUND_TURN: {
                     nextBettingRound(ROUND_RIVER);
+                    communityCards += deck[16].toString();
                     break;
                 }
                 case ROUND_RIVER: {
