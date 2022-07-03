@@ -3,7 +3,6 @@ package de.poker.solver.cfr.kuhn;
 import static de.poker.solver.cfr.kuhn.Config.NUM_PLAYERS;
 
 public class Node {
-
     String key;
     int numActions;
     double[] regretSum;

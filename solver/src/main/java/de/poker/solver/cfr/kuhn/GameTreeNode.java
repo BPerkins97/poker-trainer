@@ -317,7 +317,6 @@ public class GameTreeNode {
                 }
             }
             int playerEndingRoundIndex = lastRaiserIndex <= 0 ? 5 : lastRaiserIndex - 1;
-            int roundCounter = 0;
             while (players[BETTING_ORDER_PER_ROUND[bettingRound][playerEndingRoundIndex]].hasFolded) {
                 playerEndingRoundIndex = playerEndingRoundIndex <= 0 ? 5 : playerEndingRoundIndex - 1;
             }
@@ -378,7 +377,7 @@ public class GameTreeNode {
     }
 
     public double reachProbability() {
-        return 0;
+        return reachProbability[currentPlayer];
     }
 
     public double reachProbabiltyForRegret() {

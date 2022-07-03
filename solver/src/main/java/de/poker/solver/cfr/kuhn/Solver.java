@@ -13,8 +13,7 @@ public class Solver {
     public static void main(String[] args) {
         Solver solver = new Solver();
         solver.random = new Random(123L);
-        solver.train(10);
-        System.out.println(solver);
+        solver.train(5);
     }
 
     public void train(int iterations) {
