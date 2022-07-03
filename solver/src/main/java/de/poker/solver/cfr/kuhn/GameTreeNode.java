@@ -36,8 +36,9 @@ public class GameTreeNode {
 
     String history;
     int currentPlayer;
-    Card[] deck;
     Player[] players;
+    Hand[] hands;
+    Card[] deck;
     double pot;
     boolean isGameOver;
     int bettingRound;
@@ -51,7 +52,7 @@ public class GameTreeNode {
     }
 
     GameTreeNode(GameTreeNode gameTreeNode) {
-        this.deck = gameTreeNode.deck;
+        this.hands = gameTreeNode.hands;
         this.players = gameTreeNode.players;
         this.pot = gameTreeNode.pot;
         this.currentPlayer = gameTreeNode.currentPlayer;
@@ -87,6 +88,21 @@ public class GameTreeNode {
             } while (cardAlreadyInDeck(card, i));
             deck[i] = card;
         }
+
+        hands = new Hand[6];
+
+        for (int i=0;i<6;i++) {
+            int startIndex = 2 * i;
+            List<Card> cards = new ArrayList<>(7);
+            cards.add(deck[startIndex]);
+            cards.add(deck[startIndex+1]);
+            cards.add(deck[12]);
+            cards.add(deck[13]);
+            cards.add(deck[14]);
+            cards.add(deck[15]);
+            cards.add(deck[16]);
+            hands[i] = Hand.of(cards);
+        }
     }
 
     private boolean cardAlreadyInDeck(Card card, int insertAtPosition) {
@@ -114,23 +130,13 @@ public class GameTreeNode {
 
         if (playersStillInGame.size() == 1) {
             winnings[playersStillInGame.get(0)] = pot - players[playersStillInGame.get(0)].investment;
-            assert winnings.length == 5;
             return winnings;
         }
 
         List<KeyValue<Integer, Long>> bestHands = new ArrayList<>();
         long maxValue = 0;
         for (int i = 0; i < 6; i++) {
-            List<Card> cards = new ArrayList<>();
-            cards.add(deck[12]);
-            cards.add(deck[13]);
-            cards.add(deck[14]);
-            cards.add(deck[15]);
-            cards.add(deck[16]);
-
-            cards.add(deck[i * 2]);
-            cards.add(deck[i * 2 + 1]);
-            Hand of = Hand.of(cards);
+            Hand of = hands[i];
             if (of.value > maxValue) {
                 bestHands.add(new KeyValue<>(i, of.value));
                 maxValue = of.value;
@@ -149,7 +155,6 @@ public class GameTreeNode {
         for (int i = 0; i < winners.size(); i++) {
             winnings[winners.get(i)] = sharedPot - players[winners.get(i)].investment;
         }
-        assert winnings.length == 5;
         return winnings;
     }
 
