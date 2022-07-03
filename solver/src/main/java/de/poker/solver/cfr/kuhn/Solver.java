@@ -3,32 +3,39 @@ package de.poker.solver.cfr.kuhn;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.ThreadLocalRandom;
+import java.util.Random;
 
 public class Solver {
     public static final int NUM_CARDS = 3;
     public static final int NUM_ACTIONS = 2;
+    public static final int NUM_PLAYERS = 2;
 
     Map<String, Node> nodeMap = new HashMap<>();
     double expectedGameValue = 0;
-    int currentPlayer = 0;
     int[] deck = new int[NUM_CARDS];
+    Random random;
 
     public static void main(String[] args) {
         Solver solver = new Solver();
-        solver.train(50000);
+        solver.random = new Random(123L);
+        solver.train(1000000);
         System.out.println(solver);
     }
 
     public void train(int iterations) {
-        expectedGameValue = 0;
+        double[] expectedGameValue = new double[NUM_PLAYERS];
         for (int i=0;i<iterations;i++) {
             shuffleDeck();
-            expectedGameValue += cfr("", 1.0, 1.0);
+            double[] cfr = cfr("", new double[]{1.0, 1.0});
+            for (int p=0;p<NUM_PLAYERS;p++) {
+                expectedGameValue[p] += cfr[p];
+            }
             nodeMap.values().forEach(Node::updateStrategy);
         }
-        expectedGameValue /= iterations;
-        System.out.println(expectedGameValue);
+        for (int p=0;p<NUM_PLAYERS;p++) {
+            expectedGameValue[p] /= iterations;
+            System.out.println(expectedGameValue[p]);
+        }
     }
 
     private void shuffleDeck() {
@@ -38,53 +45,50 @@ public class Solver {
         for (int j=0;j<NUM_CARDS;j++) {
             int nextCard;
             do {
-                nextCard = ThreadLocalRandom.current().nextInt(NUM_CARDS);
+                nextCard = random.nextInt(NUM_CARDS);
             } while (isCardAlreadyInDeck(nextCard));
             deck[j] = nextCard;
         }
     }
 
-    public double cfr(String history, double probabilityPlayer1, double probabilityPlayer2) {
-        int historyLength = history.length();
-        boolean isPlayer1Turn = historyLength % 2 == 0;
-        int playerCard = isPlayer1Turn ? deck[0] : deck[1];
+    public double[] cfr(String history, double[] probability) {
+        int currentPlayer = history.length() % 2;
 
         if (isTerminal(history)) {
-            int opponentCard = isPlayer1Turn ? deck[1] : deck[0];
-            return getReward(history, playerCard, opponentCard);
+            return getReward(history);
         }
+
+        int playerCard = deck[currentPlayer];
 
         Node node = getNode(playerCard, history);
         double[] strategy = node.strategy;
-        double[] actionUtility = new double[node.numActions];
+        double[][] actionUtility = new double[node.numActions][];
 
         for (int i=0;i<node.numActions;i++) {
             String nextHistory = history + node.actionDictionary[i];
-            if (isPlayer1Turn) {
-                actionUtility[i] = -1.0 * cfr(nextHistory, probabilityPlayer1 * strategy[i], probabilityPlayer2);
-            } else {
-                actionUtility[i] = -1.0 * cfr(nextHistory, probabilityPlayer1, probabilityPlayer2 * strategy[i]);
-            }
+            double nextProbability[] = Arrays.copyOf(probability, probability.length);
+            nextProbability[currentPlayer] *= strategy[i];
+            actionUtility[i] = cfr(nextHistory, nextProbability);
         }
 
-        double utilitySum = 0;
-        for (int i=0;i<node.numActions;i++) {
-            utilitySum += actionUtility[i] * strategy[i];
+        double[] utilitySum = new double[NUM_PLAYERS];
+        for (int p=0;p<NUM_PLAYERS;p++) {
+            for (int i=0;i<node.numActions;i++) {
+                utilitySum[p] += actionUtility[i][p] * strategy[i];
+            }
         }
         double[] regrets = new double[node.numActions];
         for (int i=0;i<node.numActions;i++) {
-            regrets[i] = actionUtility[i] - utilitySum;
+            regrets[i] = actionUtility[i][currentPlayer] - utilitySum[currentPlayer];
         }
-        if (isPlayer1Turn) {
-            node.reachProbability += probabilityPlayer1;
-            for (int i=0;i<node.numActions;i++) {
-                node.regretSum[i] += probabilityPlayer2 * regrets[i];
-            }
-        } else {
-            node.reachProbability += probabilityPlayer2;
-            for (int i=0;i<node.numActions;i++) {
-                node.regretSum[i] += probabilityPlayer1 * regrets[i];
-            }
+
+        node.reachProbability += probability[currentPlayer];
+
+        for (int i=0;i<node.numActions;i++) {
+            //node.regretSum[i] += regrets[i];
+            // TODO check if this makes a difference
+            int p = currentPlayer == 0 ? 1 : 0;
+            node.regretSum[i] += probability[p] * regrets[i];
         }
         return utilitySum;
     }
@@ -93,15 +97,21 @@ public class Solver {
         return history.endsWith("pp") || history.endsWith("bb") || history.endsWith("bp");
     }
 
-    public double getReward(String history, int playerCard, int opponentCard) {
+    public double[] getReward(String history) {
+        // pp, pbp, pbb, bp, bb
         if (history.endsWith("p")) {
             if (history.endsWith("pp")) {
-                return playerCard > opponentCard ? 1 : -1;
+                double p1Reward = deck[0] > deck[1] ? 1 : -1;
+                return new double[]{p1Reward, -p1Reward};
             } else {
-                return 1;
+                double[] reward = new double[NUM_PLAYERS];
+                reward[history.length() % NUM_PLAYERS] = 1;
+                reward[(history.length() + 1) % NUM_PLAYERS] = -1;
+                return reward;
             }
         } else if (history.endsWith("bb")) {
-            return playerCard > opponentCard ? 2 : -2;
+            double p1Reward = deck[0] > deck[1] ? 2 : -2;
+            return new double[]{p1Reward, -p1Reward};
         }
         throw new IllegalStateException();
     }
