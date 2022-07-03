@@ -14,7 +14,6 @@ public class GameTreeNode {
     private static final int POSITION_BIG_BLIND = 1;
     private static final int POSITION_LO_JACK = 2;
     private static final int POSITION_HI_JACK = 3;
-
     private static final int POSITION_CUT_OFF = 4;
     private static final int POSITION_BUTTON = 5;
     private static final int ACTION_FOLD = 0;
@@ -32,7 +31,7 @@ public class GameTreeNode {
         BETTING_ORDER_PER_ROUND[0] = new int[]{2, 3, 4, 5, 0, 1};
         BETTING_ORDER_PER_ROUND[1] = new int[]{0, 1, 2, 3, 4, 5};
         BETTING_ORDER_PER_ROUND[2] = new int[]{0, 1, 2, 3, 4, 5};
-        BETTING_ORDER_PER_ROUND[2] = new int[]{0, 1, 2, 3, 4, 5};
+        BETTING_ORDER_PER_ROUND[3] = new int[]{0, 1, 2, 3, 4, 5};
     }
 
     String history;
@@ -40,13 +39,15 @@ public class GameTreeNode {
     Card[] deck;
     Player[] players;
     double pot;
-    int actionsSinceLastRaise = 0;
     boolean isGameOver;
     int bettingRound;
+    double[] reachProbability;
+    int lastRaiser;
 
     GameTreeNode() {
         history = "";
         currentPlayer = 0;
+        lastRaiser = -1;
     }
 
     GameTreeNode(GameTreeNode gameTreeNode) {
@@ -55,18 +56,25 @@ public class GameTreeNode {
         this.pot = gameTreeNode.pot;
         this.currentPlayer = gameTreeNode.currentPlayer;
         this.history = gameTreeNode.history;
+        this.reachProbability = gameTreeNode.reachProbability;
+        this.lastRaiser = gameTreeNode.lastRaiser;
+        this.bettingRound = gameTreeNode.bettingRound;
+        this.isGameOver = gameTreeNode.isGameOver;
     }
 
     public static GameTreeNode noLimitHoldEm6Max(Random random) {
         GameTreeNode gameTreeNode = new GameTreeNode();
         gameTreeNode.initializeCardDeck(17, random);
         gameTreeNode.players = new Player[6];
+        gameTreeNode.reachProbability = new double[6];
         for (int i = 0; i < 6; i++) {
             gameTreeNode.players[i] = new Player(100.0);
+            gameTreeNode.reachProbability[i] = 1.0;
         }
-        gameTreeNode.players[POSITION_SMALL_BLIND].stack -= 0.5;
-        gameTreeNode.players[POSITION_BIG_BLIND].stack -= 1.0;
+        gameTreeNode.players[POSITION_SMALL_BLIND].pay(0.5);
+        gameTreeNode.players[POSITION_BIG_BLIND].pay(1.0);
         gameTreeNode.pot = 1.5;
+        gameTreeNode.currentPlayer = BETTING_ORDER_PER_ROUND[0][0];
         return gameTreeNode;
     }
 
@@ -97,7 +105,7 @@ public class GameTreeNode {
     public double[] getRewards() {
         double[] winnings = new double[6];
         List<Integer> playersStillInGame = new ArrayList<>();
-        for (int i=0;i<6;i++) {
+        for (int i = 0; i < 6; i++) {
             if (!players[i].hasFolded) {
                 playersStillInGame.add(i);
             }
@@ -106,12 +114,13 @@ public class GameTreeNode {
 
         if (playersStillInGame.size() == 1) {
             winnings[playersStillInGame.get(0)] = pot - players[playersStillInGame.get(0)].investment;
+            assert winnings.length == 5;
             return winnings;
         }
 
         List<KeyValue<Integer, Long>> bestHands = new ArrayList<>();
         long maxValue = 0;
-        for (int i=0;i<6;i++) {
+        for (int i = 0; i < 6; i++) {
             List<Card> cards = new ArrayList<>();
             cards.add(deck[12]);
             cards.add(deck[13]);
@@ -119,8 +128,8 @@ public class GameTreeNode {
             cards.add(deck[15]);
             cards.add(deck[16]);
 
-            cards.add(deck[i*2]);
-            cards.add(deck[i*2+1]);
+            cards.add(deck[i * 2]);
+            cards.add(deck[i * 2 + 1]);
             Hand of = Hand.of(cards);
             if (of.value > maxValue) {
                 bestHands.add(new KeyValue<>(i, of.value));
@@ -130,21 +139,22 @@ public class GameTreeNode {
 
         List<Integer> winners = new ArrayList<>();
 
-        for (int i=0;i<bestHands.size();i++) {
+        for (int i = 0; i < bestHands.size(); i++) {
             if (bestHands.get(i).value() == maxValue) {
                 winners.add(bestHands.get(i).key());
             }
         }
 
         double sharedPot = pot / winners.size();
-        for (int i=0;i<winners.size();i++) {
+        for (int i = 0; i < winners.size(); i++) {
             winnings[winners.get(i)] = sharedPot - players[winners.get(i)].investment;
         }
+        assert winnings.length == 5;
         return winnings;
     }
 
     public boolean isTerminal() {
-        return history.endsWith("pp") || history.endsWith("bb") || history.endsWith("bp");
+        return isGameOver;
     }
 
     public String infoSet() {
@@ -160,7 +170,7 @@ public class GameTreeNode {
             default -> throw new IllegalStateException();
         };
         sb.append(currentPlayerStr).append(" ");
-        sb.append(deck[startIndex].toString()).append(deck[startIndex+1].toString());
+        sb.append(deck[startIndex].toString()).append(deck[startIndex + 1].toString());
         if (bettingRound >= ROUND_POST_FLOP) {
             sb.append(deck[12]);
             sb.append(deck[13]);
@@ -172,35 +182,82 @@ public class GameTreeNode {
         if (bettingRound >= ROUND_RIVER) {
             sb.append(deck[16]);
         }
+        sb.append(history);
         return sb.toString();
     }
 
     public int legalActions() {
-        return 3;
+        int numActions = 0;
+        if (isFoldLegal()) {
+            numActions++;
+        }
+        if (isCallLegal()) {
+            numActions++;
+        }
+        if (isRaiseLegal()) {
+            numActions++;
+        }
+        return numActions;
+    }
+
+    private boolean isRaiseLegal() {
+        double maxInvestment = -1;
+        for (Player player : players) {
+            maxInvestment = Math.max(player.investment, maxInvestment);
+        }
+        double currentPlayerInvestment = players[currentPlayer].investment;
+        double payment = maxInvestment - currentPlayerInvestment;
+        return payment < players[currentPlayer].stack;
+    }
+
+    private boolean isCallLegal() {
+        return true;
+    }
+
+    private boolean isFoldLegal() {
+        return true;
     }
 
     public Node toNode() {
         return new Node(infoSet(), legalActions());
     }
 
-    public GameTreeNode takeAction(int actionId) {
+    public void takeAction(int actionId) {
+        if (isFoldLegal()) {
+            if (actionId == ACTION_FOLD) {
+                fold();
+                return;
+            }
+        } else {
+            actionId++;
+        }
+        if (isCallLegal()) {
+            if (actionId == ACTION_CALL) {
+                call();
+                return;
+            }
+        } else {
+            actionId++;
+        }
+        if (isRaiseLegal()) {
+            if (actionId == ACTION_ALL_IN) {
+                raise(players[currentPlayer].stack);
+                return;
+            }
+        } else {
+            actionId++;
+        }
+        throw new IllegalStateException();
+    }
+
+    public GameTreeNode takeAction(int actionId, double probability) {
         GameTreeNode next = new GameTreeNode(this);
         next.players = Arrays.copyOf(next.players, next.players.length);
         next.players[next.currentPlayer] = new Player(next.players[next.currentPlayer]);
         next.deck = deck;
-        switch (actionId) {
-            case ACTION_FOLD:
-                fold();
-                break;
-            case ACTION_CALL:
-                call();
-                break;
-            case ACTION_ALL_IN:
-                raise(players[currentPlayer].stack);
-                break;
-            default:
-                throw new IllegalArgumentException();
-        }
+        next.takeAction(actionId);
+        next.reachProbability = Arrays.copyOf(next.reachProbability, next.reachProbability.length);
+        next.reachProbability[currentPlayer] *= probability;
         next.determineNextPlayer();
         return next;
     }
@@ -208,7 +265,12 @@ public class GameTreeNode {
     private void raise(double amount) {
         players[currentPlayer].pay(amount);
         pot += amount;
-        actionsSinceLastRaise = 0;
+        for (int i = 0; i < 6; i++) {
+            if (BETTING_ORDER_PER_ROUND[bettingRound][i] == currentPlayer) {
+                lastRaiser = i;
+                break;
+            }
+        }
         history += "r" + amount;
     }
 
@@ -230,32 +292,51 @@ public class GameTreeNode {
     }
 
     private void determineNextPlayer() {
-        actionsSinceLastRaise++;
+        int numPlayerStillInGame = 0;
+        for (int i = 0; i < 6; i++) {
+            if (!players[i].hasFolded) {
+                numPlayerStillInGame++;
+            }
+        }
 
-        List<Player> playersStillInGame = getPlayersStillInGame();
+        boolean isEndOfBettingRound = false;
+        if (lastRaiser < 0) {
+            // Noone raised this round
+            for (int i = 5; i > 0; i--) {
+                if (!players[BETTING_ORDER_PER_ROUND[bettingRound][i]].hasFolded) {
+                    isEndOfBettingRound = currentPlayer == BETTING_ORDER_PER_ROUND[bettingRound][i];
+                    break;
+                }
+            }
+        } else {
+            // Someone raised and that was one round ago
+            int lastRaiserIndex = -1;
+            for (int i = 0; i < 6; i++) {
+                if (BETTING_ORDER_PER_ROUND[bettingRound][i] == lastRaiser) {
+                    lastRaiserIndex = i;
+                }
+            }
+            int playerEndingRoundIndex = lastRaiserIndex <= 0 ? 5 : lastRaiserIndex - 1;
+            int roundCounter = 0;
+            while (players[BETTING_ORDER_PER_ROUND[bettingRound][playerEndingRoundIndex]].hasFolded) {
+                playerEndingRoundIndex = playerEndingRoundIndex <= 0 ? 5 : playerEndingRoundIndex - 1;
+            }
+            isEndOfBettingRound = currentPlayer == BETTING_ORDER_PER_ROUND[bettingRound][playerEndingRoundIndex];
+        }
 
-        boolean isEndOfBettingRound = actionsSinceLastRaise >= playersStillInGame.size();
-
-        if (playersStillInGame.size() == 1) {
+        if (numPlayerStillInGame == 1) {
             isGameOver = true;
             return;
         }
 
-        boolean investementsDiffer = false;
-        double investment = -1;
         int currentPlayerIndex = -1;
         for (int i = 0; i < players.length; i++) {
-            if (investment < 0 && !players[i].hasFolded) {
-                investment = players[i].investment;
-            } else if (investment >= 0 && !players[i].hasFolded && investment != players[i].investment) {
-                investementsDiffer = true;
-            }
             if (BETTING_ORDER_PER_ROUND[bettingRound][i] == currentPlayer) {
                 currentPlayerIndex = i;
             }
         }
 
-        if (!investementsDiffer && isEndOfBettingRound) {
+        if (isEndOfBettingRound) {
             switch (bettingRound) {
                 case ROUND_PRE_FLOP: {
                     nextBettingRound(ROUND_POST_FLOP);
@@ -284,16 +365,9 @@ public class GameTreeNode {
         }
     }
 
-    private List<Player> getPlayersStillInGame() {
-        List<Player> playersStillInGame = Arrays.stream(players)
-                .filter(player -> !player.hasFolded)
-                .collect(Collectors.toList());
-        return playersStillInGame;
-    }
-
     private void nextBettingRound(int nextBettingRound) {
         bettingRound = nextBettingRound;
-        actionsSinceLastRaise = 0;
+        lastRaiser = -1;
 
         int nextPlayerIndex = 0;
         while (players[BETTING_ORDER_PER_ROUND[bettingRound][nextPlayerIndex]].hasFolded) {
@@ -301,5 +375,19 @@ public class GameTreeNode {
             nextPlayerIndex++;
         }
         currentPlayer = BETTING_ORDER_PER_ROUND[bettingRound][nextPlayerIndex];
+    }
+
+    public double reachProbability() {
+        return 0;
+    }
+
+    public double reachProbabiltyForRegret() {
+        double probability = 1.0;
+        for (int i = 0; i < reachProbability.length; i++) {
+            if (i != currentPlayer) {
+                probability *= reachProbability[i];
+            }
+        }
+        return probability;
     }
 }

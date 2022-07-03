@@ -1,12 +1,11 @@
 package de.poker.solver.cfr.kuhn;
 
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
 
 public class Solver {
-    public static final int NUM_PLAYERS = 2;
+    public static final int NUM_PLAYERS = 6;
 
     Map<String, Node> nodeMap = new HashMap<>();
     Random random;
@@ -14,7 +13,7 @@ public class Solver {
     public static void main(String[] args) {
         Solver solver = new Solver();
         solver.random = new Random(123L);
-        solver.train(1);
+        solver.train(10);
         System.out.println(solver);
     }
 
@@ -22,7 +21,7 @@ public class Solver {
         double[] expectedGameValue = new double[NUM_PLAYERS];
         for (int i=0;i<iterations;i++) {
             GameTreeNode gameTree = GameTreeNode.noLimitHoldEm6Max(random);
-            double[] cfr = cfr(gameTree, new double[]{1.0, 1.0});
+            double[] cfr = cfr(gameTree);
             for (int p=0;p<NUM_PLAYERS;p++) {
                 expectedGameValue[p] += cfr[p];
             }
@@ -34,7 +33,7 @@ public class Solver {
         }
     }
 
-    public double[] cfr(GameTreeNode gameTree, double[] probability) {
+    public double[] cfr(GameTreeNode gameTree) {
         if (gameTree.isTerminal()) {
             return gameTree.getRewards();
         }
@@ -47,10 +46,8 @@ public class Solver {
         double[][] actionUtility = new double[node.numActions][];
 
         for (int i=0;i<node.numActions;i++) {
-            GameTreeNode nextNode = gameTree.takeAction(i);
-            double nextProbability[] = Arrays.copyOf(probability, probability.length);
-            nextProbability[currentPlayer] *= strategy[i];
-            actionUtility[i] = cfr(nextNode, nextProbability);
+            GameTreeNode nextNode = gameTree.takeAction(i, strategy[i]);
+            actionUtility[i] = cfr(nextNode);
         }
 
         double[] utilitySum = new double[NUM_PLAYERS];
@@ -64,13 +61,12 @@ public class Solver {
             regrets[i] = actionUtility[i][currentPlayer] - utilitySum[currentPlayer];
         }
 
-        node.reachProbability += probability[currentPlayer];
+        node.reachProbability += gameTree.reachProbability();
 
         for (int i=0;i<node.numActions;i++) {
-            //node.regretSum[i] += regrets[i];
-            // TODO check if this makes a difference
-            int p = currentPlayer == 0 ? 1 : 0;
-            node.regretSum[i] += probability[p] * regrets[i];
+            // TODO check if this makes a difference when the probability is gone
+            double probabilty = gameTree.reachProbabiltyForRegret();
+            node.regretSum[i] += probabilty * regrets[i];
         }
         return utilitySum;
     }
