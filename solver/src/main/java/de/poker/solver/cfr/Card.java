@@ -1,6 +1,8 @@
 package de.poker.solver.cfr;
 
 
+import java.util.Random;
+
 import static de.poker.solver.cfr.Suit.*;
 import static de.poker.solver.cfr.Value.*;
 
@@ -72,6 +74,8 @@ public enum Card implements Comparable<Card> {
     ACE_CLUB(ACE, CLUB),
     ;
 
+    private static final int NUM_CARDS = 52;
+
     private static final Card[] CARDS = new Card[52];
 
     static {
@@ -86,6 +90,10 @@ public enum Card implements Comparable<Card> {
     Card(Value value, Suit suit) {
         this.value = value;
         this.suit = suit;
+    }
+
+    public static Card randomCard(Random random) {
+        return Card.of(random.nextInt(NUM_CARDS));
     }
 
     public Value value() {

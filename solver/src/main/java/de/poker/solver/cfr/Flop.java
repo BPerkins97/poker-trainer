@@ -6,7 +6,7 @@ import java.util.Arrays;
 import java.util.List;
 
 // TODO think about how we could reduce this state further
-record Flop(Card card1, Card card2, Card card3) {
+public record Flop(Card card1, Card card2, Card card3) {
 
     // Return a sorted flop
     public static Flop of(Card card1, Card card2, Card card3) {

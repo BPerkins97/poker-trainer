@@ -1,5 +1,7 @@
 package de.poker.solver.cfr;
 
+import de.poker.solver.cfr.kuhn.Hand;
+
 import java.util.ArrayList;
 import java.util.List;
 

@@ -14,14 +14,14 @@ public class Solver {
     public static void main(String[] args) {
         Solver solver = new Solver();
         solver.random = new Random(123L);
-        solver.train(1000000);
+        solver.train(1);
         System.out.println(solver);
     }
 
     public void train(int iterations) {
         double[] expectedGameValue = new double[NUM_PLAYERS];
         for (int i=0;i<iterations;i++) {
-            GameTreeNode gameTree = GameTreeNode.initialize(random);
+            GameTreeNode gameTree = GameTreeNode.noLimitHoldEm6Max(random);
             double[] cfr = cfr(gameTree, new double[]{1.0, 1.0});
             for (int p=0;p<NUM_PLAYERS;p++) {
                 expectedGameValue[p] += cfr[p];

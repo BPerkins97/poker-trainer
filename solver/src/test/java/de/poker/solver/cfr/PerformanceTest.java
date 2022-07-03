@@ -1,5 +1,6 @@
 package de.poker.solver.cfr;
 
+import de.poker.solver.cfr.kuhn.Hand;
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.Measurement;
 import org.openjdk.jmh.annotations.Warmup;

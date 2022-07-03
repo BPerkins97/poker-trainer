@@ -1,4 +1,6 @@
-package de.poker.solver.cfr;
+package de.poker.solver.cfr.kuhn;
+
+import de.poker.solver.cfr.*;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -25,7 +27,7 @@ public class Hand implements Comparable<Hand> {
 
     private final Rank rank;
     private final List<Card> cards;
-    final long value;
+    public final long value;
 
     private Hand(Rank rank, List<Card> cards) {
         this.rank = rank;
