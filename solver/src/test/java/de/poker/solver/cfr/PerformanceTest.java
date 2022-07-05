@@ -10,7 +10,6 @@ import org.openjdk.jmh.runner.RunnerException;
 import org.openjdk.jmh.runner.options.Options;
 import org.openjdk.jmh.runner.options.OptionsBuilder;
 
-import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
 
 public class PerformanceTest {
@@ -29,7 +28,7 @@ public class PerformanceTest {
     @Warmup(time = 1)
     @Measurement(time = 1)
     public void solverTest(Blackhole blackhole) {
-        de.poker.solver.cfr.kuhn.Solver solver = new de.poker.solver.cfr.kuhn.Solver();
+        de.poker.solver.cfr.holdem.Solver solver = new de.poker.solver.cfr.holdem.Solver();
         double[] train = solver.train(1, ThreadLocalRandom.current());
         blackhole.consume(train);
     }

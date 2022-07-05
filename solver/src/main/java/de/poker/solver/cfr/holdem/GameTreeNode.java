@@ -1,4 +1,4 @@
-package de.poker.solver.cfr.kuhn;
+package de.poker.solver.cfr.holdem;
 
 import de.poker.solver.cfr.Card;
 import de.poker.solver.utility.KeyValue;

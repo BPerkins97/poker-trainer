@@ -1,6 +1,6 @@
 package de.poker.solver.cfr;
 
-import de.poker.solver.cfr.kuhn.Hand;
+import de.poker.solver.cfr.holdem.Hand;
 import de.poker.solver.utility.ComparisonConstants;
 import de.poker.solver.utility.KeyValue;
 
