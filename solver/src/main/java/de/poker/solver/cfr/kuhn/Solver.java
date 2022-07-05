@@ -25,7 +25,7 @@ public class Solver {
 
     public static void main(String[] args) {
         Solver solver = new Solver();
-        solver.train(new Random(123L), 100000, 0.01, true);
+        solver.train(100000, 0.01, true);
         solver.nodeMap
                 .values()
                 .stream().sorted(Comparator.comparing(v -> v.key.length()))
@@ -123,13 +123,15 @@ public class Solver {
         return expectedValue;
     }
 
-    public double train(Random random, int iterations, double stopAtExploitability, boolean debug) {
+    public double train(int iterations, double stopAtExploitability, boolean debug) {
         expectedGameValue = 0;
         double exploitability;
         int counter = 0;
         do {
-            shuffleDeck(random);
-            expectedGameValue += cfr("", 1.0, 1.0);
+            for (int[] permutation : PERMUTATIONS) {
+                deck = permutation;
+                expectedGameValue += cfr("", 1.0, 1.0);
+            }
             nodeMap.values().forEach(Node::updateStrategy);
             exploitability = calculateExploitability(nodeMap);
             counter++;

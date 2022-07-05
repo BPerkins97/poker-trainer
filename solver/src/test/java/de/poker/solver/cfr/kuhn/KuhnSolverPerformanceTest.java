@@ -22,12 +22,13 @@ public class KuhnSolverPerformanceTest {
     }
 
     //Benchmark                             Mode  Cnt   Score   Error  Units
-    //KuhnSolverPerfomanceTest.solverTest  thrpt   25  12,563 ± 1,868  ops/s
+    //KuhnSolverPerformanceTest.solverTest  thrpt   25  12,563 ± 1,868  ops/s
+    //KuhnSolverPerformanceTest.solverTest  thrpt   25  36,715 ± 0,430  ops/s -> after removing the randomness factor and simply iterating over all permutations
     @Benchmark
     @Warmup(time = 1)
     @Measurement(time = 1)
     public double solverTest(Blackhole blackhole) {
         Solver solver = new Solver();
-        return solver.train(ThreadLocalRandom.current(), 100000, 0.01, false);
+        return solver.train(100000, 0.01, false);
     }
 }
