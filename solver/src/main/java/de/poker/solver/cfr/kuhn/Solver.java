@@ -25,7 +25,7 @@ public class Solver {
 
     public static void main(String[] args) {
         Solver solver = new Solver();
-        solver.train(100000, 0.01, true);
+        solver.train(10000000, 0.001, true);
         solver.nodeMap
                 .values()
                 .stream().sorted(Comparator.comparing(v -> v.key.length()))
@@ -138,7 +138,7 @@ public class Solver {
         } while (counter < iterations && exploitability > stopAtExploitability);
         if (debug) {
             System.out.println("Took " + counter + " to stop at " + exploitability + " exploitability");
-            expectedGameValue /= iterations;
+            expectedGameValue /= counter * PERMUTATIONS.length;
             System.out.println("Expected game Value: " + expectedGameValue);
         }
         return expectedGameValue;
