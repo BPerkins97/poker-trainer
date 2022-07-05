@@ -57,8 +57,12 @@ public class Node {
             strategy[i] = strategySum[i] / reachProbabilitySum;
             normalizingSum += strategy[i];
         }
-        for (int i=0;i<normalizingSum;i++) {
-            strategy[i] /= normalizingSum;
+        for (int i=0;i<numActions;i++) {
+            if (normalizingSum > 0) {
+                strategy[i] /= normalizingSum;
+            } else {
+                strategy[i] = 1.0 / numActions;
+            }
         }
         return strategy;
     }
