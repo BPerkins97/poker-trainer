@@ -27,7 +27,7 @@ public class KuhnSolverPerformanceTest {
     @Benchmark
     @Warmup(time = 1)
     @Measurement(time = 1)
-    public double solverTest(Blackhole blackhole) {
+    public double[][] solverTest(Blackhole blackhole) {
         Solver solver = new Solver();
         return solver.train(100000, 0.01, false);
     }
