@@ -1,6 +1,7 @@
 package de.poker.solver.game;
 
 import de.poker.solver.cfr.Node;
+import de.poker.solver.utility.CardInfoSetBuilder;
 import de.poker.solver.utility.KeyValue;
 
 import java.util.ArrayList;
@@ -38,10 +39,10 @@ public class GameTreeNode {
 
     String history;
     String communityCards;
-    String[] holeCards;
+    String[][] cardInfoSets;
     int currentPlayer;
     Player[] players;
-    Hand[] hands;
+    long[] hands;
     Card[] deck;
     double pot;
     boolean isGameOver;
@@ -66,7 +67,7 @@ public class GameTreeNode {
         this.bettingRound = gameTreeNode.bettingRound;
         this.isGameOver = gameTreeNode.isGameOver;
         this.communityCards = gameTreeNode.communityCards;
-        this.holeCards = gameTreeNode.holeCards;
+        this.cardInfoSets = gameTreeNode.cardInfoSets;
     }
 
     public static GameTreeNode noLimitHoldEm6Max(Random random) {
@@ -96,29 +97,31 @@ public class GameTreeNode {
             deck[i] = card;
         }
 
-        hands = new Hand[6];
-        holeCards = new String[6];
-        for (int i=0;i<6;i++) {
+        hands = new long[6];
+        cardInfoSets = new String[4][6];
+        for (int i = 0; i < 6; i++) {
             int startIndex = 2 * i;
+
+            CardInfoSetBuilder infoSetBuilder = new CardInfoSetBuilder();
+            infoSetBuilder.appendPosition(i);
+            infoSetBuilder.appendHoleCards(deck[startIndex], deck[startIndex+1]);
+            cardInfoSets[0][i] = infoSetBuilder.toString();
+            infoSetBuilder.appendFlop(deck[12], deck[13], deck[14]);
+            cardInfoSets[1][i] = infoSetBuilder.toString();
+            infoSetBuilder.appendCard(deck[15]);
+            cardInfoSets[2][i] = infoSetBuilder.toString();
+            infoSetBuilder.appendCard(deck[16]);
+            cardInfoSets[3][i] = infoSetBuilder.toString();
+
             List<Card> cards = new ArrayList<>(7);
             cards.add(deck[startIndex]);
-            cards.add(deck[startIndex+1]);
+            cards.add(deck[startIndex + 1]);
             cards.add(deck[12]);
             cards.add(deck[13]);
             cards.add(deck[14]);
             cards.add(deck[15]);
             cards.add(deck[16]);
-            hands[i] = Hand.of(cards);
-
-            holeCards[i] = switch (currentPlayer) {
-                case POSITION_SMALL_BLIND -> "Small Blind";
-                case POSITION_BIG_BLIND -> "Big Blind";
-                case POSITION_LO_JACK -> "Lo Jack";
-                case POSITION_HI_JACK -> "Hi Jack";
-                case POSITION_CUT_OFF -> "Cut off";
-                case POSITION_BUTTON -> "Button";
-                default -> throw new IllegalStateException();
-            } + deck[startIndex] + deck[startIndex+1];
+            hands[i] = Hand.of(cards).value;
         }
     }
 
@@ -153,10 +156,10 @@ public class GameTreeNode {
         List<KeyValue<Integer, Long>> bestHands = new ArrayList<>();
         long maxValue = 0;
         for (int i = 0; i < 6; i++) {
-            Hand of = hands[i];
-            if (of.value > maxValue) {
-                bestHands.add(new KeyValue<>(i, of.value));
-                maxValue = of.value;
+            long hand = hands[i];
+            if (hand > maxValue) {
+                bestHands.add(new KeyValue<>(i, hand));
+                maxValue = hand;
             }
         }
 
@@ -181,10 +184,7 @@ public class GameTreeNode {
 
     public String infoSet() {
         StringBuilder sb = new StringBuilder();
-        sb.append(holeCards[currentPlayer]);
-        if (bettingRound >= ROUND_POST_FLOP) {
-            sb.append(communityCards);
-        }
+        sb.append(cardInfoSets[bettingRound][currentPlayer]);
         sb.append(history);
         return sb.toString();
     }

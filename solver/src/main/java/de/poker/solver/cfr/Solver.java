@@ -10,7 +10,6 @@ public class Solver {
     public static final int NUM_PLAYERS = 6;
 
     Map<String, Node> nodeMap = new HashMap<>();
-    Random random;
 
     public double[] train(int iterations, Random random) {
         double[] expectedGameValue = new double[NUM_PLAYERS];

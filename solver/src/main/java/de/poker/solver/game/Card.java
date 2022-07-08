@@ -104,6 +104,10 @@ public enum Card implements Comparable<Card> {
         return suit;
     }
 
+    public static Card of(Value value, Suit suit) {
+        return CARDS[value.value() * 4 + suit.value()];
+    }
+
     public static Card of(String card) {
         Value value = Value.parse(card.charAt(0));
         Suit suit = Suit.parse(card.charAt(1));
