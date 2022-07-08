@@ -1,6 +1,6 @@
-package de.poker.solver.cfr.holdem;
+package de.poker.solver.game;
 
-import de.poker.solver.cfr.Card;
+import de.poker.solver.cfr.Node;
 import de.poker.solver.utility.KeyValue;
 
 import java.util.ArrayList;
@@ -10,6 +10,7 @@ import java.util.Random;
 
 // TODO Reduced Hole Cards set, when preflop
 // TODO Order Flop cards in order to reduce space size
+// TODO Always give cards the same color in order to reduce space size
 public class GameTreeNode {
     private static final int POSITION_SMALL_BLIND = 0;
     private static final int POSITION_BIG_BLIND = 1;

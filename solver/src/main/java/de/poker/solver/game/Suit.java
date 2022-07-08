@@ -1,4 +1,4 @@
-package de.poker.solver.cfr;
+package de.poker.solver.game;
 
 public enum Suit {
     SPADES('s'),

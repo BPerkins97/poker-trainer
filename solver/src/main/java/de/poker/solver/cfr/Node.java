@@ -1,41 +1,77 @@
 package de.poker.solver.cfr;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-
 public class Node {
-    private Map<Action, Double> regretSum = new HashMap<>();
-    private Map<Action, Double> strategy = new HashMap<>();
-    private Map<Action, Double> strategySum = new HashMap<>();
+    String key;
+    int numActions;
+    double[] regretSum;
+    double[] strategySum;
+    double[] strategy;
+    double reachProbability;
+    double reachProbabilitySum;
+    boolean touched = false;
 
-    public void addRegret(Action action, double regret) {
-        if (regretSum.containsKey(action)) {
-            strategy.put(action, 0.0);
-            strategySum.put(action, 0.0);
-            regretSum.put(action, regretSum.get(action) + regret);
-        } else {
-            regretSum.put(action, regret);
+    public Node(String key, int numActions) {
+        this.key = key;
+        this.numActions = numActions;
+        regretSum = new double[this.numActions];
+        strategySum = new double[this.numActions];
+        reachProbability = 0;
+        reachProbabilitySum = 0;
+        strategy = new double[this.numActions];
+        for (int i = 0; i < this.numActions; i++) {
+            strategy[i] = 1.0 / this.numActions;
         }
     }
 
-    public Map<Action, Double> getStrategy(List<Action> actions) {
-        double normalizingSum = 0;
-        for (Action a : actions) {
-            double max = Math.max(Objects.isNull(regretSum.get(a)) ? 0 : regretSum.get(a), 0);
-            strategy.put(a, max);
-            normalizingSum += strategy.get(a);
+    public void updateStrategy() {
+        for (int i = 0; i < numActions; i++) {
+            strategySum[i] += strategy[i] * reachProbability;
         }
+        reachProbabilitySum += reachProbability;
+        strategy = getStrategy();
+        reachProbability = 0;
+    }
 
-        for(Action a : actions) {
+    public double[] getStrategy() {
+        double normalizingSum = 0;
+        double[] strategy = new double[numActions];
+        for (int i = 0; i < numActions; i++) {
+            strategy[i] = Math.max(regretSum[i], 0);
+            normalizingSum += strategy[i];
+        }
+        for (int i = 0; i < numActions; i++) {
             if (normalizingSum > 0) {
-                strategy.put(a, strategy.get(a) / normalizingSum);
+                strategy[i] = strategy[i] / normalizingSum;
             } else {
-                strategy.put(a, 1.0 / actions.size());
+                strategy[i] = 1.0 / numActions;
             }
-            strategySum.put(a, strategy.get(a));
         }
         return strategy;
+    }
+
+    public double[] getAverageStrategy() {
+        double[] strategy = new double[numActions];
+        double normalizingSum = 0;
+        for (int i = 0; i < numActions; i++) {
+            strategy[i] = strategySum[i] / reachProbabilitySum;
+            normalizingSum += strategy[i];
+        }
+        for (int i = 0; i < normalizingSum; i++) {
+            strategy[i] /= normalizingSum;
+        }
+        return strategy;
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append(key);
+        sb.append("\t\t");
+        double[] avgStrategy = getAverageStrategy();
+        for (int i=0;i<numActions;i++) {
+            sb.append(String.format("%.2f", avgStrategy[i]));
+            sb.append("\t");
+        }
+        return sb.toString();
     }
 }

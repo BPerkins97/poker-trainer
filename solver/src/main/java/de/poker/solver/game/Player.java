@@ -1,4 +1,4 @@
-package de.poker.solver.cfr.holdem;
+package de.poker.solver.game;
 
 public class Player {
     double stack;

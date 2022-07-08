@@ -1,10 +1,10 @@
-package de.poker.solver.cfr;
+package de.poker.solver.game;
 
 
 import java.util.Random;
 
-import static de.poker.solver.cfr.Suit.*;
-import static de.poker.solver.cfr.Value.*;
+import static de.poker.solver.game.Suit.*;
+import static de.poker.solver.game.Value.*;
 
 // TODO I dont know if i like this yet, maybe revert later, doesnt seem to bring performance improvements
 public enum Card implements Comparable<Card> {

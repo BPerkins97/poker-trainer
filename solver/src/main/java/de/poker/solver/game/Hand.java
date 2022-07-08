@@ -1,12 +1,10 @@
-package de.poker.solver.cfr.holdem;
-
-import de.poker.solver.cfr.*;
+package de.poker.solver.game;
 
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static de.poker.solver.cfr.Value.*;
-import static de.poker.solver.utility.CollectionsUtils.isNotEmpty;
+import static de.poker.solver.game.Value.*;
+import static de.poker.solver.utility.CollectionUtils.isNotEmpty;
 
 public class Hand implements Comparable<Hand> {
     private static final Value[][] POSSIBLE_STRAIGHTS;
@@ -197,15 +195,6 @@ public class Hand implements Comparable<Hand> {
             return new Hand(Rank.PAIR, finalHand);
         }
         return new Hand(Rank.HIGH_CARD, cards.subList(0, 5));
-    }
-
-    public static Hand of(HoleCards holeCards, Flop flop, Card turn, Card river) {
-        List<Card> cards = new ArrayList<>(7);
-        cards.addAll(holeCards.cards());
-        cards.addAll(flop.cards());
-        cards.add(turn);
-        cards.add(river);
-        return of (cards);
     }
 
     // TODO throw exception when cards are double

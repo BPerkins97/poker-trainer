@@ -1,92 +1,86 @@
 package de.poker.solver.cfr;
 
-import java.util.*;
-import java.util.concurrent.ThreadLocalRandom;
-import java.util.stream.Collectors;
+import de.poker.solver.game.GameTreeNode;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Random;
 
 public class Solver {
-    private NodeDAO nodeDAO = new InMemoryNodeDAO();
-    private int counter = 0;
+    public static final int NUM_PLAYERS = 6;
 
-    public static void main(String[] args) {
-        int iterations = 100;
-        Map<Position, Double> values = new HashMap<>();
-        List<List<Card>> cards = buildDecks(17, iterations);
-        Solver solver = new Solver();
-        for (int i=0;i<iterations;i++) {
-            GameConfiguration gameConfiguration = GameConfiguration.defaultConfig().withCards(cards.get(i));
-            GameState gameState = new GameState(gameConfiguration);
-            Map<Position, Double> cfr = solver.cfr(gameState);
-            for (Map.Entry<Position, Double> e : cfr.entrySet()) {
-                if (!values.containsKey(e.getKey())) {
-                    values.put(e.getKey(), 0.0);
-                }
-                values.put(e.getKey(), values.get(e.getKey()) + (e.getValue() / iterations));
+    Map<String, Node> nodeMap = new HashMap<>();
+    Random random;
+
+    public double[] train(int iterations, Random random) {
+        double[] expectedGameValue = new double[NUM_PLAYERS];
+        for (int i = 0; i < iterations; i++) {
+            GameTreeNode gameTree = GameTreeNode.noLimitHoldEm6Max(random);
+            double[] cfr = cfr(gameTree);
+            for (int p = 0; p < NUM_PLAYERS; p++) {
+                expectedGameValue[p] += cfr[p];
             }
-        }
-        List<String> all = solver.nodeDAO.findInfoSets()
-                .stream().filter(infoset -> infoset.length() < 5 || infoset.substring(5).startsWith("Action")).toList();
-        List<Map.Entry<String, Node>> sorted = solver.nodeDAO.findAll()
-                .entrySet().stream()
-                .sorted(Comparator.comparing(entry -> entry.getKey().length()))
-                .toList();
-        System.out.println(solver.counter);
-        System.out.println(values);
-    }
-
-    public static List<List<Card>> buildDecks(int numOfCards, int numDecks) {
-        List<List<Card>> result = new ArrayList<>(numDecks);
-
-        for (int i=0;i<numDecks;i++) {
-            List<Card> cards = new ArrayList<>(numOfCards);
-            for (int j=0;j<numOfCards;j++) {
-
-                Card card;
-                do {
-                    int nextCard = ThreadLocalRandom.current().nextInt(0, 52);
-                    card = Card.of(nextCard);
-                } while(cards.contains(card));
-                cards.add(card);
-            }
-            result.add(cards);
-        }
-        return result;
-    }
-
-    public Map<Position, Double> cfr(GameState gameState) {
-        counter++;
-        if (gameState.isGameOver()) {
-            return gameState.handleGameOver();
-        }
-
-        String infoSet = gameState.toInfoSetFor(gameState.currentPlayer());
-        Node node = nodeDAO.findByInfoSet(infoSet)
-                .orElseGet(Node::new);
-
-        List<Action> nextActions = gameState.nextActions();
-        Map<Action, Double> strategy = node.getStrategy(nextActions);
-
-        Map<Action, Double> actionUtility = new HashMap<>();
-        Set<Action> actions = strategy.keySet();
-        Map<Position, Double> utilitySums = new HashMap<>();
-        for (Action action : actions) {
-            GameState nextState = gameState.takeAction(action);
-            Map<Position, Double> utility = cfr(nextState);
-            utility.forEach((key, value) -> {
-                double pUtility = value * strategy.get(action);
-                if (utilitySums.containsKey(key)) {
-                    utilitySums.put(key, utilitySums.get(key) + pUtility);
-                } else {
-                    utilitySums.put(key, pUtility);
+            nodeMap.values().forEach(node -> {
+                if (node.touched) {
+                    node.updateStrategy();
                 }
             });
-            actionUtility.put(action, utility.get(gameState.currentPlayer()));
+        }
+        return expectedGameValue;
+    }
+
+    public double[] cfr(GameTreeNode gameTree) {
+        if (gameTree.isTerminal()) {
+            return gameTree.getRewards();
         }
 
-        for (Action action : actions) {
-            node.addRegret(action, actionUtility.get(action) - utilitySums.get(gameState.currentPlayer()));
+        Node node = getNode(gameTree);
+
+        int currentPlayer = gameTree.currentPlayer();
+
+        double[] strategy = node.strategy;
+        double[][] actionUtility = new double[node.numActions][];
+
+        for (int i = 0; i < node.numActions; i++) {
+            GameTreeNode nextNode = gameTree.takeAction(i, strategy[i]);
+            actionUtility[i] = cfr(nextNode);
         }
-        nodeDAO.persist(infoSet, node);
-        return utilitySums;
+
+        double[] utilitySum = new double[NUM_PLAYERS];
+        for (int p = 0; p < NUM_PLAYERS; p++) {
+            for (int i = 0; i < node.numActions; i++) {
+                utilitySum[p] += actionUtility[i][p] * strategy[i];
+            }
+        }
+        double[] regrets = new double[node.numActions];
+        for (int i = 0; i < node.numActions; i++) {
+            regrets[i] = actionUtility[i][currentPlayer] - utilitySum[currentPlayer];
+        }
+
+        node.reachProbability += gameTree.reachProbability();
+
+        for (int i = 0; i < node.numActions; i++) {
+            // TODO check if this makes a difference when the probability is gone
+            double probabilty = gameTree.reachProbabiltyForRegret();
+            node.regretSum[i] += probabilty * regrets[i];
+        }
+        return utilitySum;
+    }
+
+    private Node getNode(GameTreeNode gameTree) {
+        String infoSet = gameTree.infoSet();
+        if (!nodeMap.containsKey(infoSet)) {
+            nodeMap.put(infoSet, gameTree.toNode(infoSet));
+        }
+        Node node = nodeMap.get(infoSet);
+        node.touched = true;
+        return node;
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        nodeMap.values().forEach(node -> sb.append(node).append("\n"));
+        return sb.toString();
     }
 }

@@ -22,7 +22,7 @@
                 <configuration>
                     <archive>
                         <manifest>
-                            <mainClass>de.poker.solver.cfr.holdem.Solver</mainClass>
+                            <mainClass>de.poker.solver.cfr.Solver</mainClass>
                         </manifest>
                     </archive>
                     <descriptorRefs>
