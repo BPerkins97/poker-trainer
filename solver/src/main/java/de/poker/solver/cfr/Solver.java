@@ -41,8 +41,10 @@ public class Solver {
         double[][] actionUtility = new double[node.numActions][];
 
         for (int i = 0; i < node.numActions; i++) {
-            GameTreeNode nextNode = gameTree.takeAction(i, strategy[i]);
-            actionUtility[i] = cfr(nextNode);
+            if  (strategy[i] > 0) {
+                GameTreeNode nextNode = gameTree.takeAction(i, strategy[i]);
+                actionUtility[i] = cfr(nextNode);
+            }
         }
 
         double[] utilitySum = new double[NUM_PLAYERS];
@@ -60,8 +62,9 @@ public class Solver {
 
         for (int i = 0; i < node.numActions; i++) {
             double probabilty = gameTree.reachProbabiltyForRegret();
-            node.regretSum[i] += probabilty * regrets[i];
+            regrets[i] += probabilty * regrets[i];
         }
+        node.updateRegrets(regrets);
         return utilitySum;
     }
 

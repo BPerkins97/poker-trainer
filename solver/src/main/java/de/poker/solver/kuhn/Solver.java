@@ -18,12 +18,11 @@ public class Solver {
 
     Map<String, Node> nodeMap = new HashMap<>();
     double expectedGameValue = 0;
-    int currentPlayer = 0;
     int[] deck = new int[NUM_CARDS];
 
     public static void main(String[] args) {
         Solver solver = new Solver();
-        solver.train(10000000, 0.001, true);
+        solver.train(1000000, 0.001, true);
         solver.nodeMap
                 .values()
                 .stream().sorted(Comparator.comparing(v -> v.key.length()))
@@ -142,19 +141,6 @@ public class Solver {
         return expectedGameValue;
     }
 
-    private void shuffleDeck(Random random) {
-        for (int j=0;j<NUM_CARDS;j++) {
-            deck[j] = -1;
-        }
-        for (int j=0;j<NUM_CARDS;j++) {
-            int nextCard;
-            do {
-                nextCard = random.nextInt(NUM_CARDS);
-            } while (isCardAlreadyInDeck(nextCard));
-            deck[j] = nextCard;
-        }
-    }
-
     public double cfr(String history, double probabilityPlayer1, double probabilityPlayer2) {
         int historyLength = history.length();
         boolean isPlayer1Turn = historyLength % 2 == 0;
@@ -189,14 +175,15 @@ public class Solver {
         if (isPlayer1Turn) {
             node.reachProbability += probabilityPlayer1;
             for (int i=0;i<node.numActions;i++) {
-                node.regretSum[i] += probabilityPlayer2 * regrets[i];
+                regrets[i] = probabilityPlayer2 * regrets[i];
             }
         } else {
             node.reachProbability += probabilityPlayer2;
             for (int i=0;i<node.numActions;i++) {
-                node.regretSum[i] += probabilityPlayer1 * regrets[i];
+                regrets[i] = probabilityPlayer1 * regrets[i];
             }
         }
+        node.updateRegrets(regrets);
         return utilitySum;
     }
 

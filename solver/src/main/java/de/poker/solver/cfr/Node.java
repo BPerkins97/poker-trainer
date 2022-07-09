@@ -1,6 +1,7 @@
 package de.poker.solver.cfr;
 
 public class Node {
+    private static final double DISCOUNT_FACTOR = 100.0;
     String key;
     int numActions;
     double[] regretSum;
@@ -9,6 +10,7 @@ public class Node {
     double reachProbability;
     double reachProbabilitySum;
     boolean touched = false;
+    double discountFactor = DISCOUNT_FACTOR;
 
     public Node(String key, int numActions) {
         this.key = key;
@@ -60,6 +62,13 @@ public class Node {
             strategy[i] /= normalizingSum;
         }
         return strategy;
+    }
+
+    public void updateRegrets(double[] regrets) {
+        for (int i=0;i<numActions;i++) {
+            regretSum[i] += regrets[i] / discountFactor;
+        }
+        discountFactor = Math.max(discountFactor - 1, 1);
     }
 
     @Override

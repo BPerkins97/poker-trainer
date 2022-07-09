@@ -1,6 +1,7 @@
 package de.poker.solver.kuhn;
 
 public class Node {
+    private static final double DISCOUNT_FACTOR = 1000.0;
     String key;
     String[] actionDictionary;
     int numActions;
@@ -9,6 +10,7 @@ public class Node {
     double[] strategy;
     double reachProbability;
     double reachProbabilitySum;
+    double discountFactor = DISCOUNT_FACTOR;
 
     public Node(String key, String[] actionDictionary) {
         this.actionDictionary = actionDictionary;
@@ -65,6 +67,13 @@ public class Node {
             }
         }
         return strategy;
+    }
+
+    public void updateRegrets(double[] regrets) {
+        for (int i=0;i<numActions;i++) {
+            regretSum[i] += regrets[i] / discountFactor;
+        }
+        discountFactor = Math.max(discountFactor - 1, 1);
     }
 
     @Override
