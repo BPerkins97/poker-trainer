@@ -9,9 +9,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 
-// TODO Reduced Hole Cards set, when preflop
-// TODO Order Flop cards in order to reduce space size
-// TODO Always give cards the same color in order to reduce space size
+// TODO if all players still in game are all in skip straight to showdown
 public class GameTreeNode {
     private static final int POSITION_SMALL_BLIND = 0;
     private static final int POSITION_BIG_BLIND = 1;
@@ -30,11 +28,30 @@ public class GameTreeNode {
 
     private static final int[][] BETTING_ORDER_PER_ROUND = new int[4][];
 
+    public static final int NUM_PLAYERS = 2;
+    private static final int NUM_BETTINGS_ROUNDS = 4;
+    private static final int FLOP_CARD1;
+    private static final int FLOP_CARD2;
+    private static final int FLOP_CARD3;
+    private static final int TURN_CARD;
+    private static final int RIVER_CARD;
+
     static {
         BETTING_ORDER_PER_ROUND[0] = new int[]{2, 3, 4, 5, 0, 1};
         BETTING_ORDER_PER_ROUND[1] = new int[]{0, 1, 2, 3, 4, 5};
         BETTING_ORDER_PER_ROUND[2] = new int[]{0, 1, 2, 3, 4, 5};
         BETTING_ORDER_PER_ROUND[3] = new int[]{0, 1, 2, 3, 4, 5};
+        for (int i=0;i<NUM_PLAYERS;i++) {
+            BETTING_ORDER_PER_ROUND[0][i] = (i + 2) % NUM_PLAYERS;
+            BETTING_ORDER_PER_ROUND[1][i] = i;
+            BETTING_ORDER_PER_ROUND[2][i] = i;
+            BETTING_ORDER_PER_ROUND[3][i] = i;
+        }
+        FLOP_CARD1 = NUM_PLAYERS * 2;
+        FLOP_CARD2 = NUM_PLAYERS * 2 + 1;
+        FLOP_CARD3 = NUM_PLAYERS * 2 + 2;
+        TURN_CARD = NUM_PLAYERS * 2 + 3;
+        RIVER_CARD = NUM_PLAYERS * 2 + 4;
     }
 
     String history;
@@ -70,12 +87,12 @@ public class GameTreeNode {
         this.cardInfoSets = gameTreeNode.cardInfoSets;
     }
 
-    public static GameTreeNode noLimitHoldEm6Max(Random random) {
+    public static GameTreeNode headsUpNoLimitHoldEm(Random random) {
         GameTreeNode gameTreeNode = new GameTreeNode();
-        gameTreeNode.initializeCardDeck(17, random);
-        gameTreeNode.players = new Player[6];
-        gameTreeNode.reachProbability = new double[6];
-        for (int i = 0; i < 6; i++) {
+        gameTreeNode.initializeCardDeck(NUM_PLAYERS * 2 + 5, random);
+        gameTreeNode.players = new Player[NUM_PLAYERS];
+        gameTreeNode.reachProbability = new double[NUM_PLAYERS];
+        for (int i = 0; i < NUM_PLAYERS; i++) {
             gameTreeNode.players[i] = new Player(100.0);
             gameTreeNode.reachProbability[i] = 1.0;
         }
@@ -97,30 +114,30 @@ public class GameTreeNode {
             deck[i] = card;
         }
 
-        hands = new long[6];
-        cardInfoSets = new String[4][6];
-        for (int i = 0; i < 6; i++) {
+        hands = new long[NUM_PLAYERS];
+        cardInfoSets = new String[NUM_BETTINGS_ROUNDS][NUM_PLAYERS];
+        for (int i = 0; i < NUM_PLAYERS; i++) {
             int startIndex = 2 * i;
 
             CardInfoSetBuilder infoSetBuilder = new CardInfoSetBuilder();
             infoSetBuilder.appendPosition(i);
             infoSetBuilder.appendHoleCards(deck[startIndex], deck[startIndex+1]);
             cardInfoSets[0][i] = infoSetBuilder.toString();
-            infoSetBuilder.appendFlop(deck[12], deck[13], deck[14]);
+            infoSetBuilder.appendFlop(deck[FLOP_CARD1], deck[FLOP_CARD2], deck[FLOP_CARD3]);
             cardInfoSets[1][i] = infoSetBuilder.toString();
-            infoSetBuilder.appendCard(deck[15]);
+            infoSetBuilder.appendCard(deck[TURN_CARD]);
             cardInfoSets[2][i] = infoSetBuilder.toString();
-            infoSetBuilder.appendCard(deck[16]);
+            infoSetBuilder.appendCard(deck[RIVER_CARD]);
             cardInfoSets[3][i] = infoSetBuilder.toString();
 
             List<Card> cards = new ArrayList<>(7);
             cards.add(deck[startIndex]);
             cards.add(deck[startIndex + 1]);
-            cards.add(deck[12]);
-            cards.add(deck[13]);
-            cards.add(deck[14]);
-            cards.add(deck[15]);
-            cards.add(deck[16]);
+            cards.add(deck[FLOP_CARD1]);
+            cards.add(deck[FLOP_CARD2]);
+            cards.add(deck[FLOP_CARD3]);
+            cards.add(deck[TURN_CARD]);
+            cards.add(deck[RIVER_CARD]);
             hands[i] = Hand.of(cards).value;
         }
     }
@@ -139,9 +156,9 @@ public class GameTreeNode {
     }
 
     public double[] getRewards() {
-        double[] winnings = new double[6];
+        double[] winnings = new double[NUM_PLAYERS];
         List<Integer> playersStillInGame = new ArrayList<>();
-        for (int i = 0; i < 6; i++) {
+        for (int i = 0; i < NUM_PLAYERS; i++) {
             if (!players[i].hasFolded) {
                 playersStillInGame.add(i);
             }
@@ -155,7 +172,7 @@ public class GameTreeNode {
 
         List<KeyValue<Integer, Long>> bestHands = new ArrayList<>();
         long maxValue = 0;
-        for (int i = 0; i < 6; i++) {
+        for (int i = 0; i < NUM_PLAYERS; i++) {
             long hand = hands[i];
             if (hand > maxValue) {
                 bestHands.add(new KeyValue<>(i, hand));
@@ -218,7 +235,13 @@ public class GameTreeNode {
     }
 
     private boolean isFoldLegal() {
-        return true;
+        double maxInvestment = -1;
+        for (Player player : players) {
+            maxInvestment = Math.max(player.investment, maxInvestment);
+        }
+        double currentPlayerInvestment = players[currentPlayer].investment;
+        double payment = maxInvestment - currentPlayerInvestment;
+        return payment > 0;
     }
 
     public Node toNode(String infoSet) {
@@ -268,7 +291,7 @@ public class GameTreeNode {
     private void raise(double amount) {
         players[currentPlayer].pay(amount);
         pot += amount;
-        for (int i = 0; i < 6; i++) {
+        for (int i = 0; i < NUM_PLAYERS; i++) {
             if (BETTING_ORDER_PER_ROUND[bettingRound][i] == currentPlayer) {
                 lastRaiser = i;
                 break;
@@ -296,16 +319,30 @@ public class GameTreeNode {
 
     private void determineNextPlayer() {
         int numPlayerStillInGame = 0;
-        for (int i = 0; i < 6; i++) {
+        int numPlayersAllIn = 0;
+        for (int i = 0; i < NUM_PLAYERS; i++) {
             if (!players[i].hasFolded) {
                 numPlayerStillInGame++;
             }
+            if (players[i].stack <= 0) {
+                numPlayersAllIn++;
+            }
+        }
+
+        if (numPlayerStillInGame == 1) {
+            isGameOver = true;
+            return;
+        }
+        if (numPlayersAllIn == numPlayerStillInGame) {
+            isGameOver = true;
+            bettingRound = ROUND_RIVER;
+            return;
         }
 
         boolean isEndOfBettingRound = false;
         if (lastRaiser < 0) {
             // Noone raised this round
-            for (int i = 5; i > 0; i--) {
+            for (int i = NUM_PLAYERS-1; i > 0; i--) {
                 if (!players[BETTING_ORDER_PER_ROUND[bettingRound][i]].hasFolded) {
                     isEndOfBettingRound = currentPlayer == BETTING_ORDER_PER_ROUND[bettingRound][i];
                     break;
@@ -314,21 +351,16 @@ public class GameTreeNode {
         } else {
             // Someone raised and that was one round ago
             int lastRaiserIndex = -1;
-            for (int i = 0; i < 6; i++) {
+            for (int i = 0; i < NUM_PLAYERS; i++) {
                 if (BETTING_ORDER_PER_ROUND[bettingRound][i] == lastRaiser) {
                     lastRaiserIndex = i;
                 }
             }
-            int playerEndingRoundIndex = lastRaiserIndex <= 0 ? 5 : lastRaiserIndex - 1;
+            int playerEndingRoundIndex = lastRaiserIndex <= 0 ? NUM_PLAYERS-1 : lastRaiserIndex - 1;
             while (players[BETTING_ORDER_PER_ROUND[bettingRound][playerEndingRoundIndex]].hasFolded) {
-                playerEndingRoundIndex = playerEndingRoundIndex <= 0 ? 5 : playerEndingRoundIndex - 1;
+                playerEndingRoundIndex = playerEndingRoundIndex <= 0 ? NUM_PLAYERS-1 : playerEndingRoundIndex - 1;
             }
             isEndOfBettingRound = currentPlayer == BETTING_ORDER_PER_ROUND[bettingRound][playerEndingRoundIndex];
-        }
-
-        if (numPlayerStillInGame == 1) {
-            isGameOver = true;
-            return;
         }
 
         int currentPlayerIndex = -1;
@@ -342,17 +374,17 @@ public class GameTreeNode {
             switch (bettingRound) {
                 case ROUND_PRE_FLOP: {
                     nextBettingRound(ROUND_POST_FLOP);
-                    communityCards += deck[12].toString() + deck[13].toString() + deck[14].toString();
+                    communityCards += deck[FLOP_CARD1].toString() + deck[FLOP_CARD2].toString() + deck[FLOP_CARD3].toString();
                     break;
                 }
                 case ROUND_POST_FLOP: {
                     nextBettingRound(ROUND_TURN);
-                    communityCards += deck[15].toString();
+                    communityCards += deck[TURN_CARD].toString();
                     break;
                 }
                 case ROUND_TURN: {
                     nextBettingRound(ROUND_RIVER);
-                    communityCards += deck[16].toString();
+                    communityCards += deck[RIVER_CARD].toString();
                     break;
                 }
                 case ROUND_RIVER: {
@@ -363,10 +395,10 @@ public class GameTreeNode {
         } else {
             int nextPlayerIndex = currentPlayerIndex;
             do {
-                nextPlayerIndex = nextPlayerIndex >= 5 ? 0 : nextPlayerIndex + 1;
+                nextPlayerIndex = (nextPlayerIndex + 1) % NUM_PLAYERS;
 
                 currentPlayer = BETTING_ORDER_PER_ROUND[bettingRound][nextPlayerIndex];
-            } while (players[currentPlayer].hasFolded);
+            } while (players[currentPlayer].hasFolded && players[currentPlayer].stack > 0);
         }
     }
 
@@ -375,7 +407,7 @@ public class GameTreeNode {
         lastRaiser = -1;
 
         int nextPlayerIndex = 0;
-        while (players[BETTING_ORDER_PER_ROUND[bettingRound][nextPlayerIndex]].hasFolded) {
+        while (players[BETTING_ORDER_PER_ROUND[bettingRound][nextPlayerIndex]].hasFolded && players[BETTING_ORDER_PER_ROUND[bettingRound][nextPlayerIndex]].stack > 0) {
             assert nextPlayerIndex < 5 : "Oops, something went wrong when determining the next player";
             nextPlayerIndex++;
         }

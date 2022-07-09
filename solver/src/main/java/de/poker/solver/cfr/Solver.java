@@ -6,15 +6,15 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
 
-public class Solver {
-    public static final int NUM_PLAYERS = 6;
+import static de.poker.solver.game.GameTreeNode.NUM_PLAYERS;
 
+public class Solver {
     Map<String, Node> nodeMap = new HashMap<>();
 
     public double[] train(int iterations, Random random) {
         double[] expectedGameValue = new double[NUM_PLAYERS];
         for (int i = 0; i < iterations; i++) {
-            GameTreeNode gameTree = GameTreeNode.noLimitHoldEm6Max(random);
+            GameTreeNode gameTree = GameTreeNode.headsUpNoLimitHoldEm(random);
             double[] cfr = cfr(gameTree);
             for (int p = 0; p < NUM_PLAYERS; p++) {
                 expectedGameValue[p] += cfr[p];
@@ -59,7 +59,6 @@ public class Solver {
         node.reachProbability += gameTree.reachProbability();
 
         for (int i = 0; i < node.numActions; i++) {
-            // TODO check if this makes a difference when the probability is gone
             double probabilty = gameTree.reachProbabiltyForRegret();
             node.regretSum[i] += probabilty * regrets[i];
         }

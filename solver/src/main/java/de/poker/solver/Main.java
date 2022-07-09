@@ -11,7 +11,7 @@ public class Main {
 
     public static void main(String[] args) {
         Solver solver = new Solver();
-        solver.train(5, new Random(123L));
+        solver.train(1, new Random(123L));
         System.out.println("Done");
     }
     public static List<Card> generateDeck(int numCards, Random random) {

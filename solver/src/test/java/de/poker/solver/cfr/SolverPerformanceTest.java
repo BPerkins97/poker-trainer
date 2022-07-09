@@ -1,6 +1,5 @@
 package de.poker.solver.cfr;
 
-import de.poker.solver.utility.PermutationGeneratorPerformanceTest;
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.Measurement;
 import org.openjdk.jmh.annotations.Warmup;
@@ -16,14 +15,14 @@ public class SolverPerformanceTest {
 
     public static void main(String[] args) throws RunnerException {
         Options opt = new OptionsBuilder()
-                .include(PermutationGeneratorPerformanceTest.class.getSimpleName())
+                .include(SolverPerformanceTest.class.getSimpleName())
                 .build();
         new Runner(opt).run();
     }
 
-    //Benchmark                                        Mode  Cnt      Score     Error  Units
-    //PermutationGeneratorPerformanceTest.solverTest  thrpt   25  10241,100 ± 868,244  ops/s
-    //PermutationGeneratorPerformanceTest.solverTest  thrpt   25  11566,578 ± 81,954  ops/s
+    //Benchmark                          Mode  Cnt      Score      Error  Units
+    //SolverPerformanceTest.solverTest  thrpt   25  36215,051 ± 1402,028  ops/s
+    //SolverPerformanceTest.solverTest  thrpt   25  43479,463 ± 1793,150  ops/s
     @Benchmark
     @Warmup(time = 1)
     @Measurement(time = 1)

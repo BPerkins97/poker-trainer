@@ -196,8 +196,6 @@ public class Hand implements Comparable<Hand> {
         }
         return new Hand(Rank.HIGH_CARD, cards.subList(0, 5));
     }
-
-    // TODO throw exception when cards are double
     public static Hand of(String... cardsInput) {
         return of(Arrays.stream(cardsInput)
                 .map(Card::of)
