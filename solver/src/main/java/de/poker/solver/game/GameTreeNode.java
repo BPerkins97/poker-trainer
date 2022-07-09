@@ -13,10 +13,6 @@ import java.util.Random;
 public class GameTreeNode {
     private static final int POSITION_SMALL_BLIND = 0;
     private static final int POSITION_BIG_BLIND = 1;
-    private static final int POSITION_LO_JACK = 2;
-    private static final int POSITION_HI_JACK = 3;
-    private static final int POSITION_CUT_OFF = 4;
-    private static final int POSITION_BUTTON = 5;
     private static final int ACTION_FOLD = 0;
     private static final int ACTION_CALL = 1;
     private static final int ACTION_ALL_IN = 2;
@@ -26,9 +22,9 @@ public class GameTreeNode {
     private static final int ROUND_TURN = 2;
     private static final int ROUND_RIVER = 3;
 
-    private static final int[][] BETTING_ORDER_PER_ROUND = new int[4][];
-
     public static final int NUM_PLAYERS = 2;
+    private static final int[][] BETTING_ORDER_PER_ROUND = new int[4][NUM_PLAYERS];
+
     private static final int NUM_BETTINGS_ROUNDS = 4;
     private static final int FLOP_CARD1;
     private static final int FLOP_CARD2;
@@ -37,10 +33,6 @@ public class GameTreeNode {
     private static final int RIVER_CARD;
 
     static {
-        BETTING_ORDER_PER_ROUND[0] = new int[]{2, 3, 4, 5, 0, 1};
-        BETTING_ORDER_PER_ROUND[1] = new int[]{0, 1, 2, 3, 4, 5};
-        BETTING_ORDER_PER_ROUND[2] = new int[]{0, 1, 2, 3, 4, 5};
-        BETTING_ORDER_PER_ROUND[3] = new int[]{0, 1, 2, 3, 4, 5};
         for (int i=0;i<NUM_PLAYERS;i++) {
             BETTING_ORDER_PER_ROUND[0][i] = (i + 2) % NUM_PLAYERS;
             BETTING_ORDER_PER_ROUND[1][i] = i;
@@ -55,12 +47,10 @@ public class GameTreeNode {
     }
 
     String history;
-    String communityCards;
     String[][] cardInfoSets;
     int currentPlayer;
     Player[] players;
     long[] hands;
-    Card[] deck;
     double pot;
     boolean isGameOver;
     int bettingRound;
@@ -83,7 +73,6 @@ public class GameTreeNode {
         this.lastRaiser = gameTreeNode.lastRaiser;
         this.bettingRound = gameTreeNode.bettingRound;
         this.isGameOver = gameTreeNode.isGameOver;
-        this.communityCards = gameTreeNode.communityCards;
         this.cardInfoSets = gameTreeNode.cardInfoSets;
     }
 
@@ -100,17 +89,16 @@ public class GameTreeNode {
         gameTreeNode.players[POSITION_BIG_BLIND].pay(1.0);
         gameTreeNode.pot = 1.5;
         gameTreeNode.currentPlayer = BETTING_ORDER_PER_ROUND[0][0];
-        gameTreeNode.communityCards = "";
         return gameTreeNode;
     }
 
     private void initializeCardDeck(int numCards, Random random) {
-        deck = new Card[numCards];
+        Card[] deck = new Card[numCards];
         for (int i = 0; i < numCards; i++) {
             Card card;
             do {
                 card = Card.randomCard(random);
-            } while (cardAlreadyInDeck(card, i));
+            } while (cardAlreadyInDeck(deck, card, i));
             deck[i] = card;
         }
 
@@ -142,7 +130,7 @@ public class GameTreeNode {
         }
     }
 
-    private boolean cardAlreadyInDeck(Card card, int insertAtPosition) {
+    private boolean cardAlreadyInDeck(Card[] deck, Card card, int insertAtPosition) {
         for (int i = 0; i < insertAtPosition; i++) {
             if (deck[i] == card) {
                 return true;
@@ -182,9 +170,9 @@ public class GameTreeNode {
 
         List<Integer> winners = new ArrayList<>();
 
-        for (int i = 0; i < bestHands.size(); i++) {
-            if (bestHands.get(i).value() == maxValue) {
-                winners.add(bestHands.get(i).key());
+        for (KeyValue<Integer, Long> bestHand : bestHands) {
+            if (bestHand.value() == maxValue) {
+                winners.add(bestHand.key());
             }
         }
 
@@ -280,7 +268,6 @@ public class GameTreeNode {
         GameTreeNode next = new GameTreeNode(this);
         next.players = Arrays.copyOf(next.players, next.players.length);
         next.players[next.currentPlayer] = new Player(next.players[next.currentPlayer]);
-        next.deck = deck;
         next.takeAction(actionId);
         next.reachProbability = Arrays.copyOf(next.reachProbability, next.reachProbability.length);
         next.reachProbability[currentPlayer] *= probability;
@@ -374,17 +361,14 @@ public class GameTreeNode {
             switch (bettingRound) {
                 case ROUND_PRE_FLOP: {
                     nextBettingRound(ROUND_POST_FLOP);
-                    communityCards += deck[FLOP_CARD1].toString() + deck[FLOP_CARD2].toString() + deck[FLOP_CARD3].toString();
                     break;
                 }
                 case ROUND_POST_FLOP: {
                     nextBettingRound(ROUND_TURN);
-                    communityCards += deck[TURN_CARD].toString();
                     break;
                 }
                 case ROUND_TURN: {
                     nextBettingRound(ROUND_RIVER);
-                    communityCards += deck[RIVER_CARD].toString();
                     break;
                 }
                 case ROUND_RIVER: {
