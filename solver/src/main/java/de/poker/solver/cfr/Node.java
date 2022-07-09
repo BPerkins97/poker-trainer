@@ -1,7 +1,7 @@
 package de.poker.solver.cfr;
 
 public class Node {
-    private static final double DISCOUNT_FACTOR = 100.0;
+    private static final double DISCOUNT_FACTOR = 1000.0;
     String key;
     int numActions;
     double[] regretSum;

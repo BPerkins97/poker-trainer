@@ -18,8 +18,7 @@ public class KuhnPerformanceTest {
     }
 
     //Benchmark                        Mode  Cnt   Score   Error  Units
-    //KuhnPerformanceTest.solverTest  thrpt   25  34,867 ± 2,252  ops/s
-    //KuhnPerformanceTest.solverTest  thrpt   25  39,467 ± 1,177  ops/s
+    // ca. 80.000
     @Benchmark
     @Warmup(time = 1)
     @Measurement(time = 1)
