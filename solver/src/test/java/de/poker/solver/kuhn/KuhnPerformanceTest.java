@@ -37,7 +37,7 @@ public class KuhnPerformanceTest {
     @Measurement(time = 1)
     public void accurateSolverTest(Blackhole blackhole) {
         Solver solver = new Solver();
-        double train = solver.train(ThreadLocalRandom.current(), 1_000_000, 0.001, false);
+        double train = solver.train(ThreadLocalRandom.current(), 10_000, 0.001, false);
         blackhole.consume(train);
     }
 
