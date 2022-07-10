@@ -1,7 +1,9 @@
 package de.poker.solver.kuhn;
 
 import java.util.*;
+import java.util.concurrent.ThreadLocalRandom;
 
+// TODO pruning of very bad actions
 public class Solver {
     public static final int NUM_CARDS = 3;
     public static final int NUM_ACTIONS = 2;
@@ -19,10 +21,11 @@ public class Solver {
     Map<String, Node> nodeMap = new HashMap<>();
     double expectedGameValue = 0;
     int[] deck = new int[NUM_CARDS];
+    private Random random;
 
     public static void main(String[] args) {
         Solver solver = new Solver();
-        solver.train(1000000, 0.001, true);
+        solver.train(ThreadLocalRandom.current(), 100000, 0.001, true);
         solver.nodeMap
                 .values()
                 .stream().sorted(Comparator.comparing(v -> v.key.length()))
@@ -88,9 +91,7 @@ public class Solver {
             }
         }
         Map<String, double[]> cfrStrategy = new HashMap<>();
-        infoSetMap.forEach((key, value) -> {
-            cfrStrategy.put(key, value.getAverageStrategy());
-        });
+        infoSetMap.forEach((key, value) -> cfrStrategy.put(key, value.getAverageStrategy()));
 
         double exploitability = 0;
         for (int[] permutation : PERMUTATIONS) {
@@ -120,15 +121,15 @@ public class Solver {
         return expectedValue;
     }
 
-    public double train(int iterations, double stopAtExploitability, boolean debug) {
+    public double train(Random random, int iterations, double stopAtExploitability, boolean debug) {
+        this.random = random;
         expectedGameValue = 0;
         double exploitability;
         int counter = 0;
         do {
-            for (int[] permutation : PERMUTATIONS) {
-                deck = permutation;
-                expectedGameValue += cfr("", 1.0, 1.0);
-            }
+            deck = PERMUTATIONS[random.nextInt(0, PERMUTATIONS.length)];
+            expectedGameValue += cfr("", 1.0, 1.0, 0);
+            cfr("", 1.0, 1.0, 1);
             nodeMap.values().forEach(Node::updateStrategy);
             exploitability = calculateExploitability(nodeMap);
             counter++;
@@ -141,50 +142,64 @@ public class Solver {
         return expectedGameValue;
     }
 
-    public double cfr(String history, double probabilityPlayer1, double probabilityPlayer2) {
+    public double cfr(String history, double probabilityPlayer1, double probabilityPlayer2, int iteratingPlayer) {
         int historyLength = history.length();
-        boolean isPlayer1Turn = historyLength % 2 == 0;
-        int playerCard = isPlayer1Turn ? deck[0] : deck[1];
+        int currentPlayer = historyLength % 2;
+        boolean isPlayer1Turn = currentPlayer == 0;
 
         if (isTerminal(history)) {
-            int opponentCard = isPlayer1Turn ? deck[1] : deck[0];
-            return getReward(history, playerCard, opponentCard);
+            return getReward(history, iteratingPlayer);
         }
 
-        Node node = getNode(playerCard, history);
+        Node node = getNode(deck[currentPlayer], history);
         double[] strategy = node.strategy;
-        double[] actionUtility = new double[node.numActions];
 
-        for (int i=0;i<node.numActions;i++) {
-            String nextHistory = history + node.actionDictionary[i];
-            if (isPlayer1Turn) {
-                actionUtility[i] = -1.0 * cfr(nextHistory, probabilityPlayer1 * strategy[i], probabilityPlayer2);
-            } else {
-                actionUtility[i] = -1.0 * cfr(nextHistory, probabilityPlayer1, probabilityPlayer2 * strategy[i]);
-            }
-        }
-
-        double utilitySum = 0;
-        for (int i=0;i<node.numActions;i++) {
-            utilitySum += actionUtility[i] * strategy[i];
-        }
-        double[] regrets = new double[node.numActions];
-        for (int i=0;i<node.numActions;i++) {
-            regrets[i] = actionUtility[i] - utilitySum;
-        }
-        if (isPlayer1Turn) {
-            node.reachProbability += probabilityPlayer1;
+        if (iteratingPlayer == currentPlayer) {
+            double[] actionUtility = new double[node.numActions];
+            double utilitySum = 0;
             for (int i=0;i<node.numActions;i++) {
-                regrets[i] = probabilityPlayer2 * regrets[i];
+                String nextHistory = history + node.actionDictionary[i];
+                if (isPlayer1Turn) {
+                    actionUtility[i] = cfr(nextHistory, probabilityPlayer1 * strategy[i], probabilityPlayer2, iteratingPlayer);
+                } else {
+                    actionUtility[i] = cfr(nextHistory, probabilityPlayer1, probabilityPlayer2 * strategy[i], iteratingPlayer);
+                }
+                utilitySum += actionUtility[i] * strategy[i];
             }
+
+            double[] regrets = new double[node.numActions];
+            for (int i=0;i<node.numActions;i++) {
+                regrets[i] = actionUtility[i] - utilitySum;
+                if (isPlayer1Turn) {
+                    regrets[i] *= probabilityPlayer2;
+                } else {
+                    regrets[i] *= probabilityPlayer1;
+                }
+            }
+            node.reachProbability += isPlayer1Turn ? probabilityPlayer1 : probabilityPlayer2;
+            node.updateRegrets(regrets);
+            return utilitySum;
         } else {
-            node.reachProbability += probabilityPlayer2;
-            for (int i=0;i<node.numActions;i++) {
-                regrets[i] = probabilityPlayer1 * regrets[i];
+            int action = pickRandomAction(strategy);
+            String nextHistory = history + node.actionDictionary[action];
+            if (isPlayer1Turn) {
+                return cfr(nextHistory, probabilityPlayer1 * strategy[action], probabilityPlayer2, iteratingPlayer);
+            } else {
+                return cfr(nextHistory, probabilityPlayer1, probabilityPlayer2 * strategy[action], iteratingPlayer);
             }
         }
-        node.updateRegrets(regrets);
-        return utilitySum;
+    }
+
+    private int pickRandomAction(double[] strategy) {
+        double probability = random.nextDouble();
+        double accumulatedActionProbability = 0;
+        for (int i=0;i<strategy.length;i++) {
+            accumulatedActionProbability += strategy[i];
+            if (probability < accumulatedActionProbability) {
+                return i;
+            }
+        }
+        return 0;
     }
 
     private boolean isTerminal(String history) {
@@ -196,6 +211,22 @@ public class Solver {
         int playerCard = isPlayer1Turn ? cards[0] : cards[1];
         int opponentCard = isPlayer1Turn ? cards[1] : cards[0];
         return getReward(history, playerCard, opponentCard);
+    }
+
+    public double getReward(String history, int iteratingPlayer) {
+        int playerCard = deck[iteratingPlayer];
+        int opponentCard = deck[(iteratingPlayer + 1) % 2];
+        if (history.endsWith("p")) {
+            if (history.endsWith("pp")) {
+                return playerCard > opponentCard ? 1 : -1;
+            } else {
+                int currentPlayer = history.length() % 2;
+                return currentPlayer == iteratingPlayer ? 1 : -1;
+            }
+        } else if (history.endsWith("bb")) {
+            return playerCard > opponentCard ? 2 : -2;
+        }
+        throw new IllegalStateException();
     }
 
     public double getReward(String history, int playerCard, int opponentCard) {
@@ -229,10 +260,6 @@ public class Solver {
             case 1 -> "b";
             default -> throw new IllegalArgumentException();
         };
-    }
-
-    private boolean isCardAlreadyInDeck(int nextCard) {
-        return Arrays.stream(deck).anyMatch(c -> c == nextCard);
     }
 
     @Override

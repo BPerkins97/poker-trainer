@@ -9,6 +9,8 @@ import org.openjdk.jmh.runner.RunnerException;
 import org.openjdk.jmh.runner.options.Options;
 import org.openjdk.jmh.runner.options.OptionsBuilder;
 
+import java.util.concurrent.ThreadLocalRandom;
+
 public class KuhnPerformanceTest {
     public static void main(String[] args) throws RunnerException {
         Options opt = new OptionsBuilder()
@@ -18,13 +20,24 @@ public class KuhnPerformanceTest {
     }
 
     //Benchmark                        Mode  Cnt   Score   Error  Units
-    // ca. 80.000
+    //KuhnPerformanceTest.solverTest  thrpt   25  86,668 ± 1,291  ops/s
+//    @Benchmark
+//    @Warmup(time = 1)
+//    @Measurement(time = 1)
+//    public void solverTest(Blackhole blackhole) {
+//        Solver solver = new Solver();
+//        double train = solver.train(1_000_000, 0.01, false);
+//        blackhole.consume(train);
+//    }
+
+    //Benchmark                                Mode  Cnt  Score   Error  Units
+    //KuhnPerformanceTest.accurateSolverTest  thrpt   25  0,415 ± 0,027  ops/s
     @Benchmark
-    @Warmup(time = 1)
+    @Warmup(time = 1, iterations = 3)
     @Measurement(time = 1)
-    public void solverTest(Blackhole blackhole) {
+    public void accurateSolverTest(Blackhole blackhole) {
         Solver solver = new Solver();
-        double train = solver.train(1_000_000, 0.01, false);
+        double train = solver.train(ThreadLocalRandom.current(), 1_000_000, 0.001, false);
         blackhole.consume(train);
     }
 
