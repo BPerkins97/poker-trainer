@@ -1,14 +1,14 @@
 package de.poker.solver.pluribus;
 
-public interface GameTree {
+public interface GameTree<K> {
 
     boolean isTerminalForPlayer(int playerId);
 
-    int getPayoff(int playerId);
+    int getPayoffForPlayer(int playerId);
 
     boolean isCurrentPlayer(int playerId);
 
-    InfoSet asInfoSet();
+    K asInfoSet(int playerId);
 
     int actions();
 
@@ -16,5 +16,5 @@ public interface GameTree {
 
     boolean shouldUpdateRegrets();
 
-    int numPlayers();
+    int currentPlayer();
 }

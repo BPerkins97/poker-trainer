@@ -6,17 +6,22 @@ public class Node {
     private int[] regrets;
     private int[] averageAction;
 
+    public Node(int numActions) {
+        regrets = new int[numActions];
+        averageAction = new int[numActions];
+    }
     public double[] calculateStrategy() {
         double sum = 0;
-        for (int a=0;a<regrets.length;a++) {
-            sum += regrets[a];
-        }
         double[] strategy = new double[regrets.length];
         for (int a=0;a<regrets.length;a++) {
+            strategy[a] = Math.max(0, regrets[a]);
+            sum += strategy[a];
+        }
+        for (int a=0;a<regrets.length;a++) {
             if (sum > 0) {
-                strategy[a] = regrets[a] / sum;
+                strategy[a] = strategy[a] / sum;
             } else {
-                strategy[a] = (double) regrets[a] / regrets.length;
+                strategy[a] = 1.0 / regrets.length;
             }
         }
         return strategy;
@@ -26,8 +31,8 @@ public class Node {
         averageAction[action]++;
     }
 
-    public void addRegretForAction(int action, double regret) {
-        regrets[action] += regret;
+    public void addRegretForAction(int action, int regret, Configuration config) {
+        regrets[action] = Math.max(regrets[action] + regret, config.minimumRegret());
     }
 
     public void resetRegrets() {
