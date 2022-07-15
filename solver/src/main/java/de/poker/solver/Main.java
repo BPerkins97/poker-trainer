@@ -14,6 +14,8 @@ public class Main {
         solver.train(1, new Random(123L));
         System.out.println("Done");
     }
+
+
     public static List<Card> generateDeck(int numCards, Random random) {
         List<Card> deck = new ArrayList<>(numCards);
         for (int i=0;i<numCards;i++) {

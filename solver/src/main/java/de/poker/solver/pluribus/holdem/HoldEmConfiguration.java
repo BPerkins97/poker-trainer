@@ -24,7 +24,7 @@ public class HoldEmConfiguration implements Configuration {
 
     @Override
     public int discountInterval() {
-        return 10;
+        return 100;
     }
 
     // -310_000_000 for Pluribus
@@ -40,8 +40,9 @@ public class HoldEmConfiguration implements Configuration {
 
     @Override
     public GameTree randomRootNode() {
-        Card[] deck = new Card[9];
-        for (int i = 0; i < 9; i++) {
+        int numCards = numPlayers() * 2 + 5;
+        Card[] deck = new Card[numCards];
+        for (int i = 0; i < numCards; i++) {
             Card card;
             do {
                 card = Card.randomCard(ThreadLocalRandom.current());
