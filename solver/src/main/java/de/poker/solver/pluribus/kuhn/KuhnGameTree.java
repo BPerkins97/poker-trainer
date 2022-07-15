@@ -67,9 +67,4 @@ public class KuhnGameTree implements GameTree<String> {
     public boolean shouldUpdateRegrets() {
         return true;
     }
-
-    @Override
-    public int currentPlayer() {
-        return history.length() % 2;
-    }
 }

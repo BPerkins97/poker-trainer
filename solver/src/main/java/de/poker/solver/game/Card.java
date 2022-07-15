@@ -114,6 +114,10 @@ public enum Card implements Comparable<Card> {
         return CARDS[value.value() * 4 + suit.value()];
     }
 
+    public int toInt() {
+        return ordinal();
+    }
+
     public static Card of(int card) {
         return CARDS[card];
     }

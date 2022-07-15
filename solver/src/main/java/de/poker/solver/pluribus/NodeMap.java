@@ -2,14 +2,12 @@ package de.poker.solver.pluribus;
 
 import java.util.function.BiConsumer;
 
-public interface NodeMap<K> {
+public interface NodeMap<T extends GameTree, K> {
     void forEach(BiConsumer<K, Node> consumer);
 
-    void updateForCurrentPlayer(GameTree<K> gameTree, Node node);
+    void updateForCurrentPlayer(T gameTree, Node node);
 
-    Node getNodeForCurrentPlayer(GameTree<K> state);
-
-    void update(GameTree<K> state, int traversingPlayerId, Node node);
+    Node getNodeForCurrentPlayer(T state);
 
     void discount(double discountValue);
 }

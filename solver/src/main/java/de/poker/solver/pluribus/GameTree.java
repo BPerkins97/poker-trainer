@@ -15,6 +15,4 @@ public interface GameTree<K> {
     GameTree takeAction(int actionId);
 
     boolean shouldUpdateRegrets();
-
-    int currentPlayer();
 }

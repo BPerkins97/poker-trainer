@@ -65,7 +65,7 @@ public class MonteCarloCFR {
             for (int a=0;a<numActions;a++) {
                 node.addRegretForAction(a, (int)(valueOfTakingAction[a] - expectedValue), config);
             }
-            nodeMap.update(state, traversingPlayerId, node);
+            nodeMap.updateForCurrentPlayer(state, node);
             return expectedValue;
         } else {
             Node node = nodeMap.getNodeForCurrentPlayer(state);
