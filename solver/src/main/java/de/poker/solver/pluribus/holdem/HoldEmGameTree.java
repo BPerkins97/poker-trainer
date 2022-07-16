@@ -143,7 +143,9 @@ public class HoldEmGameTree implements GameTree<String> {
     @Override
     public String asInfoSet(int playerId) {
         StringBuilder sb = new StringBuilder();
-        sb.append(cardInfoSets[bettingRound][playerId]);
+        for (int i=0;i<=bettingRound;i++) {
+            sb.append(cardInfoSets[bettingRound][playerId]).append("|");
+        }
         sb.append(history);
         return sb.toString();
     }
@@ -317,23 +319,24 @@ public class HoldEmGameTree implements GameTree<String> {
     }
 
     private void raise(int amount) {
-        pay(currentPlayer, amount);
+        int paid = pay(currentPlayer, amount);
         for (int i = 0; i < NUM_PLAYERS; i++) {
             if (BETTING_ORDER_PER_ROUND[bettingRound][i] == currentPlayer) {
                 lastRaiser = i;
                 break;
             }
         }
-        history += "r" + amount;
+        history += "r" + paid;
     }
 
-    private void pay(int playerId, int amount) {
+    private int pay(int playerId, int amount) {
         amount = Math.min(playersStack[playerId], amount);
         playersStack = Arrays.copyOf(playersStack, NUM_PLAYERS);
         playersInvestment = Arrays.copyOf(playersInvestment, NUM_PLAYERS);
         playersStack[playerId] -= amount;
         playersInvestment[playerId] += amount;
         pot += amount;
+        return amount;
     }
 
     private void fold() {

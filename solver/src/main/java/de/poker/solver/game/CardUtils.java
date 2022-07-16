@@ -7,26 +7,18 @@ import java.util.*;
 import static de.poker.solver.utility.ComparisonUtils.isXGreaterThanY;
 
 public class CardUtils {
-    public static final int NUM_FLOP_COMBINATIONS = 22100;
     private static final Map<Card, Map<Card, Integer>> FLOP_MAP = new HashMap<>();
-    private static final Suit[] SUITS_IN_ORDER = new Suit[]{
-            Suit.CLUB, Suit.DIAMOND, Suit.HEART, Suit.SPADES
-    };
+    private static final Suit[] SUITS_IN_ORDER = Suit.values();
 
     static {
-        Map<Card, Map<Card, List<Card>>> cardMap = new HashMap<>();
-        List<List<Card>> cards = new ArrayList<>();
-        int counter = 0;
         for (int i=51;i>1;i--) {
             Card cardI = Card.of(i);
             FLOP_MAP.put(cardI, new HashMap<>());
             for (int j=i-1;j>0;j--) {
                 Card cardJ = Card.of(j);
-                counter += j - 1;
                 FLOP_MAP.get(cardI).put(cardJ, j-1);
             }
         }
-        System.out.println(cards.size());
     }
 
     public static int holeCardsToInt(Card card1, Card card2) {
@@ -44,8 +36,9 @@ public class CardUtils {
     }
 
     public static void normalizeInPlace(List<Card> cards) {
-        sortCards(cards);
+        sortHoleCards(cards);
         normalizeSuit(cards);
+        sortFlop(cards);
     }
 
     private static void normalizeSuit(List<Card> cards) {

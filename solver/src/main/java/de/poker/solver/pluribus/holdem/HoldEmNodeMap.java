@@ -7,9 +7,9 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.BiConsumer;
 
+// TODO this needs insane amounts of heap, maybe do this only for preflop and flop might be more efficient
 public class HoldEmNodeMap implements NodeMap<HoldEmGameTree, String> {
-    private Map<String, Node>[][][][][] riverMap = new HashMap[HoldEmConstants.NUM_PLAYERS][HoldEmConstants.NUM_HOLE_CARD_COMBINATIONS][HoldEmConstants.NUM_FLOP_COMBINATIONS][HoldEmConstants.NUM_CARDS][HoldEmConstants.NUM_CARDS];
-    private Map<String, Node>[][][][] turnMap = new HashMap[HoldEmConstants.NUM_PLAYERS][HoldEmConstants.NUM_HOLE_CARD_COMBINATIONS][HoldEmConstants.NUM_FLOP_COMBINATIONS][HoldEmConstants.NUM_CARDS];
+    private Map<String, Node> map = new HashMap();
     private Map<String, Node>[][][] flopMap = new HashMap[HoldEmConstants.NUM_PLAYERS][HoldEmConstants.NUM_HOLE_CARD_COMBINATIONS][HoldEmConstants.NUM_FLOP_COMBINATIONS];
     private Map<String, Node>[][] preFlopMap = new HashMap[HoldEmConstants.NUM_PLAYERS][HoldEmConstants.NUM_HOLE_CARD_COMBINATIONS];
 
@@ -18,12 +18,6 @@ public class HoldEmNodeMap implements NodeMap<HoldEmGameTree, String> {
         for (int i=0;i<HoldEmConstants.NUM_PLAYERS;i++) {
             for (int j=0;j<HoldEmConstants.NUM_HOLE_CARD_COMBINATIONS;j++) {
                 for (int k=0;k<HoldEmConstants.NUM_FLOP_COMBINATIONS;k++) {
-                    for (int l=0;l<HoldEmConstants.NUM_CARDS;l++) {
-                        for (int m=0;m<HoldEmConstants.NUM_CARDS;m++) {
-                            riverMap[i][j][k][l][m] = new HashMap<>();
-                        }
-                        turnMap[i][j][k][l] = new HashMap<>();
-                    }
                     flopMap[i][j][k] = new HashMap<>();
                 }
                 preFlopMap[i][j] = new HashMap<>();
@@ -36,17 +30,12 @@ public class HoldEmNodeMap implements NodeMap<HoldEmGameTree, String> {
         for (int i=0;i<HoldEmConstants.NUM_PLAYERS;i++) {
             for (int j=0;j<HoldEmConstants.NUM_HOLE_CARD_COMBINATIONS;j++) {
                 for (int k=0;k<HoldEmConstants.NUM_FLOP_COMBINATIONS;k++) {
-                    for (int l=0;l<HoldEmConstants.NUM_CARDS;l++) {
-                        for (int m=0;m<HoldEmConstants.NUM_CARDS;m++) {
-                            riverMap[i][j][k][l][m].forEach(consumer);
-                        }
-                        turnMap[i][j][k][l].forEach(consumer);
-                    }
                     flopMap[i][j][k].forEach(consumer);
                 }
                 preFlopMap[i][j].forEach(consumer);
             }
         }
+        map.forEach(consumer);
     }
 
     @Override
@@ -74,7 +63,7 @@ public class HoldEmNodeMap implements NodeMap<HoldEmGameTree, String> {
     }
 
     private void updateTurn(HoldEmGameTree gameTree, Node node) {
-        turnMap[gameTree.currentPlayer][gameTree.cardInfoSets[0][gameTree.currentPlayer]][gameTree.cardInfoSets[1][gameTree.currentPlayer]][gameTree.cardInfoSets[2][gameTree.currentPlayer]].put(gameTree.history, node);
+        map.put(gameTree.asInfoSet(gameTree.currentPlayer), node);
     }
 
     private void updateFlop(HoldEmGameTree gameTree, Node node) {
@@ -82,7 +71,7 @@ public class HoldEmNodeMap implements NodeMap<HoldEmGameTree, String> {
     }
 
     private void updateRiver(HoldEmGameTree gameTree, Node node) {
-        riverMap[gameTree.currentPlayer][gameTree.cardInfoSets[0][gameTree.currentPlayer]][gameTree.cardInfoSets[1][gameTree.currentPlayer]][gameTree.cardInfoSets[2][gameTree.currentPlayer]][gameTree.cardInfoSets[3][gameTree.currentPlayer]].put(gameTree.history, node);
+        map.put(gameTree.asInfoSet(gameTree.currentPlayer), node);
     }
 
     @Override
@@ -97,17 +86,17 @@ public class HoldEmNodeMap implements NodeMap<HoldEmGameTree, String> {
     }
 
     private Node getRiver(HoldEmGameTree gameTree) {
-        if (!riverMap[gameTree.currentPlayer][gameTree.cardInfoSets[0][gameTree.currentPlayer]][gameTree.cardInfoSets[1][gameTree.currentPlayer]][gameTree.cardInfoSets[2][gameTree.currentPlayer]][gameTree.cardInfoSets[3][gameTree.currentPlayer]].containsKey(gameTree.history)) {
-            riverMap[gameTree.currentPlayer][gameTree.cardInfoSets[0][gameTree.currentPlayer]][gameTree.cardInfoSets[1][gameTree.currentPlayer]][gameTree.cardInfoSets[2][gameTree.currentPlayer]][gameTree.cardInfoSets[3][gameTree.currentPlayer]].put(gameTree.history, new Node(gameTree.actions()));
+        if (!map.containsKey(gameTree.history)) {
+            map.put(gameTree.history, new Node(gameTree.actions()));
         }
-        return riverMap[gameTree.currentPlayer][gameTree.cardInfoSets[0][gameTree.currentPlayer]][gameTree.cardInfoSets[1][gameTree.currentPlayer]][gameTree.cardInfoSets[2][gameTree.currentPlayer]][gameTree.cardInfoSets[3][gameTree.currentPlayer]].get(gameTree.history);
+        return map.get(gameTree.history);
     }
 
     private Node getTurn(HoldEmGameTree gameTree) {
-        if (!turnMap[gameTree.currentPlayer][gameTree.cardInfoSets[0][gameTree.currentPlayer]][gameTree.cardInfoSets[1][gameTree.currentPlayer]][gameTree.cardInfoSets[2][gameTree.currentPlayer]].containsKey(gameTree.history)) {
-            turnMap[gameTree.currentPlayer][gameTree.cardInfoSets[0][gameTree.currentPlayer]][gameTree.cardInfoSets[1][gameTree.currentPlayer]][gameTree.cardInfoSets[2][gameTree.currentPlayer]].put(gameTree.history, new Node(gameTree.actions()));
+        if (!map.containsKey(gameTree.history)) {
+            map.put(gameTree.history, new Node(gameTree.actions()));
         }
-        return turnMap[gameTree.currentPlayer][gameTree.cardInfoSets[0][gameTree.currentPlayer]][gameTree.cardInfoSets[1][gameTree.currentPlayer]][gameTree.cardInfoSets[2][gameTree.currentPlayer]].get(gameTree.history);
+        return map.get(gameTree.history);
     }
 
     private Node getFlop(HoldEmGameTree gameTree) {

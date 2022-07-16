@@ -20,9 +20,9 @@ public class MonteCarloCFR {
 
         for (int i=0;i<iterations;i++) {
             GameTree rootNode = config.randomRootNode();
+            double randomNumber = ThreadLocalRandom.current().nextDouble();
             for(int p=0;p<config.numPlayers();p++) {
                 if (i > config.pruningThreshold()) {
-                    double randomNumber = ThreadLocalRandom.current().nextDouble();
                     if (randomNumber < 0.05) {
                         traverseMCCFR_NoPruning(config, nodeMap, rootNode, p);
                     } else {

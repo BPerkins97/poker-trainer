@@ -9,7 +9,7 @@ import java.util.concurrent.ThreadLocalRandom;
 public class HoldEmConfiguration implements Configuration {
     @Override
     public int strategyInterval() {
-        return 100;
+        return 1;
     }
 
     @Override
