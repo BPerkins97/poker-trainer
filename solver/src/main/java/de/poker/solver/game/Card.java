@@ -74,7 +74,7 @@ public enum Card implements Comparable<Card> {
     ACE_CLUB(ACE, CLUB),
     ;
 
-    private static final int NUM_CARDS = 52;
+    public static final int NUM_CARDS = 52;
 
     private static final Card[] CARDS = new Card[52];
 

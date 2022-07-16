@@ -30,4 +30,26 @@ public class TreeList {
         }
         return trees;
     }
+
+    public static List<List<Card>> combinations(List<Card> deck) {
+        if (deck.size() == 1) {
+            List<List<Card>> result = new ArrayList<>(1);
+            result.add(deck);
+            return result;
+        }
+
+        List<List<Card>> result = new ArrayList<>();
+        for (int i=0;i<deck.size();i++) {
+            Card item = deck.get(i);
+            List<Card> reducedDeck = deck.stream()
+                    .filter(c -> !c.equals(item))
+                    .collect(Collectors.toList());
+            List<List<Card>> children = combinations(reducedDeck);
+            children.stream()
+                    .peek(child -> child.add(item))
+                    .forEach(result::add);
+        }
+        return result;
+
+    }
 }

@@ -2,29 +2,11 @@ package de.poker.solver.game;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.CsvSource;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 public class CardUtilityTest {
-
-    @ParameterizedTest
-    @CsvSource({
-            "168,Ac,Ad",
-            "0,2c,2d",
-            "5,4c,2c"
-    })
-    public void testHoleCardsToInt(int expected, String c1, String c2) {
-        Card card1 = Card.of(c1);
-        Card card2 = Card.of(c2);
-
-        int actual = CardUtils.holeCardsToInt(card1, card2);
-        Assertions.assertEquals(expected, actual);
-    }
 
     @Test
     public void testNormalization() {
@@ -49,20 +31,13 @@ public class CardUtilityTest {
     }
 
     @Test
-    public void testSomething() {
-        Map<Card, Map<Card, List<Card>>> cardMap = new HashMap<>();
-        List<List<Card>> cards = new ArrayList<>();
-        for (int i=0;i<50;i++) {
-            Card cardI = Card.of(i);
-            cardMap.put(cardI, new HashMap<>());
-            for (int j=i+1;j<51;j++) {
-                Card cardJ = Card.of(j);
-                cardMap.get(cardI).put(cardJ, new ArrayList<>());
-                for (int k=j+1;k<52;k++) {
-                    cardMap.get(cardI).get(cardJ).add(Card.of(k));
-                }
-            }
-        }
-        System.out.println(cards.size());
+    public void testCards2Long() {
+        List<Card> cards = new ArrayList<>();
+        cards.add(Card.of("Ks"));
+        cards.add(Card.of("As"));
+        cards.add(Card.of("Td"));
+        long v = CardUtils.cardsToLong(cards, 3);
+        List<Card> result = CardUtils.longToCards(v);
+        Assertions.assertEquals(cards, result);
     }
 }

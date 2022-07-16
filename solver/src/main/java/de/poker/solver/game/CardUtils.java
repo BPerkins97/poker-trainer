@@ -1,5 +1,6 @@
 package de.poker.solver.game;
 
+import de.poker.solver.pluribus.holdem.HoldEmConstants;
 import de.poker.solver.utility.ComparisonUtils;
 
 import java.util.*;
@@ -7,33 +8,8 @@ import java.util.*;
 import static de.poker.solver.utility.ComparisonUtils.isXGreaterThanY;
 
 public class CardUtils {
-    private static final Map<Card, Map<Card, Integer>> FLOP_MAP = new HashMap<>();
     private static final Suit[] SUITS_IN_ORDER = Suit.values();
-
-    static {
-        for (int i=51;i>1;i--) {
-            Card cardI = Card.of(i);
-            FLOP_MAP.put(cardI, new HashMap<>());
-            for (int j=i-1;j>0;j--) {
-                Card cardJ = Card.of(j);
-                FLOP_MAP.get(cardI).put(cardJ, j-1);
-            }
-        }
-    }
-
-    public static int holeCardsToInt(Card card1, Card card2) {
-        int numPlaces = card1.value().value() * 2 + 1;
-        int startIndex = (int)(0.5 * card1.value().value() * (numPlaces - 1));
-        int value = startIndex + card2.value().value() * 2;
-        if (card1.suit() == card2.suit()) {
-            value++;
-        }
-        return value;
-    }
-
-    public static int flopToInt(Card card1, Card card2, Card card3) {
-        return FLOP_MAP.get(card1).get(card2) + card3.toInt();
-    }
+    private static final long NUM_CARDS = 53;
 
     public static void normalizeInPlace(List<Card> cards) {
         sortHoleCards(cards);
@@ -54,11 +30,6 @@ public class CardUtils {
             }
             cards.set(i, Card.of(card.value(), suitMapper.get(suit)));
         }
-    }
-
-    private static void sortCards(List<Card> cards) {
-        sortHoleCards(cards);
-        sortFlop(cards);
     }
 
     private static void sortFlop(List<Card> cards) {
@@ -106,5 +77,27 @@ public class CardUtils {
             cards.set(0, card2);
             cards.set(1, card1);
         }
+    }
+
+    // TODO test this with bitwise operations
+    public static long cardsToLong(List<Card> cards, int depth) {
+        long sum = 0;
+        long multiplier = 1;
+        for (int i=0;i<depth;i++) {
+            sum += multiplier * (cards.get(i).toInt() + 1);
+            multiplier *= NUM_CARDS;
+        }
+        return sum;
+    }
+
+    public static List<Card> longToCards(long value) {
+        List<Card> cards = new ArrayList<>();
+        do {
+            long cardValue = value % NUM_CARDS;
+            value -= cardValue;
+            value /= NUM_CARDS;
+            cards.add(Card.of((int)cardValue - 1));
+        } while (value > 0);
+        return cards;
     }
 }

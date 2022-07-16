@@ -49,7 +49,7 @@ public class HoldEmGameTree implements GameTree<String> {
     }
 
     String history = "";
-    int[][] cardInfoSets;
+    Long[][] cardInfoSets;
     int currentPlayer;
     boolean[] playersWhoFolded = new boolean[NUM_PLAYERS];
     int[] playersInvestment = new int[NUM_PLAYERS];
@@ -66,7 +66,7 @@ public class HoldEmGameTree implements GameTree<String> {
         pay(POSITION_SMALL_BLIND, 50);
         pay(POSITION_BIG_BLIND, 100);
         currentPlayer = BETTING_ORDER_PER_ROUND[0][0];
-        cardInfoSets = new int[NUM_BETTINGS_ROUNDS][NUM_PLAYERS];
+        cardInfoSets = new Long[NUM_BETTINGS_ROUNDS][NUM_PLAYERS];
         for (int i = 0; i < NUM_PLAYERS; i++) {
             int startIndex = 2 * i;
 
@@ -82,10 +82,10 @@ public class HoldEmGameTree implements GameTree<String> {
             cards.add(deck[TURN_CARD]);
             cards.add(deck[RIVER_CARD]);
             CardUtils.normalizeInPlace(cards);
-            cardInfoSets[0][i] = CardUtils.holeCardsToInt(cards.get(0), cards.get(1));
-            cardInfoSets[1][i] = CardUtils.flopToInt(cards.get(2), cards.get(3), cards.get(4));
-            cardInfoSets[2][i] = cards.get(5).toInt();
-            cardInfoSets[3][i] = cards.get(6).toInt();
+            cardInfoSets[0][i] = CardUtils.cardsToLong(cards, 2);
+            cardInfoSets[1][i] = CardUtils.cardsToLong(cards, 5);
+            cardInfoSets[2][i] = CardUtils.cardsToLong(cards, 6);
+            cardInfoSets[3][i] = CardUtils.cardsToLong(cards, 7);
 
             playersHands[i] = Hand.of(cards).value;
         }
