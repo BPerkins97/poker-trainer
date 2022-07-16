@@ -35,7 +35,7 @@ public class HoldEmConfiguration implements Configuration {
 
     @Override
     public int numPlayers() {
-        return 2;
+        return HoldEmConstants.NUM_PLAYERS;
     }
 
     @Override
