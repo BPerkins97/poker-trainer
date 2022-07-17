@@ -1,5 +1,6 @@
 package de.poker.solver.pluribus.holdem;
 
+import de.poker.solver.game.Action;
 import de.poker.solver.game.Card;
 import de.poker.solver.game.Hand;
 import de.poker.solver.pluribus.GameTree;
@@ -58,6 +59,7 @@ public class HoldEmGameTree implements GameTree<String>, Cloneable {
     boolean isGameOver;
     int bettingRound;
     int lastRaiser;
+    Action[] actions;
 
 
     public HoldEmGameTree(Card[] deck) {
@@ -89,19 +91,7 @@ public class HoldEmGameTree implements GameTree<String>, Cloneable {
             cards.add(deck[RIVER_CARD]);
             playersHands[i] = Hand.of(cards).value;
         }
-    }
-    private HoldEmGameTree(HoldEmGameTree copy) {
-        this.history = copy.history;
-        this.cardInfoSets = copy.cardInfoSets;
-        this.currentPlayer = copy.currentPlayer;
-        this.playersWhoFolded = copy.playersWhoFolded;
-        this.playersInvestment = copy.playersInvestment;
-        this.playersStack = copy.playersStack;
-        this.playersHands = copy.playersHands;
-        this.pot = copy.pot;
-        this.isGameOver = copy.isGameOver;
-        this.bettingRound = copy.bettingRound;
-        this.lastRaiser = copy.lastRaiser;
+        setNextActions();
     }
 
     @Override
@@ -151,16 +141,8 @@ public class HoldEmGameTree implements GameTree<String>, Cloneable {
     }
 
     @Override
-    public int actions() {
-        int numActions = 0;
-        if (isFoldLegal()) {
-            numActions++;
-        }
-        if (isCallLegal()) {
-            numActions++;
-        }
-        numActions += 3;
-        return numActions;
+    public int numActions() {
+        return actions.length;
     }
 
     private boolean isRaiseLegal(int amount) {
@@ -197,37 +179,33 @@ public class HoldEmGameTree implements GameTree<String>, Cloneable {
         } catch (CloneNotSupportedException e) {
             e.printStackTrace();
         }
-        if (!isFoldLegal()) {
-            actionId++;
-        }
-        if (!isCallLegal()) {
-            actionId++;
-        }
-        switch (actionId) {
-            case ACTION_FOLD -> {
-                next.fold();
-                break;
-            }
-            case ACTION_CALL -> {
-                next.call();
-                break;
-            }
-            case ACTION_50_P_POT -> {
-                next.raise(pot / 2);
-                break;
-            }
-            case ACTION_100_P_POT -> {
-                next.raise(pot);
-                break;
-            }
-            case ACTION_200_P_POT -> {
-                next.raise(pot * 2);
-                break;
-            }
-            default -> throw new IllegalArgumentException();
+
+        Action action = actions[actionId];
+        if (action.isFold()) {
+            next.fold();
+        } else if (action.isCall()) {
+            next.call();
+        } else {
+            next.raise(action.amount());
         }
         next.determineNextPlayer();
+        next.setNextActions();
+        next.history += action.asString();
         return next;
+    }
+
+    private void setNextActions() {
+        List<Action> actions = new ArrayList<>();
+        if (!isFoldLegal()) {
+            actions.add(Action.fold());
+        }
+        if (!isCallLegal()) {
+            actions.add(Action.call());
+        }
+        actions.add(Action.raise(pot / 2));
+        actions.add(Action.raise(pot));
+        actions.add(Action.raise(pot * 2));
+        this.actions = actions.toArray(Action[]::new);
     }
 
     private void determineNextPlayer() {

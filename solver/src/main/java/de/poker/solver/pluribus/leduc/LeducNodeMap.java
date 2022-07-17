@@ -36,7 +36,7 @@ public class LeducNodeMap implements NodeMap<LeducGameTree, String> {
     public Node getNodeForCurrentPlayer(LeducGameTree state) {
         Node node = map[state.currentPlayer][state.bettingRound].get(state.asInfoSet(state.currentPlayer));
         if (Objects.isNull(node)) {
-            node = new Node(state.actions());
+            node = new Node(state.actions);
             map[state.currentPlayer][state.bettingRound].put(state.asInfoSet(state.currentPlayer), node);
         }
         return node;

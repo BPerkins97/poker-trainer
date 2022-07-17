@@ -10,7 +10,7 @@ public interface GameTree<K> {
 
     K asInfoSet(int playerId);
 
-    int actions();
+    int numActions();
 
     GameTree takeAction(int actionId);
 

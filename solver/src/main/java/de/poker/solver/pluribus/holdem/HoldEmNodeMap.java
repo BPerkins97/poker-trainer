@@ -44,7 +44,7 @@ public class HoldEmNodeMap implements NodeMap<HoldEmGameTree, String> {
 
         Node node = tempMap.get(gameTree.history);
         if  (Objects.isNull(node)) {
-            node = new Node(gameTree.actions());
+            node = new Node(gameTree.actions);
             tempMap.put(gameTree.history, node);
         }
 

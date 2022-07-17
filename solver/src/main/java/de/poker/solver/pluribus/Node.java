@@ -2,13 +2,15 @@ package de.poker.solver.pluribus;
 
 import java.util.Arrays;
 
-public class Node {
+public class Node<T> {
     private int[] regrets;
     private int[] averageAction;
+    private T[] actionIds;
 
-    public Node(int numActions) {
-        regrets = new int[numActions];
-        averageAction = new int[numActions];
+    public Node(T[] actionIds) {
+        regrets = new int[actionIds.length];
+        averageAction = new int[actionIds.length];
+        this.actionIds = actionIds;
     }
     public double[] calculateStrategy() {
         double sum = 0;

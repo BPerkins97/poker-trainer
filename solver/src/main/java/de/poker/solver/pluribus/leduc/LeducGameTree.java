@@ -2,6 +2,7 @@ package de.poker.solver.pluribus.leduc;
 
 import de.poker.solver.pluribus.GameTree;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 
 public class LeducGameTree implements GameTree<String>, Cloneable {
@@ -18,6 +19,7 @@ public class LeducGameTree implements GameTree<String>, Cloneable {
     boolean[] playersStillInGame;
     int bettingRound;
     int lastRaiser;
+    String[] actions;
 
     public LeducGameTree(int[] cards) {
         playerCards = new int[LeducConstants.NUM_PLAYERS];
@@ -30,6 +32,7 @@ public class LeducGameTree implements GameTree<String>, Cloneable {
         history = "";
         playersStillInGame = new boolean[LeducConstants.NUM_PLAYERS];
         Arrays.fill(playersStillInGame, true);
+        setNextActions();
     }
 
     @Override
@@ -48,13 +51,13 @@ public class LeducGameTree implements GameTree<String>, Cloneable {
     @Override
     public int getPayoffForPlayer(int playerId) {
         if (!playersStillInGame[playerId]) {
-            return - investementOf(playerId);
+            return - investmentOf(playerId);
         }
         long playerHand = handToLong(playerCards[playerId], communityCard);
         long opponentHand = handToLong(playerCards[(playerId + 1) % 2], communityCard);
 
         if (playerHand > opponentHand) {
-            return investementOf((playerId + 1) % 2);
+            return investmentOf((playerId + 1) % 2);
         } else {
             return - (LeducConstants.STARTING_STACK - playerStacks[playerId]);
         }
@@ -85,26 +88,32 @@ public class LeducGameTree implements GameTree<String>, Cloneable {
         return infoSet + history;
     }
 
-    @Override
-    public int actions() {
-        int actions = 0;
+    private void setNextActions() {
+        ArrayList<String> actions = new ArrayList<>();
         if (isFoldLegal()) {
-            actions++;
+            actions.add("f");
         }
-        actions++; // Call is always legal
+        actions.add("c");
         int differenceBetweenInvestments = calculateDifferenceBetweenInvestments();
         if (differenceBetweenInvestments == 0) {
             differenceBetweenInvestments++;
+        } else {
+            differenceBetweenInvestments *= 2;
         }
         if (differenceBetweenInvestments < playerStacks[currentPlayer]) {
             for (int i=differenceBetweenInvestments;i<=playerStacks[currentPlayer];i++) {
-                actions++;
+                actions.add("r" + i);
             }
         }
-        return actions;
+        this.actions = actions.toArray(new String[0]);
     }
 
-    private int investementOf(int playerId) {
+    @Override
+    public int numActions() {
+        return actions.length;
+    }
+
+    private int investmentOf(int playerId) {
         return LeducConstants.STARTING_STACK - playerStacks[playerId];
     }
 
@@ -116,41 +125,38 @@ public class LeducGameTree implements GameTree<String>, Cloneable {
         } catch (CloneNotSupportedException e) {
             throw new RuntimeException(e);
         }
-        if (!isFoldLegal()) {
-            actionId++;
-        }
-        if (actionId == ACTION_FOLD) {
-            next.fold();
-        } else if (actionId == ACTION_CALL) {
-            next.call();
-        } else {
-            int differenceBetweenInvestments = calculateDifferenceBetweenInvestments();
-            if (differenceBetweenInvestments == 0) {
-                differenceBetweenInvestments++;
-            }
-            int actions = ACTION_CALL;
-            for (int i=differenceBetweenInvestments;i<=playerStacks[currentPlayer];i++) {
-                actions++;
-                if (actionId == actions) {
-                    next.raise(i);
-                    break;
-                }
-            }
-        }
 
+        String action = actions[actionId];
+        char firstLetter = action.charAt(0);
+        switch (firstLetter) {
+            case 'f':
+                next.fold();
+                break;
+            case 'c':
+                next.call();
+                break;
+            case 'r':
+                int amount = Integer.parseInt(action.substring(1));
+                next.raise(amount);
+                break;
+            default:
+                throw new IllegalStateException();
+        }
+        next.history += actions[actionId];
         next.determineNextPlayer();
+        next.setNextActions();
         return next;
     }
 
     private int calculateDifferenceBetweenInvestments() {
-        int investmentP1 = investementOf(PLAYER_ONE);
-        int investmentP2 = investementOf(PLAYER_TWO);
+        int investmentP1 = investmentOf(PLAYER_ONE);
+        int investmentP2 = investmentOf(PLAYER_TWO);
         return Math.abs(investmentP1 - investmentP2);
     }
 
     private void determineNextPlayer() {
-        int investmentP1 = investementOf(PLAYER_ONE);
-        int investmentP2 = investementOf(PLAYER_TWO);
+        int investmentP1 = investmentOf(PLAYER_ONE);
+        int investmentP2 = investmentOf(PLAYER_TWO);
         if (investmentP1 == investmentP2) {
             currentPlayer = (currentPlayer + 1) % 2;
             if (lastRaiser == currentPlayer) {
@@ -165,14 +171,12 @@ public class LeducGameTree implements GameTree<String>, Cloneable {
 
     private void raise(int amount) {
         pay(amount);
-        history += "r" + amount;
         lastRaiser = currentPlayer;
     }
 
     private void call() {
         int amount = calculateDifferenceBetweenInvestments();
         pay(amount);
-        history += "c";
     }
 
     private void pay(int amount) {
@@ -183,7 +187,6 @@ public class LeducGameTree implements GameTree<String>, Cloneable {
     private void fold() {
         playersStillInGame = Arrays.copyOf(playersStillInGame, LeducConstants.NUM_PLAYERS);
         playersStillInGame[currentPlayer] = false;
-        history += "f";
     }
 
     private boolean isFoldLegal() {

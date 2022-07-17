@@ -44,7 +44,7 @@ public class MonteCarloCFR {
             Node node = nodeMap.getNodeForCurrentPlayer(state);
             double[] strategy = node.calculateStrategy();
             double expectedValue = 0;
-            int numActions = state.actions();
+            int numActions = state.numActions();
             double[] valueOfTakingAction = new double[numActions];
             for (int a = 0; a< numActions;a++) {
                 valueOfTakingAction[a] = traverseMCCFR_NoPruning(config, nodeMap, state.takeAction(a), traversingPlayerId);
@@ -77,7 +77,7 @@ public class MonteCarloCFR {
             Node node = nodeMap.getNodeForCurrentPlayer(state);
             double[] strategy = node.calculateStrategy();
             double expectedValue = 0;
-            int numActions = state.actions();
+            int numActions = state.numActions();
             boolean[] explored = new boolean[numActions];
             double[] valueOfTakingAction = new double[numActions];
             for (int a = 0; a< numActions;a++) {
@@ -125,7 +125,7 @@ public class MonteCarloCFR {
             node.visitAction(chosenAction);
             updateStrategy(nodeMap, state.takeAction(chosenAction), traversingPlayer);
         } else {
-            int actions = state.actions();
+            int actions = state.numActions();
             for (int a=0;a<actions;a++) {
                 updateStrategy(nodeMap, state.takeAction(a), traversingPlayer);
             }
