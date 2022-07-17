@@ -36,6 +36,8 @@ public class HoldEmGameTree implements GameTree<String, Action>, Cloneable {
     public static final int STARTING_POT_SIZE = 10000;
     public static final int ACTION_ID_FOLD = 100;
     public static final int ACTION_ID_CALL = 101;
+    private static final byte PLAYER_ONE_FOLDED_BITMASK = 1;
+    private static final byte PLAYER_TWO_FOLDED_BITMASK = 1 << 1;
 
     static {
         for (int i=0;i<NUM_PLAYERS;i++) {
@@ -59,7 +61,7 @@ public class HoldEmGameTree implements GameTree<String, Action>, Cloneable {
     String history = "";
     String[][] cardInfoSets;
     int currentPlayer;
-    boolean[] playersWhoFolded = new boolean[NUM_PLAYERS];
+    byte playersWhoFolded;
     int[] playersInvestment = new int[NUM_PLAYERS];
     int[] playersStack = new int[NUM_PLAYERS];
     long[] playersHands = new long[NUM_PLAYERS];
@@ -106,11 +108,11 @@ public class HoldEmGameTree implements GameTree<String, Action>, Cloneable {
 
     @Override
     public boolean isTerminalForPlayer(int playerId) {
-        return isGameOver || hasFolded(playerId);
+        return isGameOver || playersWhoFolded > 0;
     }
 
     private boolean hasFolded(int playerId) {
-        return playersWhoFolded[playerId];
+        return (playersWhoFolded & 1 << playerId) > 0;
     }
 
     @Override
@@ -403,8 +405,7 @@ public class HoldEmGameTree implements GameTree<String, Action>, Cloneable {
     }
 
     private void fold() {
-        playersWhoFolded = Arrays.copyOf(playersWhoFolded, NUM_PLAYERS);
-        playersWhoFolded[currentPlayer] = true;
+        playersWhoFolded = (byte) (1 << currentPlayer);
     }
 
     private void call() {
