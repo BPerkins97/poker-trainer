@@ -16,11 +16,11 @@ public class MonteCarloCFR {
                     } else {
                         traverseMCCFR_WithPruning(config, nodeMap, rootNode, p);
                     }
+                    if (i % config.strategyInterval() == 0) {
+                        updateStrategy(nodeMap, rootNode, p);
+                    }
                 } else {
                     traverseMCCFR_NoPruning(config, nodeMap, rootNode, p);
-                }
-                if (i % config.strategyInterval() == 0) {
-                    updateStrategy(nodeMap, rootNode, p);
                 }
             }
             if (i < config.linearCFRThreshold() && i % config.discountInterval() == 0) {

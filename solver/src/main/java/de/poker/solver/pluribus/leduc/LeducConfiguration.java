@@ -18,12 +18,12 @@ public class LeducConfiguration implements Configuration {
 
     @Override
     public int linearCFRThreshold() {
-        return 5000;
+        return 50000;
     }
 
     @Override
     public int discountInterval() {
-        return 1000;
+        return 5000;
     }
 
     @Override
@@ -43,7 +43,7 @@ public class LeducConfiguration implements Configuration {
         cards[0] = ThreadLocalRandom.current().nextInt(0,LeducConstants.NUM_CARDS);
         cards[1] = ThreadLocalRandom.current().nextInt(0,LeducConstants.NUM_CARDS);
 
-        for (int i=2;i<LeducConstants.NUM_CARDS;i++) {
+        for (int i=2;i<3;i++) {
             do {
                 cards[i] = ThreadLocalRandom.current().nextInt(0,LeducConstants.NUM_CARDS);
             } while (!cardNotAlreadyTwiceInDeck(cards, i));

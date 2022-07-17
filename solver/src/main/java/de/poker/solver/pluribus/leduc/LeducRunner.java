@@ -6,7 +6,7 @@ public class LeducRunner {
 
     public static void main(String[] args) {
         LeducNodeMap nodeMap = new LeducNodeMap();
-        MonteCarloCFR.mccfr_Pruning(new LeducConfiguration(), 100000, nodeMap);
+        MonteCarloCFR.mccfr_Pruning(new LeducConfiguration(), 1000000, nodeMap);
         System.out.println(nodeMap);
     }
 }
