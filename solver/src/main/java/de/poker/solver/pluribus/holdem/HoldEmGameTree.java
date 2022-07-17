@@ -9,6 +9,8 @@ import de.poker.solver.utility.CardInfoSetBuilder;
 import java.util.*;
 
 public class HoldEmGameTree implements GameTree<String, Action>, Cloneable {
+    private static final int STACK_BITMASK = 0xffff;
+
     private static final Action[] ACTIONS = new Action[102];
     private static final int POSITION_SMALL_BLIND = 0;
     private static final int POSITION_BIG_BLIND = 1;
@@ -33,7 +35,7 @@ public class HoldEmGameTree implements GameTree<String, Action>, Cloneable {
     public static final int BETTING_ROUND_FLOP = 1;
     public static final int BETTING_ROUND_TURN = 2;
     public static final int BETTING_ROUND_RIVER = 3;
-    public static final int STARTING_POT_SIZE = 10000;
+    public static final int STARTING_STACK_SIZE = 10000;
     public static final int ACTION_ID_FOLD = 100;
     public static final int ACTION_ID_CALL = 101;
     private static final byte PLAYER_ONE_FOLDED_BITMASK = 1;
@@ -51,7 +53,7 @@ public class HoldEmGameTree implements GameTree<String, Action>, Cloneable {
         FLOP_CARD3 = NUM_PLAYERS * 2 + 2;
         TURN_CARD = NUM_PLAYERS * 2 + 3;
         RIVER_CARD = NUM_PLAYERS * 2 + 4;
-        for (int i=ACTION_BIG_BLIND;i<STARTING_POT_SIZE;i+=ACTION_BIG_BLIND) {
+        for (int i = ACTION_BIG_BLIND; i< STARTING_STACK_SIZE; i+=ACTION_BIG_BLIND) {
             ACTIONS[i / 100] = Action.raise(i);
         }
         ACTIONS[100] = Action.fold();
@@ -62,8 +64,8 @@ public class HoldEmGameTree implements GameTree<String, Action>, Cloneable {
     String[][] cardInfoSets;
     int currentPlayer;
     byte playersWhoFolded;
-    int[] playersInvestment = new int[NUM_PLAYERS];
-    int[] playersStack = new int[NUM_PLAYERS];
+    int playersStacks;
+    int playerInvestments;
     long[] playersHands = new long[NUM_PLAYERS];
     int pot;
     boolean isGameOver;
@@ -75,7 +77,8 @@ public class HoldEmGameTree implements GameTree<String, Action>, Cloneable {
 
 
     public HoldEmGameTree(Card[] deck) {
-        Arrays.fill(playersStack, STARTING_POT_SIZE);
+        setPlayerStack(0, STARTING_STACK_SIZE);
+        setPlayerStack(1, STARTING_STACK_SIZE);
         pay(POSITION_SMALL_BLIND, ACTION_SMALL_BLIND);
         pay(POSITION_BIG_BLIND, ACTION_BIG_BLIND);
         currentPlayer = BETTING_ORDER_PER_ROUND[0][0];
@@ -134,7 +137,7 @@ public class HoldEmGameTree implements GameTree<String, Action>, Cloneable {
     }
 
     private int getInvestment(int playerId) {
-        return playersInvestment[playerId];
+        return (STACK_BITMASK << (16 * playerId) & playerInvestments) >> (16 * playerId);
     }
 
     @Override
@@ -158,11 +161,11 @@ public class HoldEmGameTree implements GameTree<String, Action>, Cloneable {
     }
 
     private boolean isRaiseLegal(int amount) {
-        return amount > ACTION_BIG_BLIND && amount > amountLastRaised && amount < playersStack[currentPlayer];
+        return amount > ACTION_BIG_BLIND && amount > amountLastRaised && amount < getStack(currentPlayer);
     }
 
     private int getStack(int playerId) {
-        return playersStack[playerId];
+        return (STACK_BITMASK << (16 * playerId) & playersStacks) >> (16 * playerId);
     }
 
     private boolean isCallLegal() {
@@ -230,7 +233,7 @@ public class HoldEmGameTree implements GameTree<String, Action>, Cloneable {
         addRaiseIfLegal(pot / 2);
         addRaiseIfLegal(pot);
         addRaiseIfLegal((int)(1.5 * pot));
-        addRaiseIfLegal(playersStack[currentPlayer]);
+        addRaiseIfLegal(getStack(currentPlayer));
     }
 
     private void addAction(int actionId) {
@@ -252,7 +255,7 @@ public class HoldEmGameTree implements GameTree<String, Action>, Cloneable {
         addRaiseIfLegal((int)(1.25 * pot));
         addRaiseIfLegal((int)(1.5 * pot));
         addRaiseIfLegal((int)(2.0 * pot));
-        addRaiseIfLegal(playersStack[currentPlayer]);
+        addRaiseIfLegal(getStack(currentPlayer));
     }
 
     private void getPreFlopActions() {
@@ -278,7 +281,7 @@ public class HoldEmGameTree implements GameTree<String, Action>, Cloneable {
             addRaiseIfLegal((int)(1.5 * pot));
             addRaiseIfLegal((int)(2.0 * pot));
         }
-        addRaiseIfLegal(playersStack[currentPlayer]);
+        addRaiseIfLegal(getStack(currentPlayer));
     }
 
     private void addRaiseIfLegal(int raiseAmount) {
@@ -383,7 +386,7 @@ public class HoldEmGameTree implements GameTree<String, Action>, Cloneable {
 
     private void raise(int amount) {
         assert amount > 0;
-        assert amount <= playersStack[currentPlayer];
+        assert amount <= getStack(currentPlayer);
         pay(currentPlayer, amount);
         for (int i = 0; i < NUM_PLAYERS; i++) {
             if (BETTING_ORDER_PER_ROUND[bettingRound][i] == currentPlayer) {
@@ -395,13 +398,19 @@ public class HoldEmGameTree implements GameTree<String, Action>, Cloneable {
     }
 
     private void pay(int playerId, int amount) {
-        assert amount <= playersStack[playerId];
+        assert amount <= getStack(currentPlayer);
         assert amount > 0;
-        playersStack = Arrays.copyOf(playersStack, NUM_PLAYERS);
-        playersInvestment = Arrays.copyOf(playersInvestment, NUM_PLAYERS);
-        playersStack[playerId] -= amount;
-        playersInvestment[playerId] += amount;
+        setPlayerStack(playerId, getStack(playerId) - amount);
+        setPlayerInvestment(playerId, getInvestment(playerId) + amount);
         pot += amount;
+    }
+
+    private void setPlayerStack(int playerId, int stack) {
+        playersStacks = ((~0 ^ (STACK_BITMASK << 16 * playerId)) & playersStacks) | (stack << (16 * playerId));
+    }
+
+    private void setPlayerInvestment(int playerId, int investment) {
+        playerInvestments = ((~0 ^ (STACK_BITMASK << 16 * playerId)) & playerInvestments) | (investment << (16 * playerId));
     }
 
     private void fold() {
