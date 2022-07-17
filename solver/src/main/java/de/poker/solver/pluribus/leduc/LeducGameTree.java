@@ -53,13 +53,19 @@ public class LeducGameTree implements GameTree<String>, Cloneable {
         if (!playersStillInGame[playerId]) {
             return - investmentOf(playerId);
         }
+        int opponentId = (playerId + 1) % 2;
+        if (!playersStillInGame[opponentId]) {
+            return investmentOf(opponentId);
+        }
         long playerHand = handToLong(playerCards[playerId], communityCard);
-        long opponentHand = handToLong(playerCards[(playerId + 1) % 2], communityCard);
+        long opponentHand = handToLong(playerCards[opponentId], communityCard);
 
-        if (playerHand > opponentHand) {
-            return investmentOf((playerId + 1) % 2);
+        if (playerHand == opponentHand) {
+            return 0;
+        } else if (playerHand > opponentHand) {
+            return investmentOf(opponentId);
         } else {
-            return - (LeducConstants.STARTING_STACK - playerStacks[playerId]);
+            return - investmentOf(playerId);
         }
     }
 
@@ -81,7 +87,7 @@ public class LeducGameTree implements GameTree<String>, Cloneable {
 
     @Override
     public String asInfoSet(int playerId) {
-        String infoSet = "" + playerId + "|" + playerCards[playerId] + "|";
+        String infoSet = playerCards[playerId] + "|";
         if (bettingRound > 0) {
             infoSet += communityCard + "|";
         }
@@ -100,7 +106,7 @@ public class LeducGameTree implements GameTree<String>, Cloneable {
         } else {
             differenceBetweenInvestments *= 2;
         }
-        if (differenceBetweenInvestments < playerStacks[currentPlayer]) {
+        if (differenceBetweenInvestments <= playerStacks[currentPlayer]) {
             for (int i=differenceBetweenInvestments;i<=playerStacks[currentPlayer];i++) {
                 actions.add("r" + i);
             }
