@@ -13,11 +13,6 @@ import java.util.List;
 public class HoldEmGameTree implements GameTree<String>, Cloneable {
     private static final int POSITION_SMALL_BLIND = 0;
     private static final int POSITION_BIG_BLIND = 1;
-    private static final int ACTION_FOLD = 0;
-    private static final int ACTION_CALL = 1;
-    private static final int ACTION_50_P_POT = 2;
-    private static final int ACTION_100_P_POT = 3;
-    private static final int ACTION_200_P_POT = 4;
 
     private static final int ROUND_PRE_FLOP = 0;
     private static final int ROUND_POST_FLOP = 1;
@@ -33,6 +28,8 @@ public class HoldEmGameTree implements GameTree<String>, Cloneable {
     private static final int FLOP_CARD3;
     private static final int TURN_CARD;
     private static final int RIVER_CARD;
+    public static final int ACTION_BIG_BLIND = 100;
+    public static final int ACTION_SMALL_BLIND = 50;
 
     static {
         for (int i=0;i<NUM_PLAYERS;i++) {
@@ -59,13 +56,14 @@ public class HoldEmGameTree implements GameTree<String>, Cloneable {
     boolean isGameOver;
     int bettingRound;
     int lastRaiser;
+    int amountLastRaised;
     Action[] actions;
 
 
     public HoldEmGameTree(Card[] deck) {
         Arrays.fill(playersStack, 10000);
-        pay(POSITION_SMALL_BLIND, 50);
-        pay(POSITION_BIG_BLIND, 100);
+        pay(POSITION_SMALL_BLIND, ACTION_SMALL_BLIND);
+        pay(POSITION_BIG_BLIND, ACTION_BIG_BLIND);
         currentPlayer = BETTING_ORDER_PER_ROUND[0][0];
         cardInfoSets = new String[NUM_BETTINGS_ROUNDS][NUM_PLAYERS];
         for (int i = 0; i < NUM_PLAYERS; i++) {
@@ -146,6 +144,9 @@ public class HoldEmGameTree implements GameTree<String>, Cloneable {
     }
 
     private boolean isRaiseLegal(int amount) {
+        if (amount < ACTION_BIG_BLIND || amount < amountLastRaised || amount > playersStack[currentPlayer]) {
+            return false;
+        }
         int maxInvestment = -1;
         for (int p=0;p<NUM_PLAYERS;p++) {
             maxInvestment = Math.max(getInvestment(p), maxInvestment);
@@ -196,15 +197,16 @@ public class HoldEmGameTree implements GameTree<String>, Cloneable {
 
     private void setNextActions() {
         List<Action> actions = new ArrayList<>();
-        if (!isFoldLegal()) {
+        if (isFoldLegal()) {
             actions.add(Action.fold());
         }
-        if (!isCallLegal()) {
+        if (isCallLegal()) {
             actions.add(Action.call());
         }
-        actions.add(Action.raise(pot / 2));
-        actions.add(Action.raise(pot));
-        actions.add(Action.raise(pot * 2));
+        if (isRaiseLegal(pot)) {
+            actions.add(Action.raise(pot));
+        }
+        actions.add(Action.raise(playersStack[currentPlayer]));
         this.actions = actions.toArray(Action[]::new);
     }
 
@@ -293,6 +295,7 @@ public class HoldEmGameTree implements GameTree<String>, Cloneable {
     private void nextBettingRound(int nextBettingRound) {
         bettingRound = nextBettingRound;
         lastRaiser = -1;
+        amountLastRaised = 0;
 
         int nextPlayerIndex = 0;
         while (hasFolded(BETTING_ORDER_PER_ROUND[bettingRound][nextPlayerIndex]) && getStack(BETTING_ORDER_PER_ROUND[bettingRound][nextPlayerIndex]) <= 0) {
@@ -302,30 +305,31 @@ public class HoldEmGameTree implements GameTree<String>, Cloneable {
     }
 
     private void raise(int amount) {
-        int paid = pay(currentPlayer, amount);
+        assert amount > 0;
+        assert amount <= playersStack[currentPlayer];
+        pay(currentPlayer, amount);
         for (int i = 0; i < NUM_PLAYERS; i++) {
             if (BETTING_ORDER_PER_ROUND[bettingRound][i] == currentPlayer) {
                 lastRaiser = i;
                 break;
             }
         }
-        history += "r" + paid;
+        amountLastRaised = amount - amountLastRaised;
     }
 
-    private int pay(int playerId, int amount) {
-        amount = Math.min(playersStack[playerId], amount);
+    private void pay(int playerId, int amount) {
+        assert amount <= playersStack[playerId];
+        assert amount > 0;
         playersStack = Arrays.copyOf(playersStack, NUM_PLAYERS);
         playersInvestment = Arrays.copyOf(playersInvestment, NUM_PLAYERS);
         playersStack[playerId] -= amount;
         playersInvestment[playerId] += amount;
         pot += amount;
-        return amount;
     }
 
     private void fold() {
         playersWhoFolded = Arrays.copyOf(playersWhoFolded, NUM_PLAYERS);
         playersWhoFolded[currentPlayer] = true;
-        history += "f";
     }
 
     private void call() {
@@ -334,8 +338,9 @@ public class HoldEmGameTree implements GameTree<String>, Cloneable {
             maxInvestment = Math.max(getInvestment(p), maxInvestment);
         }
         int payment = maxInvestment - getInvestment(currentPlayer);
-        pay(currentPlayer, payment);
-        history += "c";
+        if (payment > 0) {
+            pay(currentPlayer, payment);
+        }
     }
 
     @Override

@@ -5,7 +5,7 @@ import java.util.Arrays;
 public class Node<T> {
     private int[] regrets;
     private int[] averageAction;
-    private T[] actionIds;
+    private T[] actionIds; // TODO remove this in production build
 
     public Node(T[] actionIds) {
         regrets = new int[actionIds.length];
