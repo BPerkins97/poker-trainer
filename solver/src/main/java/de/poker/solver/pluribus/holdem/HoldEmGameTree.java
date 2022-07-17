@@ -6,11 +6,10 @@ import de.poker.solver.game.Hand;
 import de.poker.solver.pluribus.GameTree;
 import de.poker.solver.utility.CardInfoSetBuilder;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 
-public class HoldEmGameTree implements GameTree<String>, Cloneable {
+public class HoldEmGameTree implements GameTree<String, Action>, Cloneable {
+    private static final Action[] ACTIONS = new Action[102];
     private static final int POSITION_SMALL_BLIND = 0;
     private static final int POSITION_BIG_BLIND = 1;
 
@@ -30,6 +29,13 @@ public class HoldEmGameTree implements GameTree<String>, Cloneable {
     private static final int RIVER_CARD;
     public static final int ACTION_BIG_BLIND = 100;
     public static final int ACTION_SMALL_BLIND = 50;
+    public static final int BETTING_ROUND_PRE_FLOP = 0;
+    public static final int BETTING_ROUND_FLOP = 1;
+    public static final int BETTING_ROUND_TURN = 2;
+    public static final int BETTING_ROUND_RIVER = 3;
+    public static final int STARTING_POT_SIZE = 10000;
+    public static final int ACTION_ID_FOLD = 100;
+    public static final int ACTION_ID_CALL = 101;
 
     static {
         for (int i=0;i<NUM_PLAYERS;i++) {
@@ -43,6 +49,11 @@ public class HoldEmGameTree implements GameTree<String>, Cloneable {
         FLOP_CARD3 = NUM_PLAYERS * 2 + 2;
         TURN_CARD = NUM_PLAYERS * 2 + 3;
         RIVER_CARD = NUM_PLAYERS * 2 + 4;
+        for (int i=ACTION_BIG_BLIND;i<STARTING_POT_SIZE;i+=ACTION_BIG_BLIND) {
+            ACTIONS[i / 100] = Action.raise(i);
+        }
+        ACTIONS[100] = Action.fold();
+        ACTIONS[101] = Action.call();
     }
 
     String history = "";
@@ -57,11 +68,12 @@ public class HoldEmGameTree implements GameTree<String>, Cloneable {
     int bettingRound;
     int lastRaiser;
     int amountLastRaised;
-    Action[] actions;
+    int[] actionIds;
+    int numActions;
 
 
     public HoldEmGameTree(Card[] deck) {
-        Arrays.fill(playersStack, 10000);
+        Arrays.fill(playersStack, STARTING_POT_SIZE);
         pay(POSITION_SMALL_BLIND, ACTION_SMALL_BLIND);
         pay(POSITION_BIG_BLIND, ACTION_BIG_BLIND);
         currentPlayer = BETTING_ORDER_PER_ROUND[0][0];
@@ -140,19 +152,11 @@ public class HoldEmGameTree implements GameTree<String>, Cloneable {
 
     @Override
     public int numActions() {
-        return actions.length;
+        return numActions;
     }
 
     private boolean isRaiseLegal(int amount) {
-        if (amount < ACTION_BIG_BLIND || amount < amountLastRaised || amount > playersStack[currentPlayer]) {
-            return false;
-        }
-        int maxInvestment = -1;
-        for (int p=0;p<NUM_PLAYERS;p++) {
-            maxInvestment = Math.max(getInvestment(p), maxInvestment);
-        }
-        int payment = maxInvestment - getInvestment(currentPlayer);
-        return payment <= getStack(currentPlayer);
+        return amount > ACTION_BIG_BLIND && amount > amountLastRaised && amount < playersStack[currentPlayer];
     }
 
     private int getStack(int playerId) {
@@ -181,7 +185,7 @@ public class HoldEmGameTree implements GameTree<String>, Cloneable {
             e.printStackTrace();
         }
 
-        Action action = actions[actionId];
+        Action action = ACTIONS[actionIds[actionId]];
         if (action.isFold()) {
             next.fold();
         } else if (action.isCall()) {
@@ -196,18 +200,89 @@ public class HoldEmGameTree implements GameTree<String>, Cloneable {
     }
 
     private void setNextActions() {
-        List<Action> actions = new ArrayList<>();
+        this.actionIds = new int[10];
+        this.numActions = 0;
+        switch (bettingRound) {
+            case BETTING_ROUND_PRE_FLOP:
+                getPreFlopActions();
+                break;
+            case BETTING_ROUND_FLOP:
+                getFlopActions();
+                break;
+            case BETTING_ROUND_TURN:
+                getPostFlopActions();
+                break;
+            case BETTING_ROUND_RIVER:
+                getPostFlopActions();
+                break;
+            default:
+                throw new IllegalStateException();
+        }
+    }
+
+    private void getPostFlopActions() {
         if (isFoldLegal()) {
-            actions.add(Action.fold());
+            addAction(ACTION_ID_FOLD);
+        }
+        addAction(ACTION_ID_CALL);
+        addRaiseIfLegal(pot / 2);
+        addRaiseIfLegal(pot);
+        addRaiseIfLegal((int)(1.5 * pot));
+        addRaiseIfLegal(playersStack[currentPlayer]);
+    }
+
+    private void addAction(int actionId) {
+        actionIds[numActions] = actionId;
+        numActions++;
+    }
+
+    private void getFlopActions() {
+        if (isFoldLegal()) {
+            addAction(ACTION_ID_FOLD);
         }
         if (isCallLegal()) {
-            actions.add(Action.call());
+            addAction(ACTION_ID_CALL);
         }
-        if (isRaiseLegal(pot)) {
-            actions.add(Action.raise(pot));
+        addRaiseIfLegal(pot / 4);
+        addRaiseIfLegal(pot / 3);
+        addRaiseIfLegal(pot / 2);
+        addRaiseIfLegal(pot);
+        addRaiseIfLegal((int)(1.25 * pot));
+        addRaiseIfLegal((int)(1.5 * pot));
+        addRaiseIfLegal((int)(2.0 * pot));
+        addRaiseIfLegal(playersStack[currentPlayer]);
+    }
+
+    private void getPreFlopActions() {
+        if (isFoldLegal()) {
+            addAction(ACTION_ID_FOLD);
         }
-        actions.add(Action.raise(playersStack[currentPlayer]));
-        this.actions = actions.toArray(Action[]::new);
+        if (isCallLegal()) {
+            addAction(ACTION_ID_CALL);
+        }
+        boolean isFirstRaise = amountLastRaised <= 0;
+        if (isFirstRaise) {
+            addRaiseIfLegal(ACTION_BIG_BLIND);
+            addRaiseIfLegal((int)(2.0 * ACTION_BIG_BLIND));
+            addRaiseIfLegal((int)(3.0 * ACTION_BIG_BLIND));
+            addRaiseIfLegal((int)(4.0 * ACTION_BIG_BLIND));
+            addRaiseIfLegal((int)(5.0 * ACTION_BIG_BLIND));
+        } else {
+            addRaiseIfLegal(pot / 4);
+            addRaiseIfLegal(pot / 3);
+            addRaiseIfLegal(pot / 2);
+            addRaiseIfLegal(pot);
+            addRaiseIfLegal((int)(1.25 * pot));
+            addRaiseIfLegal((int)(1.5 * pot));
+            addRaiseIfLegal((int)(2.0 * pot));
+        }
+        addRaiseIfLegal(playersStack[currentPlayer]);
+    }
+
+    private void addRaiseIfLegal(int raiseAmount) {
+        if (isRaiseLegal(raiseAmount)) {
+            addAction(raiseAmount / ACTION_BIG_BLIND);
+        }
     }
 
     private void determineNextPlayer() {

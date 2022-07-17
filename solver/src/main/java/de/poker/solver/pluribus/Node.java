@@ -5,12 +5,10 @@ import java.util.Arrays;
 public class Node<T> {
     private int[] regrets;
     private int[] averageAction;
-    private T[] actionIds; // TODO remove this in production build
 
-    public Node(T[] actionIds) {
-        regrets = new int[actionIds.length];
-        averageAction = new int[actionIds.length];
-        this.actionIds = actionIds;
+    public Node(GameTree state) {
+        regrets = new int[state.numActions()];
+        averageAction = new int[state.numActions()];
     }
     public double[] calculateStrategy() {
         double sum = 0;
