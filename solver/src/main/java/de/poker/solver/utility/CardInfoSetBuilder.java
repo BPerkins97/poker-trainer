@@ -18,10 +18,6 @@ public class CardInfoSetBuilder {
 
     public CardInfoSetBuilder() {}
 
-    public void appendPosition(int position) {
-        sb.append(position);
-    }
-
     public void appendCard(Card card) {
         if (!suitMapper.containsKey(card.suit())) {
             suitMapper.put(card.suit(), SUITS_IN_ORDER[suitCounter]);

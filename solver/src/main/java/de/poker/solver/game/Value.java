@@ -47,10 +47,6 @@ public enum Value {
         };
     }
 
-    public void appendInfoSet(StringBuilder stringBuilder) {
-        stringBuilder.append(symbol);
-    }
-
     public int value() {
         return ordinal();
     }

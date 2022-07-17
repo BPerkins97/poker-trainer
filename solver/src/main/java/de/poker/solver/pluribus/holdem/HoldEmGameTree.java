@@ -1,7 +1,6 @@
 package de.poker.solver.pluribus.holdem;
 
 import de.poker.solver.game.Card;
-import de.poker.solver.game.CardUtils;
 import de.poker.solver.game.Hand;
 import de.poker.solver.pluribus.GameTree;
 import de.poker.solver.utility.CardInfoSetBuilder;
@@ -49,7 +48,7 @@ public class HoldEmGameTree implements GameTree<String> {
     }
 
     String history = "";
-    Long[][] cardInfoSets;
+    String[][] cardInfoSets;
     int currentPlayer;
     boolean[] playersWhoFolded = new boolean[NUM_PLAYERS];
     int[] playersInvestment = new int[NUM_PLAYERS];
@@ -66,27 +65,28 @@ public class HoldEmGameTree implements GameTree<String> {
         pay(POSITION_SMALL_BLIND, 50);
         pay(POSITION_BIG_BLIND, 100);
         currentPlayer = BETTING_ORDER_PER_ROUND[0][0];
-        cardInfoSets = new Long[NUM_BETTINGS_ROUNDS][NUM_PLAYERS];
+        cardInfoSets = new String[NUM_BETTINGS_ROUNDS][NUM_PLAYERS];
         for (int i = 0; i < NUM_PLAYERS; i++) {
             int startIndex = 2 * i;
 
             CardInfoSetBuilder infoSetBuilder = new CardInfoSetBuilder();
-            infoSetBuilder.appendPosition(i);
             infoSetBuilder.appendHoleCards(deck[startIndex], deck[startIndex+1]);
+            cardInfoSets[0][i] = infoSetBuilder.toString();
+            infoSetBuilder.appendFlop(deck[FLOP_CARD1], deck[FLOP_CARD2], deck[FLOP_CARD3]);
+            cardInfoSets[1][i] = infoSetBuilder.toString();
+            infoSetBuilder.appendCard(deck[TURN_CARD]);
+            cardInfoSets[2][i] = infoSetBuilder.toString();
+            infoSetBuilder.appendCard(deck[RIVER_CARD]);
+            cardInfoSets[3][i] = infoSetBuilder.toString();
+
             List<Card> cards = new ArrayList<>(7);
             cards.add(deck[startIndex]);
-            cards.add(deck[startIndex+1]);
+            cards.add(deck[startIndex + 1]);
             cards.add(deck[FLOP_CARD1]);
             cards.add(deck[FLOP_CARD2]);
             cards.add(deck[FLOP_CARD3]);
             cards.add(deck[TURN_CARD]);
             cards.add(deck[RIVER_CARD]);
-            CardUtils.normalizeInPlace(cards);
-            cardInfoSets[0][i] = CardUtils.cardsToLong(cards, 2);
-            cardInfoSets[1][i] = CardUtils.cardsToLong(cards, 5);
-            cardInfoSets[2][i] = CardUtils.cardsToLong(cards, 6);
-            cardInfoSets[3][i] = CardUtils.cardsToLong(cards, 7);
-
             playersHands[i] = Hand.of(cards).value;
         }
     }

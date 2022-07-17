@@ -17,7 +17,7 @@ public class KuhnGameTree implements GameTree<String> {
 
     @Override
     public boolean isTerminalForPlayer(int playerId) {
-        return history.endsWith("p") || history.endsWith("bb");
+        return history.endsWith("pp") || history.endsWith("bb") || history.endsWith("bp");
     }
 
     @Override
@@ -36,9 +36,13 @@ public class KuhnGameTree implements GameTree<String> {
         throw new IllegalStateException();
     }
 
+    int currentPlayer() {
+        return history.length() % 2;
+    }
+
     @Override
     public boolean isCurrentPlayer(int playerId) {
-        return history.length() % 2 == playerId;
+        return currentPlayer() == playerId;
     }
 
     @Override
@@ -48,7 +52,7 @@ public class KuhnGameTree implements GameTree<String> {
 
     @Override
     public int actions() {
-        return 3;
+        return 2;
     }
 
     @Override
@@ -57,7 +61,6 @@ public class KuhnGameTree implements GameTree<String> {
         next.history += switch (actionId) {
             case 0 -> "p";
             case 1 -> "b";
-            case 2 -> "B";
             default -> throw new IllegalArgumentException();
         };
         return next;

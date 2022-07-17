@@ -25,7 +25,7 @@ public class Solver {
 
     public static void main(String[] args) {
         Solver solver = new Solver();
-        solver.train(ThreadLocalRandom.current(), 10000, 0.01, true);
+        solver.train(ThreadLocalRandom.current(), 20000, 0.01, true);
         solver.nodeMap
                 .values()
                 .stream().sorted(Comparator.comparing(v -> v.key.length()))

@@ -6,18 +6,6 @@ import java.util.concurrent.ThreadLocalRandom;
 public class MonteCarloCFR {
 
     public static NodeMap mccfr_Pruning(Configuration config, int iterations, NodeMap nodeMap) {
-        // TODO ich muss noch rausfinden, wofür das gut sein soll, keine Ahnung, warum setzen wir unseren Fortschritt zurück?
-//        for (int p=0;p<config.numPlayers();p++) {
-//            nodeMap.forEach((key, value) -> {
-//                if (key.isCurrentPlayer(p)) {
-//                    entry.getValue().resetRegrets();
-//                    if (key.shouldCalculateBluePrintStrategy()) {
-//                        entry.getValue().resetAverageStrategy();
-//                    }
-//                }
-//            });
-//        }
-
         for (int i=0;i<iterations;i++) {
             GameTree rootNode = config.randomRootNode();
             double randomNumber = ThreadLocalRandom.current().nextDouble();

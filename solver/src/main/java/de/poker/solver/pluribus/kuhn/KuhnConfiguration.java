@@ -8,7 +8,7 @@ import java.util.concurrent.ThreadLocalRandom;
 public class KuhnConfiguration implements Configuration {
     @Override
     public int strategyInterval() {
-        return 10000;
+        return 1;
     }
 
     @Override

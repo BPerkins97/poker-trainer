@@ -10,11 +10,11 @@ import java.util.function.BiConsumer;
 
 // TODO this can be more efficient
 public class HoldEmNodeMap implements NodeMap<HoldEmGameTree, String> {
-    private Map<Long, Map<String, Node>> map = new HashMap();
+    private Map<Integer, Map<String, Map<String, Node>>> map = new HashMap();
 
     @Override
     public void forEach(BiConsumer<String, Node> consumer) {
-        map.forEach((k, v) -> v.forEach(consumer));
+        map.forEach((k, v) -> v.forEach((k1, v1) -> v1.forEach(consumer)));
     }
 
     @Override
@@ -24,10 +24,16 @@ public class HoldEmNodeMap implements NodeMap<HoldEmGameTree, String> {
 
     @Override
     public Node getNodeForCurrentPlayer(HoldEmGameTree gameTree) {
-        Map<String, Node> tempMap = map.get(gameTree.cardInfoSets[gameTree.bettingRound][gameTree.currentPlayer]);
+        Map<String, Map<String, Node>> playerMap = map.get(gameTree.currentPlayer);
+        if (Objects.isNull(playerMap)) {
+            playerMap = new HashMap<>();
+            map.put(gameTree.currentPlayer, playerMap);
+        }
+
+        Map<String, Node> tempMap = playerMap.get(gameTree.cardInfoSets[gameTree.bettingRound][gameTree.currentPlayer]);
         if (Objects.isNull(tempMap)) {
             tempMap = new HashMap<>();
-            map.put(gameTree.cardInfoSets[gameTree.bettingRound][gameTree.currentPlayer], tempMap);
+            playerMap.put(gameTree.cardInfoSets[gameTree.bettingRound][gameTree.currentPlayer], tempMap);
         }
 
         Node node = tempMap.get(gameTree.history);
