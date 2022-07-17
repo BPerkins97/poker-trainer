@@ -9,7 +9,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-public class HoldEmGameTree implements GameTree<String> {
+public class HoldEmGameTree implements GameTree<String>, Cloneable {
     private static final int POSITION_SMALL_BLIND = 0;
     private static final int POSITION_BIG_BLIND = 1;
     private static final int ACTION_FOLD = 0;
@@ -191,7 +191,12 @@ public class HoldEmGameTree implements GameTree<String> {
 
     @Override
     public GameTree takeAction(int actionId) {
-        HoldEmGameTree next = new HoldEmGameTree(this);
+        HoldEmGameTree next = null;
+        try {
+            next = (HoldEmGameTree)this.clone();
+        } catch (CloneNotSupportedException e) {
+            e.printStackTrace();
+        }
         if (!isFoldLegal()) {
             actionId++;
         }
