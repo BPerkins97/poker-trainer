@@ -1,8 +1,6 @@
 package de.poker.solver.pluribus;
 
-import java.util.Arrays;
-
-public class Node<T> {
+public class Node {
     private int[] regrets;
     private int[] averageAction;
 
@@ -33,14 +31,6 @@ public class Node<T> {
 
     public void addRegretForAction(int action, int regret, Configuration config) {
         regrets[action] = Math.max(regrets[action] + regret, config.minimumRegret());
-    }
-
-    public void resetRegrets() {
-        Arrays.fill(regrets, 0);
-    }
-
-    public void resetAverageStrategy() {
-        Arrays.fill(averageAction, 0);
     }
 
     public void discount(double discountValue) {

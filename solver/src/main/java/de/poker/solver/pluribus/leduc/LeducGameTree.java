@@ -5,7 +5,7 @@ import de.poker.solver.pluribus.GameTree;
 import java.util.ArrayList;
 import java.util.Arrays;
 
-public class LeducGameTree implements GameTree<String, String>, Cloneable {
+public class LeducGameTree implements GameTree<String>, Cloneable {
 
     public static final int ACTION_FOLD = 0;
     public static final int ACTION_CALL = 1;

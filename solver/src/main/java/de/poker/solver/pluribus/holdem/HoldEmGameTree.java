@@ -8,7 +8,7 @@ import de.poker.solver.utility.CardInfoSetBuilder;
 
 import java.util.*;
 
-public class HoldEmGameTree implements GameTree<String, Action>, Cloneable {
+public class HoldEmGameTree implements GameTree<String>, Cloneable {
     private static final int STACK_BITMASK = 0xffff;
 
     private static final Action[] ACTIONS = new Action[102];
@@ -400,17 +400,21 @@ public class HoldEmGameTree implements GameTree<String, Action>, Cloneable {
     private void pay(int playerId, int amount) {
         assert amount <= getStack(currentPlayer);
         assert amount > 0;
-        setPlayerStack(playerId, getStack(playerId) - amount);
-        setPlayerInvestment(playerId, getInvestment(playerId) + amount);
+        subtractFromPlayerStack(playerId, amount);
+        addToPlayerInvestment(playerId, amount);
         pot += amount;
+    }
+
+    private void subtractFromPlayerStack(int playerId, int amount) {
+        playersStacks -= amount << (16 * playerId);
+    }
+
+    private void addToPlayerInvestment(int playerId, int amount) {
+        playerInvestments += amount << (16 * playerId);
     }
 
     private void setPlayerStack(int playerId, int stack) {
         playersStacks = ((~0 ^ (STACK_BITMASK << 16 * playerId)) & playersStacks) | (stack << (16 * playerId));
-    }
-
-    private void setPlayerInvestment(int playerId, int investment) {
-        playerInvestments = ((~0 ^ (STACK_BITMASK << 16 * playerId)) & playerInvestments) | (investment << (16 * playerId));
     }
 
     private void fold() {

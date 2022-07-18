@@ -1,6 +1,6 @@
 package de.poker.solver.pluribus;
 
-public interface GameTree<K, T> {
+public interface GameTree<K> {
 
     boolean isTerminalForPlayer(int playerId);
 
