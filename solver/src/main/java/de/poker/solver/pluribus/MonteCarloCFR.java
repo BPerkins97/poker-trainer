@@ -1,35 +1,42 @@
 package de.poker.solver.pluribus;
 
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ThreadLocalRandom;
 
 // As implemented in http://www.cs.cmu.edu/~noamb/papers/19-Science-Superhuman_Supp.pdf
 public class MonteCarloCFR {
 
-    public static NodeMap mccfr_Pruning(Configuration config, int iterations, NodeMap nodeMap) {
+    public static NodeMap mccfr_Pruning(ExecutorService executorService, Configuration config, int iterations, NodeMap nodeMap) {
         for (int i=0;i<iterations;i++) {
             GameTree rootNode = config.randomRootNode();
             double randomNumber = ThreadLocalRandom.current().nextDouble();
-            for(int p=0;p<config.numPlayers();p++) {
-                if (i > config.pruningThreshold()) {
-                    if (randomNumber < 0.05) {
-                        traverseMCCFR_NoPruning(config, nodeMap, rootNode, p);
-                    } else {
-                        traverseMCCFR_WithPruning(config, nodeMap, rootNode, p);
-                    }
-                    if (i % config.strategyInterval() == 0) {
-                        updateStrategy(nodeMap, rootNode, p);
-                    }
-                } else {
+            final int iteration = i;
+            executorService.submit(() -> doIteration(config, nodeMap, iteration, rootNode, randomNumber));
+            // TODO ignore this for now we will clean this up later
+//            if (i < config.linearCFRThreshold() && i % config.discountInterval() == 0) {
+//                double discountValue = calculateDiscountValue(i, config);
+//                nodeMap.discount(discountValue);
+//            }
+        }
+        System.out.println(Thread.activeCount());
+        return nodeMap;
+    }
+
+    private static void doIteration(Configuration config, NodeMap nodeMap, int i, GameTree rootNode, double randomNumber) {
+        for(int p = 0; p< config.numPlayers(); p++) {
+            if (i > config.pruningThreshold()) {
+                if (randomNumber < 0.05) {
                     traverseMCCFR_NoPruning(config, nodeMap, rootNode, p);
+                } else {
+                    traverseMCCFR_WithPruning(config, nodeMap, rootNode, p);
                 }
-            }
-            if (i < config.linearCFRThreshold() && i % config.discountInterval() == 0) {
-                double discountValue = calculateDiscountValue(i, config);
-                nodeMap.discount(discountValue);
+                if (i % config.strategyInterval() == 0) {
+                    updateStrategy(nodeMap, rootNode, p);
+                }
+            } else {
+                traverseMCCFR_NoPruning(config, nodeMap, rootNode, p);
             }
         }
-
-        return nodeMap;
     }
 
     private static double calculateDiscountValue(int iteration, Configuration config) {
