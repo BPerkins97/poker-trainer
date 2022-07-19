@@ -10,19 +10,17 @@ import java.util.concurrent.ThreadLocalRandom;
 // As implemented in http://www.cs.cmu.edu/~noamb/papers/19-Science-Superhuman_Supp.pdf
 public class MonteCarloCFR {
 
-    public static HoldEmNodeMap mccfr_Pruning(ExecutorService executorService, HoldEmConfiguration config, int iterations, HoldEmNodeMap nodeMap) {
+    public static HoldEmNodeMap mccfr_Pruning(HoldEmConfiguration config, int iterations, HoldEmNodeMap nodeMap) {
         for (int i=0;i<iterations;i++) {
             HoldEmGameTree rootNode = config.randomRootNode();
             double randomNumber = ThreadLocalRandom.current().nextDouble();
             final int iteration = i;
-            executorService.submit(() -> doIteration(config, nodeMap, iteration, rootNode, randomNumber));
-            // TODO ignore this for now we will clean this up later
-//            if (i < config.linearCFRThreshold() && i % config.discountInterval() == 0) {
-//                double discountValue = calculateDiscountValue(i, config);
-//                nodeMap.discount(discountValue);
-//            }
+            doIteration(config, nodeMap, iteration, rootNode, randomNumber);
+            if (i < config.linearCFRThreshold() && i % config.discountInterval() == 0) {
+                double discountValue = calculateDiscountValue(i, config);
+                nodeMap.discount(discountValue);
+            }
         }
-        System.out.println(Thread.activeCount());
         return nodeMap;
     }
 

@@ -22,7 +22,7 @@
                 <configuration>
                     <archive>
                         <manifest>
-                            <mainClass>de.poker.solver.pluribus.holdem.HoldEmRunner</mainClass>
+                            <mainClass>de.poker.solver.Main</mainClass>
                         </manifest>
                     </archive>
                     <descriptorRefs>
