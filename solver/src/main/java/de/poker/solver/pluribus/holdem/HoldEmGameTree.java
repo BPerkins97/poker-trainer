@@ -3,12 +3,11 @@ package de.poker.solver.pluribus.holdem;
 import de.poker.solver.game.Action;
 import de.poker.solver.game.Card;
 import de.poker.solver.game.Hand;
-import de.poker.solver.pluribus.GameTree;
 import de.poker.solver.utility.CardInfoSetBuilder;
 
 import java.util.*;
 
-public class HoldEmGameTree implements GameTree<String>, Cloneable {
+public class HoldEmGameTree implements Cloneable {
     private static final int STACK_BITMASK = 0xffff;
 
     private static final Action[] ACTIONS = new Action[102];
@@ -109,7 +108,6 @@ public class HoldEmGameTree implements GameTree<String>, Cloneable {
         setNextActions();
     }
 
-    @Override
     public boolean isTerminalForPlayer(int playerId) {
         return isGameOver || playersWhoFolded > 0;
     }
@@ -118,7 +116,6 @@ public class HoldEmGameTree implements GameTree<String>, Cloneable {
         return (playersWhoFolded & 1 << playerId) > 0;
     }
 
-    @Override
     public int getPayoffForPlayer(int playerId) {
         if (hasFolded(playerId)) {
             return -getInvestment(playerId);
@@ -140,12 +137,10 @@ public class HoldEmGameTree implements GameTree<String>, Cloneable {
         return (STACK_BITMASK << (16 * playerId) & playerInvestments) >> (16 * playerId);
     }
 
-    @Override
     public boolean isCurrentPlayer(int playerId) {
         return currentPlayer == playerId;
     }
 
-    @Override
     public String asInfoSet(int playerId) {
         StringBuilder sb = new StringBuilder();
         for (int i=0;i<=bettingRound;i++) {
@@ -155,7 +150,6 @@ public class HoldEmGameTree implements GameTree<String>, Cloneable {
         return sb.toString();
     }
 
-    @Override
     public int numActions() {
         return numActions;
     }
@@ -181,8 +175,7 @@ public class HoldEmGameTree implements GameTree<String>, Cloneable {
         return payment > 0;
     }
 
-    @Override
-    public GameTree takeAction(int actionId) {
+    public HoldEmGameTree takeAction(int actionId) {
         HoldEmGameTree next = null;
         try {
             next = (HoldEmGameTree)this.clone();
@@ -432,7 +425,6 @@ public class HoldEmGameTree implements GameTree<String>, Cloneable {
         }
     }
 
-    @Override
     public boolean shouldUpdateRegrets() {
         return true;
     }

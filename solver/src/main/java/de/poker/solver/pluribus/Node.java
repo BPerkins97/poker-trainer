@@ -1,10 +1,13 @@
 package de.poker.solver.pluribus;
 
+import de.poker.solver.pluribus.holdem.HoldEmConfiguration;
+import de.poker.solver.pluribus.holdem.HoldEmGameTree;
+
 public class Node {
     private int[] regrets;
     private int[] averageAction;
 
-    public Node(GameTree state) {
+    public Node(HoldEmGameTree state) {
         regrets = new int[state.numActions()];
         averageAction = new int[state.numActions()];
     }
@@ -29,7 +32,7 @@ public class Node {
         averageAction[action]++;
     }
 
-    public void addRegretForAction(int action, int regret, Configuration config) {
+    public void addRegretForAction(int action, int regret, HoldEmConfiguration config) {
         regrets[action] = Math.max(regrets[action] + regret, config.minimumRegret());
     }
 

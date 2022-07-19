@@ -1,14 +1,18 @@
 package de.poker.solver.pluribus;
 
+import de.poker.solver.pluribus.holdem.HoldEmConfiguration;
+import de.poker.solver.pluribus.holdem.HoldEmGameTree;
+import de.poker.solver.pluribus.holdem.HoldEmNodeMap;
+
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ThreadLocalRandom;
 
 // As implemented in http://www.cs.cmu.edu/~noamb/papers/19-Science-Superhuman_Supp.pdf
 public class MonteCarloCFR {
 
-    public static NodeMap mccfr_Pruning(ExecutorService executorService, Configuration config, int iterations, NodeMap nodeMap) {
+    public static HoldEmNodeMap mccfr_Pruning(ExecutorService executorService, HoldEmConfiguration config, int iterations, HoldEmNodeMap nodeMap) {
         for (int i=0;i<iterations;i++) {
-            GameTree rootNode = config.randomRootNode();
+            HoldEmGameTree rootNode = config.randomRootNode();
             double randomNumber = ThreadLocalRandom.current().nextDouble();
             final int iteration = i;
             executorService.submit(() -> doIteration(config, nodeMap, iteration, rootNode, randomNumber));
@@ -22,7 +26,7 @@ public class MonteCarloCFR {
         return nodeMap;
     }
 
-    private static void doIteration(Configuration config, NodeMap nodeMap, int i, GameTree rootNode, double randomNumber) {
+    private static void doIteration(HoldEmConfiguration config, HoldEmNodeMap nodeMap, int i, HoldEmGameTree rootNode, double randomNumber) {
         for(int p = 0; p< config.numPlayers(); p++) {
             if (i > config.pruningThreshold()) {
                 if (randomNumber < 0.05) {
@@ -39,12 +43,12 @@ public class MonteCarloCFR {
         }
     }
 
-    private static double calculateDiscountValue(int iteration, Configuration config) {
+    private static double calculateDiscountValue(int iteration, HoldEmConfiguration config) {
         double temp = (double)iteration / config.discountInterval();
         return temp / (temp + 1);
     }
 
-    private static double traverseMCCFR_NoPruning(Configuration config, NodeMap nodeMap, GameTree state, int traversingPlayerId) {
+    private static double traverseMCCFR_NoPruning(HoldEmConfiguration config, HoldEmNodeMap nodeMap, HoldEmGameTree state, int traversingPlayerId) {
         if (state.isTerminalForPlayer(traversingPlayerId)) {
             return state.getPayoffForPlayer(traversingPlayerId);
         } else if (state.isCurrentPlayer(traversingPlayerId)) {
@@ -77,7 +81,7 @@ public class MonteCarloCFR {
         throw new IllegalStateException();
     }
 
-    private static double traverseMCCFR_WithPruning(Configuration config, NodeMap nodeMap, GameTree state, int traversingPlayerId) {
+    private static double traverseMCCFR_WithPruning(HoldEmConfiguration config, HoldEmNodeMap nodeMap, HoldEmGameTree state, int traversingPlayerId) {
         if (state.isTerminalForPlayer(traversingPlayerId)) {
             return state.getPayoffForPlayer(traversingPlayerId);
         } else if (state.isCurrentPlayer(traversingPlayerId)) {
@@ -122,7 +126,7 @@ public class MonteCarloCFR {
         }
         throw new IllegalStateException();
     }
-    private static void updateStrategy(NodeMap nodeMap, GameTree state, int traversingPlayer) {
+    private static void updateStrategy(HoldEmNodeMap nodeMap, HoldEmGameTree state, int traversingPlayer) {
         if (state.isTerminalForPlayer(traversingPlayer) || !state.shouldUpdateRegrets()) {
             return;
         } else if (state.isCurrentPlayer(traversingPlayer)) {
