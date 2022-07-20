@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
+// TODO https://www.nakivo.com/blog/how-to-use-remote-desktop-connection-ubuntu-linux-walkthrough/
 public class ActionMap {
     final Map<Action, Node> map = new HashMap<>();
     int infosetId = -1;
