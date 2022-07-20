@@ -1,4 +1,4 @@
-package de.poker.solver.pluribus;
+package de.poker.solver;
 
 public class Constants {
     public static final int MINIMUM_REGRET = -310_000_000;

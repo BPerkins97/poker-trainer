@@ -1,8 +1,8 @@
-package de.poker.solver.pluribus.holdem;
+package de.poker.solver;
 
 import de.poker.solver.game.Action;
 import de.poker.solver.game.Card;
-import de.poker.solver.game.Hand;
+import de.poker.solver.game.HandEvaluator;
 import de.poker.solver.utility.CardInfoSetBuilder;
 
 import java.util.*;
@@ -37,8 +37,6 @@ public class HoldEmGameTree implements Cloneable {
     public static final int STARTING_STACK_SIZE = 10000;
     public static final int ACTION_ID_FOLD = 100;
     public static final int ACTION_ID_CALL = 101;
-    private static final byte PLAYER_ONE_FOLDED_BITMASK = 1;
-    private static final byte PLAYER_TWO_FOLDED_BITMASK = 1 << 1;
 
     static {
         for (int i=0;i<NUM_PLAYERS;i++) {
@@ -103,7 +101,7 @@ public class HoldEmGameTree implements Cloneable {
             cards.add(deck[FLOP_CARD3]);
             cards.add(deck[TURN_CARD]);
             cards.add(deck[RIVER_CARD]);
-            playersHands[i] = Hand.of(cards).value;
+            playersHands[i] = HandEvaluator.of(cards);
         }
         setNextActions();
     }
@@ -193,7 +191,7 @@ public class HoldEmGameTree implements Cloneable {
         }
         next.determineNextPlayer();
         next.setNextActions();
-        next.history += action.asString();
+        next.history += action.presentation();
         return next;
     }
 

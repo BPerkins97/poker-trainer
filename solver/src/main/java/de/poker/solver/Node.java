@@ -1,7 +1,7 @@
-package de.poker.solver.pluribus;
+package de.poker.solver;
 
-import de.poker.solver.pluribus.holdem.HoldEmConfiguration;
-import de.poker.solver.pluribus.holdem.HoldEmGameTree;
+import de.poker.solver.HoldEmConfiguration;
+import de.poker.solver.HoldEmGameTree;
 
 public class Node {
     private int[] regrets;

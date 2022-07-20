@@ -1,6 +1,4 @@
-package de.poker.solver.pluribus.holdem;
-
-import de.poker.solver.pluribus.Node;
+package de.poker.solver;
 
 import java.util.HashMap;
 import java.util.Map;

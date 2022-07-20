@@ -1,5 +1,6 @@
-package de.poker.solver.pluribus.holdem;
+package de.poker.solver;
 
+import de.poker.solver.HoldEmGameTree;
 import de.poker.solver.game.Card;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;

@@ -1,9 +1,5 @@
 package de.poker.solver;
 
-import de.poker.solver.pluribus.MonteCarloCFR;
-import de.poker.solver.pluribus.holdem.HoldEmConfiguration;
-import de.poker.solver.pluribus.holdem.HoldEmNodeMap;
-
 // TODO there is an issue where sometimes the values of a node are reset to zero for some reason this has to be an issue in the hashmap or?
 public class Trainer {
 

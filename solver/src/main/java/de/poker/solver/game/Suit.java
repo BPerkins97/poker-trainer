@@ -1,10 +1,10 @@
 package de.poker.solver.game;
 
 public enum Suit {
-    SPADES('s'),
-    HEART('h'),
-    DIAMOND('d'),
-    CLUB('c');
+    SPADES("s"),
+    HEART("h"),
+    DIAMOND("d"),
+    CLUB("c");
 
     private static final Suit[] SUITS = new Suit[4];
 
@@ -14,28 +14,32 @@ public enum Suit {
         }
     }
 
-    final char symbol;
+    final String presentation;
 
-    Suit(char symbol) {
-        this.symbol = symbol;
+    Suit(String presentation) {
+        this.presentation = presentation;
+    }
+
+    public static Suit[] suitsInOrder() {
+        return values();
     }
 
     public int value() {
         return ordinal();
     }
 
-    public static Suit parse(char symbol) {
+    public static Suit parse(String symbol) {
         return switch (symbol) {
-            case 's' -> SPADES;
-            case 'h' -> HEART;
-            case 'c' -> CLUB;
-            case 'd' -> DIAMOND;
+            case "s" -> SPADES;
+            case "h" -> HEART;
+            case "c" -> CLUB;
+            case "d" -> DIAMOND;
             default -> throw new IllegalArgumentException("Illegal symbol " + symbol);
         };
     }
 
     @Override
     public String toString() {
-        return String.valueOf(symbol);
+        return presentation;
     }
 }

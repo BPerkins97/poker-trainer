@@ -1,10 +1,5 @@
-package de.poker.solver.pluribus;
+package de.poker.solver;
 
-import de.poker.solver.pluribus.holdem.HoldEmConfiguration;
-import de.poker.solver.pluribus.holdem.HoldEmGameTree;
-import de.poker.solver.pluribus.holdem.HoldEmNodeMap;
-
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ThreadLocalRandom;
 
 // As implemented in http://www.cs.cmu.edu/~noamb/papers/19-Science-Superhuman_Supp.pdf

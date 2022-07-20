@@ -6,7 +6,9 @@ import java.util.stream.Collectors;
 import static de.poker.solver.game.Value.*;
 import static de.poker.solver.utility.CollectionUtils.isNotEmpty;
 
-public class Hand implements Comparable<Hand> {
+public class HandEvaluator {
+    private HandEvaluator() {}
+
     private static final Value[][] POSSIBLE_STRAIGHTS;
 
     static {
@@ -23,24 +25,7 @@ public class Hand implements Comparable<Hand> {
         POSSIBLE_STRAIGHTS[9] = new Value[]{FIVE, FOUR, THREE, TWO, ACE};
     }
 
-    private final Rank rank;
-    private final List<Card> cards;
-    public final long value;
-
-    private Hand(Rank rank, List<Card> cards) {
-        this.rank = rank;
-        this.cards = cards;
-        long tempSum = 0;
-        long multiplier = 1;
-        for (int i=4;i>=0;i--) {
-            tempSum += cards.get(i).value().value() * multiplier;
-            multiplier *= 14;
-        }
-        tempSum += rank.value() * multiplier;
-        value = tempSum;
-    }
-
-    public static Hand of(List<Card> cardsInput) {
+    public static long of(List<Card> cardsInput) {
         assert cardsInput != null : "Cant instantiate a Hand from null";
         assert cardsInput.size() == 7 : "Expected 7 cards but only got " + cardsInput.size();
 
@@ -55,11 +40,12 @@ public class Hand implements Comparable<Hand> {
 
         cards.sort(Collections.reverseOrder());
 
+        // We can do this in one int and work with bitmask
         int clubCount = 0;
         int heartCount = 0;
         int spadeCount = 0;
         int diamondCount = 0;
-        for (int i=0;i<7;i++) {
+        for (int i = 0; i < 7; i++) {
             switch (cards.get(i).suit()) {
                 case CLUB:
                     clubCount++;
@@ -98,9 +84,9 @@ public class Hand implements Comparable<Hand> {
             );
             if (isNotEmpty(straightFlush)) {
                 if (straightFlush.get(0).value().equals(POSSIBLE_STRAIGHTS[0][0])) {
-                    return new Hand(Rank.ROYAL_FLUSH, straightFlush);
+                    return toLong(straightFlush, Rank.ROYAL_FLUSH);
                 } else {
-                    return new Hand(Rank.STRAIGHT_FLUSH, straightFlush);
+                    return toLong(straightFlush, Rank.STRAIGHT_FLUSH);
                 }
             }
         }
@@ -116,7 +102,7 @@ public class Hand implements Comparable<Hand> {
         if (quads.size() == 1) {
             List<Card> finalHand = quads.get(0);
             addNCardsIfNotInCollection(cards, 1, finalHand);
-            return new Hand(Rank.QUADS, finalHand);
+            return toLong(finalHand, Rank.QUADS);
         }
 
         List<List<Card>> pairs = cardsByValue
@@ -131,14 +117,14 @@ public class Hand implements Comparable<Hand> {
         if (trips.size() == 1 && pairs.size() == 1) {
             List<Card> finalHand = trips.get(0);
             finalHand.addAll(pairs.get(0));
-            return new Hand(Rank.FULL_HOUSE, finalHand);
+            return toLong(finalHand, Rank.FULL_HOUSE);
         }
 
         if (trips.size() == 2) {
             List<Card> finalHand = trips.get(0);
             finalHand.addAll(trips.get(1));
             finalHand.sort(Collections.reverseOrder());
-            return new Hand(Rank.FULL_HOUSE, finalHand.subList(0, 5));
+            return toLong(finalHand.subList(0, 5), Rank.FULL_HOUSE);
         }
 
         if (trips.size() == 1 && pairs.size() == 2) {
@@ -147,7 +133,7 @@ public class Hand implements Comparable<Hand> {
             subFinalHand.addAll(pairs.get(1));
             subFinalHand.sort(Collections.reverseOrder());
             finalHand.addAll(subFinalHand.subList(0, 2));
-            return new Hand(Rank.FULL_HOUSE, finalHand);
+            return toLong(finalHand, Rank.FULL_HOUSE);
         }
 
         if (isFlush) {
@@ -166,19 +152,19 @@ public class Hand implements Comparable<Hand> {
                     .collect(Collectors.toList());
             List<Card> finalHand = flushCards.subList(0, 5);
             finalHand.sort(Collections.reverseOrder());
-            return new Hand(Rank.FLUSH, finalHand);
+            return toLong(finalHand, Rank.FLUSH);
         }
 
         List<Card> straight = findStraight(cardsByValue);
 
         if (!straight.isEmpty()) {
-            return new Hand(Rank.STRAIGHT, straight);
+            return toLong(straight, Rank.STRAIGHT);
         }
 
         if (trips.size() == 1) {
             List<Card> finalHand = trips.get(0);
             addNCardsIfNotInCollection(cards, 2, finalHand);
-            return new Hand(Rank.THREE_OF_A_KIND, finalHand);
+            return toLong(finalHand, Rank.THREE_OF_A_KIND);
         }
 
         if (pairs.size() == 2) {
@@ -186,22 +172,27 @@ public class Hand implements Comparable<Hand> {
             finalHand.addAll(pairs.get(1));
             finalHand.sort(Collections.reverseOrder());
             addNCardsIfNotInCollection(cards, 1, finalHand);
-            return new Hand(Rank.TWO_PAIR, finalHand);
+            return toLong(finalHand, Rank.TWO_PAIR);
         }
 
         if (pairs.size() == 1) {
             List<Card> finalHand = pairs.get(0);
             addNCardsIfNotInCollection(cards, 3, finalHand);
-            return new Hand(Rank.PAIR, finalHand);
+            return toLong(finalHand, Rank.PAIR);
         }
-        return new Hand(Rank.HIGH_CARD, cards.subList(0, 5));
-    }
-    public static Hand of(String... cardsInput) {
-        return of(Arrays.stream(cardsInput)
-                .map(Card::of)
-                .toList());
+        return toLong(cards.subList(0, 5), Rank.HIGH_CARD);
     }
 
+    private static long toLong(List<Card> cards, Rank rank) {
+        long tempSum = 0;
+        long multiplier = 1;
+        for (int i = 4; i >= 0; i--) {
+            tempSum += cards.get(i).value().value() * multiplier;
+            multiplier *= 14;
+        }
+        tempSum += rank.value() * multiplier;
+        return tempSum;
+    }
 
     private static List<Card> findStraight(Map<Value, List<Card>> cardByValue) {
         for (int j = 0; j < 10; j++) {
@@ -237,41 +228,26 @@ public class Hand implements Comparable<Hand> {
         alreadyDrawnCards.addAll(result);
     }
 
-    public String toString() {
-        return rank + ": " + cards.stream().map(Card::toString).collect(Collectors.joining("-"));
-    }
-
-    @Override
-    public int compareTo(Hand hand) {
-        return Long.compare(this.value, hand.value);
-    }
-
     private enum Rank {
-        ROYAL_FLUSH(9,"Royal Flush"),
-        STRAIGHT_FLUSH(8,"Straight Flush"),
-        QUADS(7,"Quads"),
-        FULL_HOUSE(6,"Full House"),
-        FLUSH(5,"Flush"),
-        STRAIGHT(4,"Straight"),
-        THREE_OF_A_KIND(3,"Three of a kind"),
-        TWO_PAIR(2,"Two Pair"),
-        HIGH_CARD(0,"High Card"),
-        PAIR(1,"Pair");
+        ROYAL_FLUSH(9),
+        STRAIGHT_FLUSH(8),
+        QUADS(7),
+        FULL_HOUSE(6),
+        FLUSH(5),
+        STRAIGHT(4),
+        THREE_OF_A_KIND(3),
+        TWO_PAIR(2),
+        HIGH_CARD(0),
+        PAIR(1);
 
-        private final String representationString;
         private final int value;
-        Rank(int value, String representationString) {
+
+        Rank(int value) {
             this.value = value;
-            this.representationString = representationString;
         }
 
         public int value() {
             return value;
-        }
-
-        @Override
-        public String toString() {
-            return representationString;
         }
     }
 }

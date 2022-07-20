@@ -1,4 +1,4 @@
-package de.poker.solver.pluribus.holdem;
+package de.poker.solver;
 
 import de.poker.solver.game.Card;
 
