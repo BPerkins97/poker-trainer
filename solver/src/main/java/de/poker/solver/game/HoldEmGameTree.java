@@ -32,7 +32,7 @@ public class HoldEmGameTree implements Cloneable {
     public static final int ACTION_ID_CALL = 101;
 
     static {
-        for (int i = 0; i< Constants.NUM_PLAYERS; i++) {
+        for (int i = 0; i < Constants.NUM_PLAYERS; i++) {
             BETTING_ORDER_PER_ROUND[0][i] = (i + 2) % Constants.NUM_PLAYERS;
             BETTING_ORDER_PER_ROUND[1][i] = i;
             BETTING_ORDER_PER_ROUND[2][i] = i;
@@ -43,7 +43,7 @@ public class HoldEmGameTree implements Cloneable {
         FLOP_CARD3 = Constants.NUM_PLAYERS * 2 + 2;
         TURN_CARD = Constants.NUM_PLAYERS * 2 + 3;
         RIVER_CARD = Constants.NUM_PLAYERS * 2 + 4;
-        for (int i = Constants.BIG_BLIND; i< Constants.STARTING_STACK_SIZE; i+= Constants.BIG_BLIND) {
+        for (int i = Constants.BIG_BLIND; i < Constants.STARTING_STACK_SIZE; i += Constants.BIG_BLIND) {
             ACTIONS[i / 100] = Action.raise(i);
         }
         ACTIONS[100] = Action.fold();
@@ -77,7 +77,7 @@ public class HoldEmGameTree implements Cloneable {
             int startIndex = 2 * i;
 
             CardInfoSetBuilder infoSetBuilder = new CardInfoSetBuilder();
-            infoSetBuilder.appendHoleCards(deck[startIndex], deck[startIndex+1]);
+            infoSetBuilder.appendHoleCards(deck[startIndex], deck[startIndex + 1]);
             cardInfoSets[0][i] = infoSetBuilder.toString();
             infoSetBuilder.appendFlop(deck[FLOP_CARD1], deck[FLOP_CARD2], deck[FLOP_CARD3]);
             cardInfoSets[1][i] = infoSetBuilder.toString();
@@ -135,7 +135,7 @@ public class HoldEmGameTree implements Cloneable {
         }
 
         long bestHandValue = Long.MIN_VALUE;
-        for (int p = 0; p< Constants.NUM_PLAYERS; p++) {
+        for (int p = 0; p < Constants.NUM_PLAYERS; p++) {
             bestHandValue = Math.max(bestHandValue, playersHands[p]);
         }
 
@@ -154,15 +154,6 @@ public class HoldEmGameTree implements Cloneable {
         return currentPlayer == playerId;
     }
 
-    public String asInfoSet(int playerId) {
-        StringBuilder sb = new StringBuilder();
-        for (int i=0;i<=bettingRound;i++) {
-            sb.append(cardInfoSets[bettingRound][playerId]).append("|");
-        }
-        sb.append(history);
-        return sb.toString();
-    }
-
     public int numActions() {
         return numActions;
     }
@@ -175,13 +166,9 @@ public class HoldEmGameTree implements Cloneable {
         return (STACK_BITMASK << (16 * playerId) & playersStacks) >> (16 * playerId);
     }
 
-    private boolean isCallLegal() {
-        return true;
-    }
-
     private boolean isFoldLegal() {
         int maxInvestment = -1;
-        for (int p = 0; p< Constants.NUM_PLAYERS; p++) {
+        for (int p = 0; p < Constants.NUM_PLAYERS; p++) {
             maxInvestment = Math.max(getInvestment(p), maxInvestment);
         }
         int payment = maxInvestment - getInvestment(currentPlayer);
@@ -189,25 +176,24 @@ public class HoldEmGameTree implements Cloneable {
     }
 
     public HoldEmGameTree takeAction(int actionId) {
-        HoldEmGameTree next = null;
         try {
-            next = (HoldEmGameTree)this.clone();
+            HoldEmGameTree next = (HoldEmGameTree) this.clone();
+            Action action = ACTIONS[actionIds[actionId]];
+            if (action.isFold()) {
+                next.fold();
+            } else if (action.isCall()) {
+                next.call();
+            } else {
+                next.raise(action.amount());
+            }
+            next.determineNextPlayer();
+            next.setNextActions();
+            next.history += action.presentation();
+            return next;
         } catch (CloneNotSupportedException e) {
             e.printStackTrace();
+            throw new IllegalStateException();
         }
-
-        Action action = ACTIONS[actionIds[actionId]];
-        if (action.isFold()) {
-            next.fold();
-        } else if (action.isCall()) {
-            next.call();
-        } else {
-            next.raise(action.amount());
-        }
-        next.determineNextPlayer();
-        next.setNextActions();
-        next.history += action.presentation();
-        return next;
     }
 
     private void setNextActions() {
@@ -236,9 +222,6 @@ public class HoldEmGameTree implements Cloneable {
             addAction(ACTION_ID_FOLD);
         }
         addAction(ACTION_ID_CALL);
-        addRaiseIfLegal(pot / 2);
-        addRaiseIfLegal(pot);
-        addRaiseIfLegal((int)(1.5 * pot));
         addRaiseIfLegal(getStack(currentPlayer));
     }
 
@@ -251,16 +234,7 @@ public class HoldEmGameTree implements Cloneable {
         if (isFoldLegal()) {
             addAction(ACTION_ID_FOLD);
         }
-        if (isCallLegal()) {
-            addAction(ACTION_ID_CALL);
-        }
-        addRaiseIfLegal(pot / 4);
-        addRaiseIfLegal(pot / 3);
-        addRaiseIfLegal(pot / 2);
-        addRaiseIfLegal(pot);
-        addRaiseIfLegal((int)(1.25 * pot));
-        addRaiseIfLegal((int)(1.5 * pot));
-        addRaiseIfLegal((int)(2.0 * pot));
+        addAction(ACTION_ID_CALL);
         addRaiseIfLegal(getStack(currentPlayer));
     }
 
@@ -268,25 +242,7 @@ public class HoldEmGameTree implements Cloneable {
         if (isFoldLegal()) {
             addAction(ACTION_ID_FOLD);
         }
-        if (isCallLegal()) {
-            addAction(ACTION_ID_CALL);
-        }
-        boolean isFirstRaise = amountLastRaised <= 0;
-        if (isFirstRaise) {
-            addRaiseIfLegal(Constants.BIG_BLIND);
-            addRaiseIfLegal((int)(2.0 * Constants.BIG_BLIND));
-            addRaiseIfLegal((int)(3.0 * Constants.BIG_BLIND));
-            addRaiseIfLegal((int)(4.0 * Constants.BIG_BLIND));
-            addRaiseIfLegal((int)(5.0 * Constants.BIG_BLIND));
-        } else {
-            addRaiseIfLegal(pot / 4);
-            addRaiseIfLegal(pot / 3);
-            addRaiseIfLegal(pot / 2);
-            addRaiseIfLegal(pot);
-            addRaiseIfLegal((int)(1.25 * pot));
-            addRaiseIfLegal((int)(1.5 * pot));
-            addRaiseIfLegal((int)(2.0 * pot));
-        }
+        addAction(ACTION_ID_CALL);
         addRaiseIfLegal(getStack(currentPlayer));
     }
 
@@ -321,7 +277,7 @@ public class HoldEmGameTree implements Cloneable {
         boolean isEndOfBettingRound = false;
         if (lastRaiser < 0) {
             // Noone raised this round
-            for (int i = Constants.NUM_PLAYERS -1; i > 0; i--) {
+            for (int i = Constants.NUM_PLAYERS - 1; i > 0; i--) {
                 if (!hasFolded(BETTING_ORDER_PER_ROUND[bettingRound][i])) {
                     isEndOfBettingRound = currentPlayer == BETTING_ORDER_PER_ROUND[bettingRound][i];
                     break;
@@ -335,9 +291,9 @@ public class HoldEmGameTree implements Cloneable {
                     lastRaiserIndex = i;
                 }
             }
-            int playerEndingRoundIndex = lastRaiserIndex <= 0 ? Constants.NUM_PLAYERS -1 : lastRaiserIndex - 1;
+            int playerEndingRoundIndex = lastRaiserIndex <= 0 ? Constants.NUM_PLAYERS - 1 : lastRaiserIndex - 1;
             while (hasFolded(BETTING_ORDER_PER_ROUND[bettingRound][playerEndingRoundIndex])) {
-                playerEndingRoundIndex = playerEndingRoundIndex <= 0 ? Constants.NUM_PLAYERS -1 : playerEndingRoundIndex - 1;
+                playerEndingRoundIndex = playerEndingRoundIndex <= 0 ? Constants.NUM_PLAYERS - 1 : playerEndingRoundIndex - 1;
             }
             isEndOfBettingRound = currentPlayer == BETTING_ORDER_PER_ROUND[bettingRound][playerEndingRoundIndex];
         }
