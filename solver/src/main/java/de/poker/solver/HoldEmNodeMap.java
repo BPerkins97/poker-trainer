@@ -1,5 +1,8 @@
 package de.poker.solver;
 
+import de.poker.solver.game.Constants;
+import de.poker.solver.game.HoldEmGameTree;
+
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -7,19 +10,19 @@ import java.util.function.BiConsumer;
 
 // TODO this can be more efficient
 public class HoldEmNodeMap {
-    private Map<String, Map<String, Node>>[][] map = new HashMap[HoldEmConstants.NUM_BETTING_ROUNDS][HoldEmConstants.NUM_PLAYERS];
+    private Map<String, Map<String, Node>>[][] map = new HashMap[Constants.NUM_BETTING_ROUNDS][Constants.NUM_PLAYERS];
 
     public HoldEmNodeMap() {
-        for (int i=0;i<HoldEmConstants.NUM_BETTING_ROUNDS;i++) {
-            for (int j=0;j<HoldEmConstants.NUM_PLAYERS;j++) {
+        for (int i = 0; i< Constants.NUM_BETTING_ROUNDS; i++) {
+            for (int j = 0; j< Constants.NUM_PLAYERS; j++) {
                 map[i][j] = new HashMap<>();
             }
         }
     }
 
     public void forEach(BiConsumer<String, Node> consumer) {
-        for (int i=0;i<HoldEmConstants.NUM_BETTING_ROUNDS;i++) {
-            for (int j=0;j<HoldEmConstants.NUM_PLAYERS;j++) {
+        for (int i = 0; i< Constants.NUM_BETTING_ROUNDS; i++) {
+            for (int j = 0; j< Constants.NUM_PLAYERS; j++) {
                 map[i][j].forEach((k, v) -> v.forEach(consumer));
             }
         }

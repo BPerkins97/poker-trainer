@@ -1,11 +1,9 @@
-package de.poker.solver;
+package de.poker.solver.game;
 
-import de.poker.solver.game.Action;
-import de.poker.solver.game.Card;
-import de.poker.solver.game.HandEvaluator;
 import de.poker.solver.utility.CardInfoSetBuilder;
 
 import java.util.*;
+import java.util.concurrent.ThreadLocalRandom;
 
 public class HoldEmGameTree implements Cloneable {
     private static final int STACK_BITMASK = 0xffff;
@@ -57,20 +55,20 @@ public class HoldEmGameTree implements Cloneable {
         ACTIONS[101] = Action.call();
     }
 
-    String history = "";
-    String[][] cardInfoSets;
-    int currentPlayer;
-    byte playersWhoFolded;
-    int playersStacks;
-    int playerInvestments;
-    long[] playersHands = new long[NUM_PLAYERS];
-    int pot;
-    boolean isGameOver;
-    int bettingRound;
-    int lastRaiser;
-    int amountLastRaised;
-    int[] actionIds;
-    int numActions;
+    public String history = "";
+    public String[][] cardInfoSets;
+    public int currentPlayer;
+    public byte playersWhoFolded;
+    public int playersStacks;
+    public int playerInvestments;
+    public long[] playersHands = new long[NUM_PLAYERS];
+    public int pot;
+    public boolean isGameOver;
+    public int bettingRound;
+    public int lastRaiser;
+    public int amountLastRaised;
+    public int[] actionIds;
+    public int numActions;
 
 
     public HoldEmGameTree(Card[] deck) {
@@ -104,6 +102,28 @@ public class HoldEmGameTree implements Cloneable {
             playersHands[i] = HandEvaluator.of(cards);
         }
         setNextActions();
+    }
+
+    public static HoldEmGameTree getRandomRootState() {
+        int numCards = Constants.NUM_PLAYERS * 2 + 5;
+        Card[] deck = new Card[numCards];
+        for (int i = 0; i < numCards; i++) {
+            Card card;
+            do {
+                card = Card.randomCard(ThreadLocalRandom.current());
+            } while (cardAlreadyInDeck(deck, card, i));
+            deck[i] = card;
+        }
+        return new HoldEmGameTree(deck);
+    }
+
+    public static boolean cardAlreadyInDeck(Card[] deck, Card card, int insertAtPosition) {
+        for (int i = 0; i < insertAtPosition; i++) {
+            if (deck[i] == card) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public boolean isTerminalForPlayer(int playerId) {

@@ -1,7 +1,6 @@
 package de.poker.solver;
 
-import de.poker.solver.HoldEmConfiguration;
-import de.poker.solver.HoldEmGameTree;
+import de.poker.solver.game.HoldEmGameTree;
 
 public class Node {
     private int[] regrets;
@@ -32,8 +31,8 @@ public class Node {
         averageAction[action]++;
     }
 
-    public void addRegretForAction(int action, int regret, HoldEmConfiguration config) {
-        regrets[action] = Math.max(regrets[action] + regret, config.minimumRegret());
+    public void addRegretForAction(int action, int regret) {
+        regrets[action] = Math.max(regrets[action] + regret, ApplicationConfiguration.MINIMUM_REGRET);
     }
 
     public void discount(double discountValue) {
