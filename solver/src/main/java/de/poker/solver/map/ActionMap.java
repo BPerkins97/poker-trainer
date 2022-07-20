@@ -9,7 +9,8 @@ import java.util.Map;
 import java.util.Objects;
 
 public class ActionMap {
-    private final Map<Action, Node> map = new HashMap<>();
+    final Map<Action, Node> map = new HashMap<>();
+    int infosetId = -1;
     // Reuse this object for performance reasons
 
     public Strategy calculateStrategy(List<Action> actions) {

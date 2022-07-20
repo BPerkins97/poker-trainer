@@ -19,10 +19,11 @@ public class MonteCarloCFR {
             double randomNumber = ThreadLocalRandom.current().nextDouble();
             final int iteration = i;
             doIteration(nodeMap, iteration, rootNode, randomNumber);
-            if (i < ApplicationConfiguration.LINEAR_CFR_THRESHOLD && i % ApplicationConfiguration.DISCOUNT_INTERVAL == 0 && i >= ApplicationConfiguration.DISCOUNT_INTERVAL) {
-                double discountValue = calculateDiscountValue(i);
-                nodeMap.discount(discountValue);
-            }
+            // TODO put this back in
+//            if (i < ApplicationConfiguration.LINEAR_CFR_THRESHOLD && i % ApplicationConfiguration.DISCOUNT_INTERVAL == 0 && i >= ApplicationConfiguration.DISCOUNT_INTERVAL) {
+//                double discountValue = calculateDiscountValue(i);
+//                nodeMap.discount(discountValue);
+//            }
         }
         return nodeMap;
     }

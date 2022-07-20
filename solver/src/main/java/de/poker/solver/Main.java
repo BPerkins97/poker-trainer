@@ -1,5 +1,7 @@
 package de.poker.solver;
 
+import java.sql.*;
+
 // TODO Multithreading
 // TODO persist data
 // TODO actions are determined based on config file which can be read at runtime
@@ -10,7 +12,7 @@ package de.poker.solver;
 // TODO more efficient Hand Evaluation algorithm
 // TODO maybe we find a way to map hole cards directly to an index of 169 and can reduce the map access cost like that
 public class Main {
-    public static void main(String[] args) {
+    public static void main(String[] args) throws SQLException {
         Trainer trainer = new Trainer();
         trainer.start();
     }
