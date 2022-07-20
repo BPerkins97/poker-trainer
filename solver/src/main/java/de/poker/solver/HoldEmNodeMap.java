@@ -39,10 +39,10 @@ public class HoldEmNodeMap {
             map[gameTree.bettingRound][gameTree.currentPlayer].put(gameTree.cardInfoSets[gameTree.bettingRound][gameTree.currentPlayer], tempMap);
         }
 
-        Node node = tempMap.get(gameTree.history);
+        Node node = tempMap.get(gameTree.history());
         if  (Objects.isNull(node)) {
             node = new Node(gameTree);
-            tempMap.put(gameTree.history, node);
+            tempMap.put(gameTree.history(), node);
         }
 
         return node;

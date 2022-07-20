@@ -45,7 +45,7 @@ public class MonteCarloCFR {
     }
 
     private static double traverseMCCFR_NoPruning(HoldEmNodeMap nodeMap, HoldEmGameTree state, int traversingPlayerId) {
-        if (state.isTerminalForPlayer()) {
+        if (state.isGameOverForPlayer(traversingPlayerId)) {
             return state.getPayoffForPlayer(traversingPlayerId);
         } else if (state.isCurrentPlayer(traversingPlayerId)) {
             Node node = nodeMap.getNodeForCurrentPlayer(state);
@@ -78,7 +78,7 @@ public class MonteCarloCFR {
     }
 
     private static double traverseMCCFR_WithPruning(HoldEmNodeMap nodeMap, HoldEmGameTree state, int traversingPlayerId) {
-        if (state.isTerminalForPlayer()) {
+        if (state.isGameOverForPlayer(traversingPlayerId)) {
             return state.getPayoffForPlayer(traversingPlayerId);
         } else if (state.isCurrentPlayer(traversingPlayerId)) {
             Node node = nodeMap.getNodeForCurrentPlayer(state);
@@ -123,7 +123,7 @@ public class MonteCarloCFR {
         throw new IllegalStateException();
     }
     private static void updateStrategy(HoldEmNodeMap nodeMap, HoldEmGameTree state, int traversingPlayer) {
-        if (state.isTerminalForPlayer() || !state.shouldUpdateRegrets()) {
+        if (state.isGameOverForPlayer(traversingPlayer) || !state.shouldUpdateRegrets()) {
             return;
         } else if (state.isCurrentPlayer(traversingPlayer)) {
             Node node = nodeMap.getNodeForCurrentPlayer(state);

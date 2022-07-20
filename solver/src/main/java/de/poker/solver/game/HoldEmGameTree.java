@@ -6,7 +6,8 @@ import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
 
 public class HoldEmGameTree implements Cloneable {
-    private static final int STACK_BITMASK = 0xffff;
+    private static final int NUM_BITS_FOR_STACK = 8;
+    private static final long STACK_BITMASK = 0xff;
 
     private static final Action[] ACTIONS = new Action[102];
     private static final int POSITION_SMALL_BLIND = 0;
@@ -43,21 +44,20 @@ public class HoldEmGameTree implements Cloneable {
         FLOP_CARD3 = Constants.NUM_PLAYERS * 2 + 2;
         TURN_CARD = Constants.NUM_PLAYERS * 2 + 3;
         RIVER_CARD = Constants.NUM_PLAYERS * 2 + 4;
-        for (int i = Constants.BIG_BLIND; i < Constants.STARTING_STACK_SIZE; i += Constants.BIG_BLIND) {
-            ACTIONS[i / 100] = Action.raise(i);
+        for (int i = Constants.BIG_BLIND; i <= Constants.STARTING_STACK_SIZE; i += Constants.BIG_BLIND) {
+            ACTIONS[i / Constants.BIG_BLIND - 1] = Action.raise(i);
         }
         ACTIONS[100] = Action.fold();
         ACTIONS[101] = Action.call();
     }
 
-    public String history = "";
+    private String history = "";
     public String[][] cardInfoSets;
     public int currentPlayer;
     public byte playersWhoFolded;
-    public int playersStacks;
-    public int playerInvestments;
-    public long[] playersHands = new long[Constants.NUM_PLAYERS];
-    public int pot;
+    public long playersStacks;
+    public long playerInvestments;
+    public byte winnersAtShowdown;
     public boolean isGameOver;
     public byte bettingRound;
     public int lastRaiser;
@@ -67,12 +67,16 @@ public class HoldEmGameTree implements Cloneable {
 
 
     public HoldEmGameTree(Card[] deck) {
-        setPlayerStack(0, Constants.STARTING_STACK_SIZE);
-        setPlayerStack(1, Constants.STARTING_STACK_SIZE);
+        for (int i = 0; i < Constants.NUM_PLAYERS; i++) {
+            addToPlayerStack(i, Constants.STARTING_STACK_SIZE);
+        }
+
         pay(POSITION_SMALL_BLIND, Constants.SMALL_BLIND);
         pay(POSITION_BIG_BLIND, Constants.BIG_BLIND);
         currentPlayer = BETTING_ORDER_PER_ROUND[0][0];
         cardInfoSets = new String[Constants.NUM_BETTING_ROUNDS][Constants.NUM_PLAYERS];
+        lastRaiser = -1;
+        long[] playersHands = new long[Constants.NUM_PLAYERS];
         for (int i = 0; i < Constants.NUM_PLAYERS; i++) {
             int startIndex = 2 * i;
 
@@ -96,7 +100,23 @@ public class HoldEmGameTree implements Cloneable {
             cards.add(deck[RIVER_CARD]);
             playersHands[i] = HandEvaluator.of(cards);
         }
+
+        long bestHandValue = Long.MIN_VALUE;
+        for (int p = 0; p < Constants.NUM_PLAYERS; p++) {
+            bestHandValue = Math.max(bestHandValue, playersHands[p]);
+        }
+
+        for (int i = 0; i < Constants.NUM_PLAYERS; i++) {
+            if (bestHandValue == playersHands[i]) {
+                addWinnerAtShowdown(i);
+            }
+        }
+
         setNextActions();
+    }
+
+    private void addWinnerAtShowdown(int playerId) {
+        winnersAtShowdown += 1 << playerId;
     }
 
     public static HoldEmGameTree getRandomRootState() {
@@ -121,33 +141,55 @@ public class HoldEmGameTree implements Cloneable {
         return false;
     }
 
-    public boolean isTerminalForPlayer() {
-        return isGameOver || playersWhoFolded > 0;
+    public boolean isGameOverForPlayer(int playerId) {
+        return isGameOver || hasFolded(playerId);
     }
 
     private boolean hasFolded(int playerId) {
-        return (playersWhoFolded & 1 << playerId) > 0;
+        return (playersWhoFolded & (1 << playerId)) > 0;
     }
 
     public int getPayoffForPlayer(int playerId) {
+        assert isGameOverForPlayer(playerId);
+
         if (hasFolded(playerId)) {
             return -getInvestment(playerId);
         }
 
-        long bestHandValue = Long.MIN_VALUE;
-        for (int p = 0; p < Constants.NUM_PLAYERS; p++) {
-            bestHandValue = Math.max(bestHandValue, playersHands[p]);
-        }
+        int numPlayersWhoFolded = getNumPlayersWhoFolded();
 
-        if (playersHands[playerId] == bestHandValue) {
-            return pot - getInvestment(playerId);
+        boolean everyOneElseFolded = numPlayersWhoFolded == Constants.NUM_PLAYERS - 1;
+        if (everyOneElseFolded || isWinnerAtShowdown(playerId)) {
+            return getPot() - getInvestment(playerId);
         } else {
             return -getInvestment(playerId);
         }
     }
 
-    private int getInvestment(int playerId) {
-        return (STACK_BITMASK << (16 * playerId) & playerInvestments) >> (16 * playerId);
+    private int getNumPlayersWhoFolded() {
+        int count = 0;
+        byte folded = playersWhoFolded;
+        while (folded > 0) {
+            count += folded & 1;
+            folded >>= 1;
+        }
+        return count;
+    }
+
+    public int getPot() {
+        int pot = 0;
+        for (int i = 0; i < Constants.NUM_PLAYERS; i++) {
+            pot += getInvestment(i);
+        }
+        return pot;
+    }
+
+    public boolean isWinnerAtShowdown(int playerId) {
+        return (winnersAtShowdown & (1 << playerId)) > 0;
+    }
+
+    public int getInvestment(int playerId) {
+        return (int) ((STACK_BITMASK << (NUM_BITS_FOR_STACK * playerId) & playerInvestments) >> (NUM_BITS_FOR_STACK * playerId));
     }
 
     public boolean isCurrentPlayer(int playerId) {
@@ -163,7 +205,7 @@ public class HoldEmGameTree implements Cloneable {
     }
 
     private int getStack(int playerId) {
-        return (STACK_BITMASK << (16 * playerId) & playersStacks) >> (16 * playerId);
+        return (int) ((STACK_BITMASK << (NUM_BITS_FOR_STACK * playerId) & playersStacks) >> (NUM_BITS_FOR_STACK * playerId));
     }
 
     private boolean isFoldLegal() {
@@ -176,9 +218,12 @@ public class HoldEmGameTree implements Cloneable {
     }
 
     public HoldEmGameTree takeAction(int actionId) {
+        return takeAction(ACTIONS[actionIds[actionId]]);
+    }
+
+    public HoldEmGameTree takeAction(Action action) {
         try {
             HoldEmGameTree next = (HoldEmGameTree) this.clone();
-            Action action = ACTIONS[actionIds[actionId]];
             if (action.isFold()) {
                 next.fold();
             } else if (action.isCall()) {
@@ -352,7 +397,7 @@ public class HoldEmGameTree implements Cloneable {
         pay(currentPlayer, amount);
         for (int i = 0; i < Constants.NUM_PLAYERS; i++) {
             if (BETTING_ORDER_PER_ROUND[bettingRound][i] == currentPlayer) {
-                lastRaiser = i;
+                lastRaiser = currentPlayer;
                 break;
             }
         }
@@ -364,23 +409,22 @@ public class HoldEmGameTree implements Cloneable {
         assert amount > 0;
         subtractFromPlayerStack(playerId, amount);
         addToPlayerInvestment(playerId, amount);
-        pot += amount;
     }
 
     private void subtractFromPlayerStack(int playerId, int amount) {
-        playersStacks -= amount << (16 * playerId);
+        playersStacks -= (long) amount << (NUM_BITS_FOR_STACK * playerId);
     }
 
     private void addToPlayerInvestment(int playerId, int amount) {
-        playerInvestments += amount << (16 * playerId);
+        playerInvestments += (long) amount << (NUM_BITS_FOR_STACK * playerId);
     }
 
-    private void setPlayerStack(int playerId, int stack) {
-        playersStacks = ((~0 ^ (STACK_BITMASK << 16 * playerId)) & playersStacks) | (stack << (16 * playerId));
+    private void addToPlayerStack(int playerId, int stack) {
+        playersStacks += (long) stack << (NUM_BITS_FOR_STACK * playerId);
     }
 
     private void fold() {
-        playersWhoFolded = (byte) (1 << currentPlayer);
+        playersWhoFolded = (byte) (playersWhoFolded | (1 << currentPlayer));
     }
 
     private void call() {
@@ -396,5 +440,17 @@ public class HoldEmGameTree implements Cloneable {
 
     public boolean shouldUpdateRegrets() {
         return true;
+    }
+
+    public boolean isGameOver() {
+        return isGameOver;
+    }
+
+    public String history() {
+        return history;
+    }
+
+    public int bettingRound() {
+        return bettingRound;
     }
 }
