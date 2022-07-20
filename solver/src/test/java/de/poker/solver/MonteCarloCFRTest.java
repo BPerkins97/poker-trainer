@@ -7,8 +7,6 @@ import org.openjdk.jmh.runner.RunnerException;
 import org.openjdk.jmh.runner.options.Options;
 import org.openjdk.jmh.runner.options.OptionsBuilder;
 
-import java.sql.SQLException;
-
 public class MonteCarloCFRTest {
 
     public static void main(String[] args) throws RunnerException {
@@ -29,14 +27,6 @@ public class MonteCarloCFRTest {
 
     @State(Scope.Benchmark)
     public static class MyState {
-        public HoldEmNodeMap nodeMap;
-
-        {
-            try {
-                nodeMap = new HoldEmNodeMap();
-            } catch (SQLException e) {
-                System.out.println("error");
-            }
-        }
+        public HoldEmNodeMap nodeMap = new HoldEmNodeMap();
     }
 }

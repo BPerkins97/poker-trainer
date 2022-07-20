@@ -10,8 +10,7 @@ import java.util.Objects;
 
 // TODO https://www.nakivo.com/blog/how-to-use-remote-desktop-connection-ubuntu-linux-walkthrough/
 public class ActionMap {
-    final Map<Action, Node> map = new HashMap<>();
-    int infosetId = -1;
+    private final Map<Action, Node> map = new HashMap<>();
     // Reuse this object for performance reasons
 
     public Strategy calculateStrategy(List<Action> actions) {

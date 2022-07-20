@@ -1,12 +1,11 @@
 package de.poker.solver;
 
-import java.sql.SQLException;
 import java.util.Scanner;
 
 public class UserInterface {
     private final Trainer trainer;
 
-    public UserInterface() throws SQLException {
+    public UserInterface() {
         this.trainer = new Trainer();
     }
 

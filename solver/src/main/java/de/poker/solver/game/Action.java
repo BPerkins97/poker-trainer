@@ -22,17 +22,6 @@ public record Action(byte type, int amount, String presentation) {
         return new Action(RAISE, amount, "r" + amount);
     }
 
-    public static Action of(String action) {
-        assert action.length() > 1;
-        char firstChar = action.charAt(0);
-        return switch (firstChar) {
-            case 'f' -> Action.fold();
-            case 'c' -> Action.call();
-            case 'r' -> Action.raise(Integer.valueOf(action.substring(1)));
-            default -> throw new IllegalArgumentException();
-        };
-    }
-
     public boolean isFold() {
         return type == FOLD;
     }

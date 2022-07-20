@@ -2,17 +2,12 @@ package de.poker.solver;
 
 import de.poker.solver.map.HoldEmNodeMap;
 
-import java.sql.SQLException;
-
 public class Trainer {
 
     private boolean isRunning = false;
-    private HoldEmNodeMap nodeMap;
+    private HoldEmNodeMap nodeMap = new HoldEmNodeMap();
     public int iterations;
 
-    public Trainer() throws SQLException {
-        nodeMap = new HoldEmNodeMap();
-    }
 
     public void start() {
         isRunning = true;
