@@ -1,7 +1,7 @@
 package de.poker.solver;
 
 // TODO Multithreading
-// TODO persist data
+// TODO persist data - no use of sql server its too damn slow, instead write to file every other hour or so
 // TODO actions are determined based on config file which can be read at runtime
 // TODO load data from checkpoint
 // TODO Trainer does discounting

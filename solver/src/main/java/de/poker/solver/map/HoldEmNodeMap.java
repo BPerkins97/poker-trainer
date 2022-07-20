@@ -1,14 +1,19 @@
 package de.poker.solver.map;
 
+import com.google.gson.Gson;
+import de.poker.solver.game.Action;
 import de.poker.solver.game.Constants;
 import de.poker.solver.game.HoldEmGameTree;
 
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.BiConsumer;
 
-// TODO It probably is best to do this in a relational database
 // TODO this can be more efficient
 public class HoldEmNodeMap {
     Map<String, Map<String, ActionMap>>[][] map = new HashMap[Constants.NUM_BETTING_ROUNDS][Constants.NUM_PLAYERS];
@@ -52,5 +57,22 @@ public class HoldEmNodeMap {
     public void discount(double discountValue) {
         forEach((key, node) -> node.discount(discountValue));
         // TODO maybe only discount touched nones
+    }
+
+    public void saveToFile(File file) throws IOException {
+        BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(file));
+        for (int i=0;i<Constants.NUM_BETTING_ROUNDS;i++) {
+            for (int j=0;j<Constants.NUM_PLAYERS;j++) {
+                for (Map.Entry<String, Map<String, ActionMap>> entry1 : map[i][j].entrySet()) {
+                    for (Map.Entry<String, ActionMap> entry2 : entry1.getValue().entrySet()) {
+                        for (Map.Entry<Action, Node> entry3 : entry2.getValue().map.entrySet()) {
+                            String output = i + ";" + j + ";" + entry1.getKey() + ";" + entry2.getKey() + ";" + entry3.getKey().presentation() + ";" + entry3.getValue().regret + ";" + entry3.getValue().averageAction + "\r\n";
+                            bufferedWriter.write(output);
+                        }
+                    }
+                }
+            }
+        }
+        bufferedWriter.close();
     }
 }
