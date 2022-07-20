@@ -1,4 +1,4 @@
-package de.poker.solver;
+package de.poker.solver.map;
 
 public class Node {
     int regret;

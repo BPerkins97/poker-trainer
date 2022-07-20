@@ -1,7 +1,7 @@
-package de.poker.solver;
+package de.poker.solver.map;
 
+import de.poker.solver.ApplicationConfiguration;
 import de.poker.solver.game.Action;
-import de.poker.solver.game.HoldEmGameTree;
 
 import java.util.HashMap;
 import java.util.List;

@@ -1,5 +1,7 @@
 package de.poker.solver;
 
+import de.poker.solver.map.HoldEmNodeMap;
+
 public class Trainer {
 
     private boolean isRunning = false;

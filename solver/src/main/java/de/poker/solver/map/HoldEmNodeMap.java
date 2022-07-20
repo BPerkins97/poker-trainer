@@ -1,4 +1,4 @@
-package de.poker.solver;
+package de.poker.solver.map;
 
 import de.poker.solver.game.Constants;
 import de.poker.solver.game.HoldEmGameTree;
@@ -8,9 +8,10 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.function.BiConsumer;
 
+// TODO It probably is best to do this in a relational database
 // TODO this can be more efficient
 public class HoldEmNodeMap {
-    private Map<String, Map<String, ActionMap>>[][] map = new HashMap[Constants.NUM_BETTING_ROUNDS][Constants.NUM_PLAYERS];
+    Map<String, Map<String, ActionMap>>[][] map = new HashMap[Constants.NUM_BETTING_ROUNDS][Constants.NUM_PLAYERS];
 
     public HoldEmNodeMap() {
         for (int i = 0; i< Constants.NUM_BETTING_ROUNDS; i++) {
@@ -26,16 +27,6 @@ public class HoldEmNodeMap {
                 map[i][j].forEach((k, v) -> v.forEach(consumer));
             }
         }
-    }
-
-    public int getNumNodes() {
-        int num = 0;
-        for (int i = 0; i< Constants.NUM_BETTING_ROUNDS; i++) {
-            for (int j = 0; j< Constants.NUM_PLAYERS; j++) {
-                num += map[i][j].size();
-            }
-        }
-        return num;
     }
 
     public void updateForCurrentPlayer(HoldEmGameTree gameTree, ActionMap node) {
