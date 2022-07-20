@@ -16,7 +16,7 @@ public class MonteCarloCFR {
             double randomNumber = ThreadLocalRandom.current().nextDouble();
             final int iteration = i;
             doIteration(config, nodeMap, iteration, rootNode, randomNumber);
-            if (i < config.linearCFRThreshold() && i % config.discountInterval() == 0) {
+            if (i < config.linearCFRThreshold() && i % config.discountInterval() == 0 && i >= config.discountInterval()) {
                 double discountValue = calculateDiscountValue(i, config);
                 nodeMap.discount(discountValue);
             }

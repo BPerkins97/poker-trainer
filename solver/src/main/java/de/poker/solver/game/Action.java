@@ -1,5 +1,7 @@
 package de.poker.solver.game;
 
+import java.util.Objects;
+
 public class Action {
     private static final byte FOLD = 1;
     private static final byte CALL = 2;
@@ -49,5 +51,18 @@ public class Action {
 
     public String asString() {
         return presentation;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Action action = (Action) o;
+        return type == action.type && amount == action.amount && Objects.equals(presentation, action.presentation);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(type, amount, presentation);
     }
 }

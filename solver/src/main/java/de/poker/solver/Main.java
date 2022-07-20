@@ -8,7 +8,7 @@ package de.poker.solver;
 // TODO write tests for everything
 // TODO maybe make stuff for functional
 public class Main {
-    public static void main(String[] args) throws InterruptedException {
+    public static void main(String[] args) {
         UserInterface userInterface = new UserInterface();
         userInterface.start();
     }

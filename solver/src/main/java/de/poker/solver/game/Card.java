@@ -127,8 +127,4 @@ public enum Card implements Comparable<Card> {
         return String.valueOf(value) +
                 suit;
     }
-
-    public void appendInfoSet(StringBuilder infoSetBuilder) {
-        infoSetBuilder.append(value.symbol).append(suit.symbol);
-    }
 }

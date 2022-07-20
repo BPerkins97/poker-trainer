@@ -81,7 +81,7 @@ public class CardInfoSetBuilder {
         CardInfoSetBuilder cardInfoSetBuilder = new CardInfoSetBuilder();
         cardInfoSetBuilder.appendHoleCards(cards.get(0), cards.get(1));
         if (cards.size() >= 5) {
-            cardInfoSetBuilder.appendFlop(cards.get(3), cards.get(3), cards.get(4));
+            cardInfoSetBuilder.appendFlop(cards.get(2), cards.get(3), cards.get(4));
         }
         if (cards.size() >= 6) {
             cardInfoSetBuilder.appendCard(cards.get(5));

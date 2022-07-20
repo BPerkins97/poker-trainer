@@ -21,13 +21,13 @@ public class CardUtilityTest {
 
         CardUtils.normalizeInPlace(cards);
 
-        Assertions.assertEquals(Card.of("Ac"), cards.get(0));
-        Assertions.assertEquals(Card.of("Qd"), cards.get(1));
-        Assertions.assertEquals(Card.of("Kh"), cards.get(2));
-        Assertions.assertEquals(Card.of("Qh"), cards.get(3));
-        Assertions.assertEquals(Card.of("Qs"), cards.get(4));
-        Assertions.assertEquals(Card.of("Th"), cards.get(5));
-        Assertions.assertEquals(Card.of("Tc"), cards.get(6));
+        Assertions.assertEquals(Card.of("As"), cards.get(0));
+        Assertions.assertEquals(Card.of("Qh"), cards.get(1));
+        Assertions.assertEquals(Card.of("Kd"), cards.get(2));
+        Assertions.assertEquals(Card.of("Qd"), cards.get(3));
+        Assertions.assertEquals(Card.of("Qc"), cards.get(4));
+        Assertions.assertEquals(Card.of("Td"), cards.get(5));
+        Assertions.assertEquals(Card.of("Ts"), cards.get(6));
     }
 
     @Test
