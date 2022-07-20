@@ -63,7 +63,7 @@ public class HoldEmGameTree implements Cloneable {
     public int lastRaiser;
     public int amountLastRaised;
     public int[] actionIds;
-    public int numActions;
+    public List<Action> nextActions;
 
 
     public HoldEmGameTree(Card[] deck) {
@@ -196,10 +196,6 @@ public class HoldEmGameTree implements Cloneable {
         return currentPlayer == playerId;
     }
 
-    public int numActions() {
-        return numActions;
-    }
-
     private boolean isRaiseLegal(int amount) {
         return amount >= Constants.BIG_BLIND && amount >= amountLastRaised && amount <= getStack(currentPlayer);
     }
@@ -243,7 +239,7 @@ public class HoldEmGameTree implements Cloneable {
 
     private void setNextActions() {
         this.actionIds = new int[10];
-        this.numActions = 0;
+        this.nextActions = new ArrayList<>();
         switch (bettingRound) {
             case BETTING_ROUND_PRE_FLOP:
                 getPreFlopActions();
@@ -264,36 +260,31 @@ public class HoldEmGameTree implements Cloneable {
 
     private void getPostFlopActions() {
         if (isFoldLegal()) {
-            addAction(ACTION_ID_FOLD);
+            nextActions.add(Action.fold());
         }
-        addAction(ACTION_ID_CALL);
+        nextActions.add(Action.call());
         addRaiseIfLegal(getStack(currentPlayer));
-    }
-
-    private void addAction(int actionId) {
-        actionIds[numActions] = actionId;
-        numActions++;
     }
 
     private void getFlopActions() {
         if (isFoldLegal()) {
-            addAction(ACTION_ID_FOLD);
+            nextActions.add(Action.fold());
         }
-        addAction(ACTION_ID_CALL);
+        nextActions.add(Action.call());
         addRaiseIfLegal(getStack(currentPlayer));
     }
 
     private void getPreFlopActions() {
         if (isFoldLegal()) {
-            addAction(ACTION_ID_FOLD);
+            nextActions.add(Action.fold());
         }
-        addAction(ACTION_ID_CALL);
+        nextActions.add(Action.call());
         addRaiseIfLegal(getStack(currentPlayer));
     }
 
     private void addRaiseIfLegal(int raiseAmount) {
         if (isRaiseLegal(raiseAmount)) {
-            addAction(raiseAmount / Constants.BIG_BLIND);
+            nextActions.add(Action.raise(raiseAmount / Constants.BIG_BLIND));
         }
     }
 
@@ -452,5 +443,9 @@ public class HoldEmGameTree implements Cloneable {
 
     public int bettingRound() {
         return bettingRound;
+    }
+
+    public List<Action> actions() {
+        return nextActions;
     }
 }

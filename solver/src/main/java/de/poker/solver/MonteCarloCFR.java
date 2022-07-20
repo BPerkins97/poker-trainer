@@ -1,15 +1,17 @@
 package de.poker.solver;
 
+import de.poker.solver.game.Action;
 import de.poker.solver.game.Constants;
 import de.poker.solver.game.HoldEmGameTree;
 
+import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 
 // As implemented in http://www.cs.cmu.edu/~noamb/papers/19-Science-Superhuman_Supp.pdf
 public class MonteCarloCFR {
 
     public static HoldEmNodeMap mccfr_Pruning(int iterations, HoldEmNodeMap nodeMap) {
-        for (int i=0;i<iterations;i++) {
+        for (int i = 0; i < iterations; i++) {
             HoldEmGameTree rootNode = HoldEmGameTree.getRandomRootState();
             double randomNumber = ThreadLocalRandom.current().nextDouble();
             final int iteration = i;
@@ -23,7 +25,7 @@ public class MonteCarloCFR {
     }
 
     private static void doIteration(HoldEmNodeMap nodeMap, int i, HoldEmGameTree rootNode, double randomNumber) {
-        for(int p = 0; p< Constants.NUM_PLAYERS; p++) {
+        for (int p = 0; p < Constants.NUM_PLAYERS; p++) {
             if (i > ApplicationConfiguration.PRUNING_THRESHOLD) {
                 if (randomNumber < 0.05) {
                     traverseMCCFR_NoPruning(nodeMap, rootNode, p);
@@ -40,101 +42,78 @@ public class MonteCarloCFR {
     }
 
     private static double calculateDiscountValue(int iteration) {
-        double temp = (double)iteration / ApplicationConfiguration.DISCOUNT_INTERVAL;
+        double temp = (double) iteration / ApplicationConfiguration.DISCOUNT_INTERVAL;
         return temp / (temp + 1);
     }
 
     private static double traverseMCCFR_NoPruning(HoldEmNodeMap nodeMap, HoldEmGameTree state, int traversingPlayerId) {
         if (state.isGameOverForPlayer(traversingPlayerId)) {
             return state.getPayoffForPlayer(traversingPlayerId);
-        } else if (state.isCurrentPlayer(traversingPlayerId)) {
-            Node node = nodeMap.getNodeForCurrentPlayer(state);
-            double[] strategy = node.calculateStrategy();
-            double expectedValue = 0;
-            int numActions = state.numActions();
-            double[] valueOfTakingAction = new double[numActions];
-            for (int a = 0; a< numActions;a++) {
-                valueOfTakingAction[a] = traverseMCCFR_NoPruning(nodeMap, state.takeAction(a), traversingPlayerId);
-                expectedValue += strategy[a] * valueOfTakingAction[a];
-            }
-            for (int a=0;a<numActions;a++) {
-                node.addRegretForAction(a, (int)(valueOfTakingAction[a] - expectedValue));
-            }
-            nodeMap.updateForCurrentPlayer(state, node);
-            return expectedValue;
         } else {
-            Node node = nodeMap.getNodeForCurrentPlayer(state);
-            double[] strategy = node.calculateStrategy();
-            double accumulatedActionProbability = 0;
-            double randomActionProbability = ThreadLocalRandom.current().nextDouble();
-            for (int a=0;a<strategy.length;a++) {
-                accumulatedActionProbability += strategy[a];
-                if (randomActionProbability < accumulatedActionProbability) {
-                    return traverseMCCFR_NoPruning(nodeMap, state.takeAction(a), traversingPlayerId);
+            List<Action> actions = state.actions();
+            if (state.isCurrentPlayer(traversingPlayerId)) {
+                ActionMap node = nodeMap.getNodeForCurrentPlayer(state);
+                Strategy strategy = node.calculateStrategy(actions);
+                for (Action action : actions) {
+                    strategy.value(action, traverseMCCFR_NoPruning(nodeMap, state.takeAction(action), traversingPlayerId));
                 }
+                for (Action action : actions) {
+                    node.addRegretForAction(action, (int)strategy.normalizedValue(action));
+                }
+                nodeMap.updateForCurrentPlayer(state, node);
+                return strategy.expectedValue();
+            } else {
+                ActionMap node = nodeMap.getNodeForCurrentPlayer(state);
+                Strategy strategy = node.calculateStrategy(actions);
+                Action action = strategy.randomAction();
+                return traverseMCCFR_NoPruning(nodeMap, state.takeAction(action), traversingPlayerId);
             }
         }
-        throw new IllegalStateException();
     }
 
     private static double traverseMCCFR_WithPruning(HoldEmNodeMap nodeMap, HoldEmGameTree state, int traversingPlayerId) {
         if (state.isGameOverForPlayer(traversingPlayerId)) {
             return state.getPayoffForPlayer(traversingPlayerId);
         } else if (state.isCurrentPlayer(traversingPlayerId)) {
-            Node node = nodeMap.getNodeForCurrentPlayer(state);
-            double[] strategy = node.calculateStrategy();
-            double expectedValue = 0;
-            int numActions = state.numActions();
-            boolean[] explored = new boolean[numActions];
-            double[] valueOfTakingAction = new double[numActions];
-            for (int a = 0; a< numActions;a++) {
-                if (node.regretForActionisAboveLimit(a, ApplicationConfiguration.MINIMUM_REGRET)) {
-                    valueOfTakingAction[a] = traverseMCCFR_WithPruning(nodeMap, state.takeAction(a), traversingPlayerId);
-                    explored[a] = true;
-                    expectedValue += strategy[a] * valueOfTakingAction[a];
-                } else {
-                    explored[a] = false;
+            List<Action> actions = state.actions();
+            ActionMap node = nodeMap.getNodeForCurrentPlayer(state);
+            Strategy strategy = node.calculateStrategy(actions);
+            for (Action action : actions) {
+                if (node.regretForActionisAboveLimit(action, ApplicationConfiguration.MINIMUM_REGRET)) {
+                    strategy.value(action, traverseMCCFR_WithPruning(nodeMap, state.takeAction(action), traversingPlayerId));
+                    strategy.explored(action);
                 }
             }
-            for (int a=0;a<numActions;a++) {
-                if (explored[a]) {
-                    node.addRegretForAction(a, (int)(valueOfTakingAction[a] - expectedValue));
+            for (Action action : actions) {
+                if (strategy.hasBeenExplored(action)) {
+                    node.addRegretForAction(action, (int) (strategy.normalizedValue(action)));
                 }
             }
             nodeMap.updateForCurrentPlayer(state, node);
-            return expectedValue;
+            return strategy.expectedValue();
         } else {
-            Node node = nodeMap.getNodeForCurrentPlayer(state);
-            double[] strategy = node.calculateStrategy();
-            int action = chooseRandomAction(strategy);
-            return traverseMCCFR_WithPruning(nodeMap, state.takeAction(action), traversingPlayerId);
+            ActionMap node = nodeMap.getNodeForCurrentPlayer(state);
+            Strategy strategy = node.calculateStrategy(state.actions());
+            HoldEmGameTree nextState = state.takeAction(strategy.randomAction());
+            return traverseMCCFR_WithPruning(nodeMap, nextState, traversingPlayerId);
         }
     }
 
-    private static int chooseRandomAction(double[] strategy) {
-        double accumulatedActionProbability = 0;
-        double randomActionProbability = ThreadLocalRandom.current().nextDouble();
-        for (int a=0;a<strategy.length;a++) {
-            accumulatedActionProbability += strategy[a];
-            if (randomActionProbability < accumulatedActionProbability) {
-                return a;
-            }
-        }
-        throw new IllegalStateException();
-    }
     private static void updateStrategy(HoldEmNodeMap nodeMap, HoldEmGameTree state, int traversingPlayer) {
         if (state.isGameOverForPlayer(traversingPlayer) || !state.shouldUpdateRegrets()) {
             return;
-        } else if (state.isCurrentPlayer(traversingPlayer)) {
-            Node node = nodeMap.getNodeForCurrentPlayer(state);
-            double[] strategy = node.calculateStrategy();
-            int chosenAction = chooseRandomAction(strategy);
-            node.visitAction(chosenAction);
-            updateStrategy(nodeMap, state.takeAction(chosenAction), traversingPlayer);
         } else {
-            int actions = state.numActions();
-            for (int a=0;a<actions;a++) {
-                updateStrategy(nodeMap, state.takeAction(a), traversingPlayer);
+            List<Action> actions = state.actions();
+            if (state.isCurrentPlayer(traversingPlayer)) {
+                ActionMap node = nodeMap.getNodeForCurrentPlayer(state);
+                Strategy strategy = node.calculateStrategy(actions);
+                Action chosenAction = strategy.randomAction();
+                node.visitAction(chosenAction);
+                updateStrategy(nodeMap, state.takeAction(chosenAction), traversingPlayer);
+            } else {
+                for (Action action : actions) {
+                    updateStrategy(nodeMap, state.takeAction(action), traversingPlayer);
+                }
             }
         }
     }
