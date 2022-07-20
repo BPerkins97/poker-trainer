@@ -7,9 +7,11 @@ package de.poker.solver;
 // TODO Trainer does discounting
 // TODO write tests for everything
 // TODO maybe make stuff for functional
+// TODO more efficient Hand Evaluation algorithm
+// TODO maybe we find a way to map hole cards directly to an index of 169 and can reduce the map access cost like that
 public class Main {
     public static void main(String[] args) {
-        UserInterface userInterface = new UserInterface();
-        userInterface.start();
+        Trainer trainer = new Trainer();
+        trainer.start();
     }
 }

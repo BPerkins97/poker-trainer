@@ -6,6 +6,7 @@ import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
 
 public class HoldEmGameTree implements Cloneable {
+    private static final Map<Integer, Action> CACHED_ACTIONS = new HashMap<>();
     private static final int NUM_BITS_FOR_STACK = 8;
     private static final long STACK_BITMASK = 0xff;
 
@@ -284,8 +285,17 @@ public class HoldEmGameTree implements Cloneable {
 
     private void addRaiseIfLegal(int raiseAmount) {
         if (isRaiseLegal(raiseAmount)) {
-            nextActions.add(Action.raise(raiseAmount / Constants.BIG_BLIND));
+            nextActions.add(getCachedAction(raiseAmount));
         }
+    }
+
+    private Action getCachedAction(int raiseAmount) {
+        Action action = CACHED_ACTIONS.get(raiseAmount);
+        if (Objects.isNull(action)) {
+            action = Action.raise(raiseAmount);
+            CACHED_ACTIONS.put(raiseAmount, action);
+        }
+        return action;
     }
 
     private void determineNextPlayer() {

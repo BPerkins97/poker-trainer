@@ -16,22 +16,14 @@ public class Strategy {
     private boolean[] explored;
     private double expectedValue;
 
-    public void reInit(List<Action> actions) {
-        if (actions.size() == numActions) {
-            // No new actions
-            Arrays.fill(probability, 0);
-            Arrays.fill(value, 0);
-            Arrays.fill(explored, false);
-        } else {
-            // New actions
-            numActions = actions.size();
-            probability = new double[numActions];
-            value = new double[numActions];
-            explored = new boolean[numActions];
-            this.actions = new HashMap<>();
-            for (int i=0;i<numActions;i++) {
-                this.actions.put(actions.get(i), i);
-            }
+    public Strategy(List<Action> actions) {
+        numActions = actions.size();
+        probability = new double[numActions];
+        value = new double[numActions];
+        explored = new boolean[numActions];
+        this.actions = new HashMap<>();
+        for (int i=0;i<numActions;i++) {
+            this.actions.put(actions.get(i), i);
         }
     }
 

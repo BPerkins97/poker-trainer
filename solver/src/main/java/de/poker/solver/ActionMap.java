@@ -11,11 +11,10 @@ import java.util.Objects;
 public class ActionMap {
     private final Map<Action, Node> map = new HashMap<>();
     // Reuse this object for performance reasons
-    private Strategy strategy = new Strategy();
 
     public Strategy calculateStrategy(List<Action> actions) {
         double sum = 0;
-        strategy.reInit(actions);
+        Strategy strategy = new Strategy(actions);
         for (Action action : actions) {
             Node node = getNode(action);
             int max = Math.max(0, node.regret);
