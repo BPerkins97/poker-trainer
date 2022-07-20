@@ -201,7 +201,7 @@ public class HoldEmGameTree implements Cloneable {
     }
 
     private boolean isRaiseLegal(int amount) {
-        return amount > Constants.BIG_BLIND && amount > amountLastRaised && amount < getStack(currentPlayer);
+        return amount >= Constants.BIG_BLIND && amount >= amountLastRaised && amount <= getStack(currentPlayer);
     }
 
     private int getStack(int playerId) {

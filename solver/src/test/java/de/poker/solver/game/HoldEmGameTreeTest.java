@@ -219,4 +219,38 @@ public class HoldEmGameTreeTest {
         Assertions.assertEquals(-51, gameState.getPayoffForPlayer(0));
         Assertions.assertEquals(51, gameState.getPayoffForPlayer(1));
     }
+
+    @Test
+    public void testAllInImmediatelyToShowdown() {
+        Card[] cards = TestUtility.cardsToArray("Ah", "Ad", "Ks", "Qs", "6h", "5d", "3d", "2d", "Jh", "7c", "9c", "Tc", "Ac", "Kc", "Jd", "2h", "3h");
+
+        HoldEmGameTree gameState = new HoldEmGameTree(cards);
+
+        gameState = gameState.takeAction(Action.fold());
+        Assertions.assertTrue(gameState.isGameOverForPlayer(2));
+        Assertions.assertEquals(0, gameState.getPayoffForPlayer(2));
+
+        gameState = gameState.takeAction(Action.fold());
+        Assertions.assertTrue(gameState.isGameOverForPlayer(3));
+        Assertions.assertEquals(0, gameState.getPayoffForPlayer(3));
+
+        gameState = gameState.takeAction(Action.fold());
+        Assertions.assertTrue(gameState.isGameOverForPlayer(4));
+        Assertions.assertEquals(0, gameState.getPayoffForPlayer(4));
+
+        gameState = gameState.takeAction(Action.fold());
+        Assertions.assertTrue(gameState.isGameOverForPlayer(5));
+        Assertions.assertEquals(0, gameState.getPayoffForPlayer(5));
+
+        gameState = gameState.takeAction(Action.raise(199));
+        Assertions.assertFalse(gameState.isGameOverForPlayer(0));
+        Assertions.assertEquals("ffffr199", gameState.history());
+
+        gameState = gameState.takeAction(Action.call());
+        Assertions.assertTrue(gameState.isGameOverForPlayer(1));
+        Assertions.assertTrue(gameState.isGameOverForPlayer(0));
+        Assertions.assertEquals("ffffr199c", gameState.history());
+        Assertions.assertEquals(200, gameState.getPayoffForPlayer(0));
+        Assertions.assertEquals(-200, gameState.getPayoffForPlayer(1));
+    }
 }
