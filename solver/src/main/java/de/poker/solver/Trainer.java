@@ -38,14 +38,14 @@ public class Trainer {
             // TODO boolean prune = i > ApplicationConfiguration.PRUNING_THRESHOLD;
             boolean prune = randomNumber > 0.05;
             if (prune) {
-                for (int i = 0; i < ApplicationConfiguration.RUN_ITERATIONS_AT_ONCE; i++) {
-                    doIterationWithPruning();
-                }
+                doIterationWithPruning();
             } else {
-                for (int i = 0; i < ApplicationConfiguration.RUN_ITERATIONS_AT_ONCE; i++) {
-                    doIterationNoPruning();
-                }
+                doIterationNoPruning();
             }
+            // TODO
+//                if (i % ApplicationConfiguration.STRATEGY_INTERVAL == 0) {
+//                    updateStrategy(nodeMap, rootNode, p);
+//                }
         } while (isRunning);
         try {
             nodeMap.saveToFile(file);
@@ -65,10 +65,6 @@ public class Trainer {
         HoldEmGameTree rootNode = HoldEmGameTree.getRandomRootState();
         for (int p = 0; p < Constants.NUM_PLAYERS; p++) {
             traverseMCCFR_NoPruning(nodeMap, rootNode, p);
-            // TODO
-//                if (i % ApplicationConfiguration.STRATEGY_INTERVAL == 0) {
-//                    updateStrategy(nodeMap, rootNode, p);
-//                }
         }
     }
 

@@ -2,12 +2,6 @@ package de.poker.solver;
 
 public class ApplicationConfiguration {
     /**
-     * Controls how many iterations are run before any command line info is checked.
-     * The bigger the number is the slower the application will respond to user input.
-     */
-    public static final int RUN_ITERATIONS_AT_ONCE = 1000;
-
-    /**
      * The rate at which the cfr algorithm refines its final strategy.
      * A rate of 1 means every round, a rate of 1000 every 1000th round.
      * Unit is in iterations
