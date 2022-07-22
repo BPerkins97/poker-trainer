@@ -6,7 +6,6 @@ import java.util.Objects;
 // TODO Multithreading
 // TODO actions are determined based on config file which can be read at runtime
 // TODO load data from checkpoint
-// TODO Trainer does discounting
 // TODO write tests for everything
 // TODO maybe make stuff for functional
 // TODO more efficient Hand Evaluation algorithm

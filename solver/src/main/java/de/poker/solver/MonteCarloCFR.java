@@ -15,14 +15,8 @@ public class MonteCarloCFR {
 
     public static HoldEmNodeMap mccfr_Pruning(int iterations, HoldEmNodeMap nodeMap) {
         for (int i = 0; i < iterations; i++) {
-            HoldEmGameTree rootNode = HoldEmGameTree.getRandomRootState();
             double randomNumber = ThreadLocalRandom.current().nextDouble();
-            final int iteration = i;
-            doIteration(nodeMap, iteration, rootNode, randomNumber);
-            if (i < ApplicationConfiguration.LINEAR_CFR_THRESHOLD && i % ApplicationConfiguration.DISCOUNT_INTERVAL == 0 && i >= ApplicationConfiguration.DISCOUNT_INTERVAL) {
-                double discountValue = calculateDiscountValue(i);
-                nodeMap.discount(discountValue);
-            }
+            doIteration(nodeMap, i, HoldEmGameTree.getRandomRootState(), randomNumber);
         }
         return nodeMap;
     }
@@ -42,11 +36,6 @@ public class MonteCarloCFR {
                 traverseMCCFR_NoPruning(nodeMap, rootNode, p);
             }
         }
-    }
-
-    private static double calculateDiscountValue(int iteration) {
-        double temp = (double) iteration / ApplicationConfiguration.DISCOUNT_INTERVAL;
-        return temp / (temp + 1);
     }
 
     private static double traverseMCCFR_NoPruning(HoldEmNodeMap nodeMap, HoldEmGameTree state, int traversingPlayerId) {

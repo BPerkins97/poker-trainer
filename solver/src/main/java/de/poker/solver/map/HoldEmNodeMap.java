@@ -52,7 +52,6 @@ public class HoldEmNodeMap {
 
     public void discount(double discountValue) {
         forEach((key, node) -> node.discount(discountValue));
-        // TODO maybe only discount touched nones
     }
 
     public void saveToFile(File file) throws IOException {
