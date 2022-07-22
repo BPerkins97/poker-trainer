@@ -10,9 +10,9 @@ public class ActionTest {
         Assertions.assertEquals(Action.call(), Action.call());
         Assertions.assertEquals(Action.fold(), Action.fold());
         Assertions.assertEquals(Action.raise(100), Action.raise(100));
-        Assertions.assertNotEquals(Action.raise(1000), Action.raise(100));
-        Assertions.assertNotEquals(Action.raise(1000), Action.fold());
-        Assertions.assertNotEquals(Action.raise(1000), Action.call());
+        Assertions.assertNotEquals(Action.raise(10), Action.raise(100));
+        Assertions.assertNotEquals(Action.raise(10), Action.fold());
+        Assertions.assertNotEquals(Action.raise(10), Action.call());
         Assertions.assertNotEquals(Action.fold(), Action.call());
     }
 
