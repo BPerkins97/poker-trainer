@@ -1,43 +1,15 @@
 package de.poker.solver;
 
 import de.poker.solver.game.Action;
-import de.poker.solver.game.Constants;
 import de.poker.solver.game.HoldEmGameTree;
 import de.poker.solver.map.ActionMap;
 import de.poker.solver.map.HoldEmNodeMap;
 import de.poker.solver.map.Strategy;
 
 import java.util.List;
-import java.util.concurrent.ThreadLocalRandom;
 
 // As implemented in http://www.cs.cmu.edu/~noamb/papers/19-Science-Superhuman_Supp.pdf
 public class MonteCarloCFR {
-
-    public static HoldEmNodeMap mccfr_Pruning(int iterations, HoldEmNodeMap nodeMap) {
-        for (int i = 0; i < iterations; i++) {
-            double randomNumber = ThreadLocalRandom.current().nextDouble();
-            doIteration(nodeMap, i, HoldEmGameTree.getRandomRootState(), randomNumber);
-        }
-        return nodeMap;
-    }
-
-    private static void doIteration(HoldEmNodeMap nodeMap, int i, HoldEmGameTree rootNode, double randomNumber) {
-        for (int p = 0; p < Constants.NUM_PLAYERS; p++) {
-            if (i > ApplicationConfiguration.PRUNING_THRESHOLD) {
-                if (randomNumber < 0.05) {
-                    traverseMCCFR_NoPruning(nodeMap, rootNode, p);
-                } else {
-                    traverseMCCFR_WithPruning(nodeMap, rootNode, p);
-                }
-                if (i % ApplicationConfiguration.STRATEGY_INTERVAL == 0) {
-                    updateStrategy(nodeMap, rootNode, p);
-                }
-            } else {
-                traverseMCCFR_NoPruning(nodeMap, rootNode, p);
-            }
-        }
-    }
-
     public static double traverseMCCFR_NoPruning(HoldEmNodeMap nodeMap, HoldEmGameTree state, int traversingPlayerId) {
         if (state.isGameOverForPlayer(traversingPlayerId)) {
             return state.getPayoffForPlayer(traversingPlayerId);
