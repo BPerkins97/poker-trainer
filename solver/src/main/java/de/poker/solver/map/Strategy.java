@@ -50,12 +50,13 @@ public class Strategy {
 
     public double normalizedValue(Action action) {
         int index = getIndex(action);
-        return probability[index] * value[index] - expectedValue;
+        return value[index] - expectedValue / probability.length;
     }
 
     public void value(Action action, double value) {
-        this.value[getIndex(action)] = value;
-        expectedValue += value;
+        int index = getIndex(action);
+        this.value[index] = value * probability[index];
+        expectedValue += this.value[index];
     }
 
     public void explored(Action action) {

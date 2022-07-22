@@ -64,7 +64,6 @@ public class HoldEmGameTree implements Cloneable {
     public byte bettingRound;
     public int lastRaiser;
     public int amountLastRaised;
-    public int[] actionIds;
     public List<Action> nextActions;
 
 
@@ -199,7 +198,7 @@ public class HoldEmGameTree implements Cloneable {
     }
 
     private boolean isRaiseLegal(int amount) {
-        return amount >= Constants.BIG_BLIND && amount >= amountLastRaised && amount <= getStack(currentPlayer);
+        return amount >= Constants.BIG_BLIND && amount >= amountLastRaised && amount <= getStack(currentPlayer) && amount > getCallAmount();
     }
 
     private int getStack(int playerId) {
@@ -207,12 +206,7 @@ public class HoldEmGameTree implements Cloneable {
     }
 
     private boolean isFoldLegal() {
-        int maxInvestment = -1;
-        for (int p = 0; p < Constants.NUM_PLAYERS; p++) {
-            maxInvestment = Math.max(getInvestment(p), maxInvestment);
-        }
-        int payment = maxInvestment - getInvestment(currentPlayer);
-        return payment > 0;
+        return getCallAmount() > 0;
     }
 
     public HoldEmGameTree takeAction(Action action) {
@@ -236,7 +230,6 @@ public class HoldEmGameTree implements Cloneable {
     }
 
     private void setNextActions() {
-        this.actionIds = new int[10];
         this.nextActions = new ArrayList<>();
         switch (bettingRound) {
             case BETTING_ROUND_PRE_FLOP:
@@ -433,14 +426,19 @@ public class HoldEmGameTree implements Cloneable {
     }
 
     private void call() {
+        int payment = getCallAmount();
+        if (payment > 0) {
+            pay(currentPlayer, payment);
+        }
+    }
+
+    private int getCallAmount() {
         int maxInvestment = -1;
         for (int p = 0; p < Constants.NUM_PLAYERS; p++) {
             maxInvestment = Math.max(getInvestment(p), maxInvestment);
         }
         int payment = maxInvestment - getInvestment(currentPlayer);
-        if (payment > 0) {
-            pay(currentPlayer, payment);
-        }
+        return payment;
     }
 
     public boolean shouldUpdateRegrets() {
