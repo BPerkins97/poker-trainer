@@ -1,14 +1,10 @@
 package de.poker.solver.map;
 
-import com.google.gson.Gson;
 import de.poker.solver.game.Action;
 import de.poker.solver.game.Constants;
 import de.poker.solver.game.HoldEmGameTree;
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -16,7 +12,7 @@ import java.util.function.BiConsumer;
 
 // TODO this can be more efficient
 public class HoldEmNodeMap {
-    Map<String, Map<String, ActionMap>>[][] map = new HashMap[Constants.NUM_BETTING_ROUNDS][Constants.NUM_PLAYERS];
+    Map<String, Map<String, ActionMap>>[][] map = new Map[Constants.NUM_BETTING_ROUNDS][Constants.NUM_PLAYERS];
 
     public HoldEmNodeMap() {
         for (int i = 0; i< Constants.NUM_BETTING_ROUNDS; i++) {
@@ -74,5 +70,39 @@ public class HoldEmNodeMap {
             }
         }
         bufferedWriter.close();
+    }
+
+    public void loadFromFile(File file) throws IOException {
+        BufferedReader reader = new BufferedReader(new FileReader(file));
+        String line;
+        while (!Objects.isNull(line = reader.readLine())) {
+            if (line.isEmpty()) {
+                System.out.println("encountered empty line");
+                continue;
+            }
+            String[] parts = line.split(";");
+            int bettingRound = Integer.parseInt(parts[0]);
+            int player = Integer.parseInt(parts[1]);
+            String cards = parts[2];
+            String history = parts[3];
+            String myAction = parts[4];
+            int regret = Integer.parseInt(parts[5]);
+            int averageAction = Integer.parseInt(parts[6]);
+            Map<String, ActionMap> stringActionMapMap = map[bettingRound][player].get(cards);
+            if (Objects.isNull(stringActionMapMap)) {
+                stringActionMapMap = new HashMap<>();
+                map[bettingRound][player].put(cards, stringActionMapMap);
+            }
+            ActionMap actionMap = stringActionMapMap.get(history);
+            if (Objects.isNull(actionMap)) {
+                actionMap = new ActionMap();
+                stringActionMapMap.put(history, actionMap);
+            }
+            Node value = new Node();
+            value.regret = regret;
+            value.averageAction = averageAction;
+            actionMap.map.put(Action.of(myAction), value);
+        }
+        reader.close();
     }
 }

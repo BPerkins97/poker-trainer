@@ -7,12 +7,17 @@ import java.io.IOException;
 
 public class Trainer {
 
-    private boolean isRunning = false;
+    private volatile boolean isRunning = false;
     private HoldEmNodeMap nodeMap = new HoldEmNodeMap();
     public int iterations;
 
 
     public void start() {
+        try {
+            nodeMap.loadFromFile(new File("C:/Temp/tst.txt"));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
         isRunning = true;
         run();
     }

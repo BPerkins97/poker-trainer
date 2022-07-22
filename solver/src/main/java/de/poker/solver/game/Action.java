@@ -9,6 +9,14 @@ public record Action(byte type, int amount, String presentation) {
     private static final Action ACTION_FOLD = new Action(FOLD, 0, "f");
     private static final Action ACTION_CALL = new Action(CALL, 0, "c");
 
+    private static final Action[] ACTION_RAISE = new Action[Constants.STARTING_STACK_SIZE];
+
+    static {
+        for (int i=1;i<=Constants.STARTING_STACK_SIZE;i++) {
+            ACTION_RAISE[i-1] = new Action(RAISE, i, "r" + i);
+        }
+    }
+
     public static Action fold() {
         return ACTION_FOLD;
     }
@@ -19,7 +27,20 @@ public record Action(byte type, int amount, String presentation) {
 
     public static Action raise(int amount) {
         assert amount > 0;
-        return new Action(RAISE, amount, "r" + amount);
+        return ACTION_RAISE[amount-1];
+    }
+
+    public static Action of(String action) {
+        if (action.startsWith("f")) {
+            return Action.fold();
+        }
+        if (action.startsWith("c")) {
+            return Action.call();
+        }
+        if (action.startsWith("r")) {
+            return Action.raise(Integer.parseInt(action.substring(1)));
+        }
+        throw new IllegalArgumentException();
     }
 
     public boolean isFold() {
