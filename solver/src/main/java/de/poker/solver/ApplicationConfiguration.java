@@ -6,26 +6,26 @@ public class ApplicationConfiguration {
      * A rate of 1 means every round, a rate of 1000 every 1000th round.
      * Unit is in iterations
      */
-    public static final int STRATEGY_INTERVAL = 1;
+    public static final int STRATEGY_INTERVAL = 100;
 
     /**
-     * After n minutes the pruning will kick in.
+     * After n iterations the pruning will kick in.
      */
-    public static final int PRUNING_THRESHOLD = 200;
+    public static final int PRUNING_THRESHOLD = 20000000;
 
     /**
-     * After n discount iterations the discounting will be stopped.
+     * After n iterations the discounting will be stopped.
      */
-    public static final int NUM_DISCOUNT_THRESHOLD = 40;
+    public static final int DISCOUNT_THRESHOLD = 40000000;
 
     /**
-     * Every n minutes discounting is performed.
+     * Every n iterations discounting is performed.
      */
-    public static final int DISCOUNT_INTERVAL = 10;
+    public static final int DISCOUNT_INTERVAL = 1000000;
 
     /**
      * The minimum regret at which actions are clipped.
      * Regret can never fall below this value.
      */
-    public static final int MINIMUM_REGRET = -6_000_000;
+    public static final int MINIMUM_REGRET = -10_000_000;
 }
