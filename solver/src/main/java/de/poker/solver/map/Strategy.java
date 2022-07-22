@@ -2,14 +2,12 @@ package de.poker.solver.map;
 
 import de.poker.solver.game.Action;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.ThreadLocalRandom;
 
 public class Strategy {
     private int numActions;
-    private Map<Action, Integer> actions;
+    private List<Action> actions;
     private double[] probability;
     private double[] value;
     private boolean[] explored;
@@ -20,10 +18,7 @@ public class Strategy {
         probability = new double[numActions];
         value = new double[numActions];
         explored = new boolean[numActions];
-        this.actions = new HashMap<>();
-        for (int i=0;i<numActions;i++) {
-            this.actions.put(actions.get(i), i);
-        }
+        this.actions = actions;
     }
 
     public void probabilityFor(Action action, double probability) {
@@ -67,7 +62,12 @@ public class Strategy {
     }
 
     private Integer getIndex(Action action) {
-        return actions.get(action);
+        for (int i=0;i<numActions;i++) {
+            if (actions.get(i).presentation().equals(action.presentation())) {
+                return i;
+            }
+        }
+        throw new IllegalArgumentException();
     }
 
     public double expectedValue() {
@@ -77,10 +77,10 @@ public class Strategy {
     public Action randomAction() {
         double accumulatedActionProbability = 0;
         double randomActionProbability = ThreadLocalRandom.current().nextDouble();
-        for (Map.Entry<Action, Integer> action : actions.entrySet()) {
-            accumulatedActionProbability += probability[action.getValue()];
+        for (Action action : actions) {
+            accumulatedActionProbability += probability[getIndex(action)];
             if (randomActionProbability < accumulatedActionProbability) {
-                return action.getKey();
+                return action;
             }
         }
         throw new IllegalStateException();
