@@ -4,7 +4,6 @@ import java.io.File;
 import java.util.Objects;
 
 // TODO Multithreading
-// TODO persist data - no use of sql server its too damn slow, instead write to file every other hour or so
 // TODO actions are determined based on config file which can be read at runtime
 // TODO load data from checkpoint
 // TODO Trainer does discounting
@@ -12,10 +11,10 @@ import java.util.Objects;
 // TODO maybe make stuff for functional
 // TODO more efficient Hand Evaluation algorithm
 // TODO maybe we find a way to map hole cards directly to an index of 169 and can reduce the map access cost like that
-public class Main {
+public class Debug {
     public static void main(String[] args) {
-        UserInterface userInterface = new UserInterface();
-        userInterface.configure();
-        userInterface.start();
+        Trainer trainer = new Trainer();
+        trainer.file = new File("C:/Temp/tst.txt");
+        trainer.start();
     }
 }

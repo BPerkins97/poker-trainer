@@ -1,5 +1,6 @@
 package de.poker.solver;
 
+import java.io.File;
 import java.util.Scanner;
 
 public class UserInterface {
@@ -25,4 +26,10 @@ public class UserInterface {
     }
 
 
+    public void configure() {
+        Scanner scanner = new Scanner(System.in);
+        System.out.println("File save destination");
+        String input = scanner.nextLine();
+        trainer.file = new File(input);
+    }
 }
