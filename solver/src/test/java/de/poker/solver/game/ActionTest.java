@@ -21,9 +21,9 @@ public class ActionTest {
         Assertions.assertEquals(Action.call().hashCode(), Action.call().hashCode());
         Assertions.assertEquals(Action.fold().hashCode(), Action.fold().hashCode());
         Assertions.assertEquals(Action.raise(100).hashCode(), Action.raise(100).hashCode());
-        Assertions.assertNotEquals(Action.raise(1000).hashCode(), Action.raise(100).hashCode());
-        Assertions.assertNotEquals(Action.raise(1000).hashCode(), Action.fold().hashCode());
-        Assertions.assertNotEquals(Action.raise(1000).hashCode(), Action.call().hashCode());
+        Assertions.assertNotEquals(Action.raise(10).hashCode(), Action.raise(100).hashCode());
+        Assertions.assertNotEquals(Action.raise(10).hashCode(), Action.fold().hashCode());
+        Assertions.assertNotEquals(Action.raise(10).hashCode(), Action.call().hashCode());
         Assertions.assertNotEquals(Action.fold().hashCode(), Action.call().hashCode());
     }
 

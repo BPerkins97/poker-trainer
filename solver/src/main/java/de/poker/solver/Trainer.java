@@ -10,11 +10,14 @@ public class Trainer {
     private volatile boolean isRunning = false;
     private HoldEmNodeMap nodeMap = new HoldEmNodeMap();
     public int iterations;
+    public File file;
 
 
     public void start() {
         try {
-            nodeMap.loadFromFile(new File("C:/Temp/tst.txt"));
+            if (file.exists()) {
+                nodeMap.loadFromFile(file);
+            }
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -30,9 +33,9 @@ public class Trainer {
         do {
             MonteCarloCFR.mccfr_Pruning(ApplicationConfiguration.RUN_ITERATIONS_AT_ONCE, nodeMap);
             iterations += ApplicationConfiguration.RUN_ITERATIONS_AT_ONCE;
-            if (iterations == 5000) {
+            if (iterations % 50000 == 0) {
                 try {
-                    nodeMap.saveToFile(new File("C:/Temp/tst.txt"));
+                    nodeMap.saveToFile(file);
                 } catch (IOException e) {
                     throw new RuntimeException(e);
                 }
