@@ -1,6 +1,8 @@
 package de.poker.solver;
 
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.Scanner;
 
 public class UserInterface {
@@ -28,8 +30,29 @@ public class UserInterface {
 
     public void configure() {
         Scanner scanner = new Scanner(System.in);
-        System.out.println("File save destination");
-        String input = scanner.nextLine();
-        trainer.file = new File(input);
+        boolean configured = false;
+        do {
+            System.out.println("Save file");
+            String input = scanner.nextLine();
+            try {
+                trainer.loadFile(new File(input));
+                configured = true;
+            } catch (Exception e) {
+                System.out.println(e);
+            }
+        } while (!configured);
+
+        configured = false;
+
+        do {
+            System.out.println("Bet size configuration file");
+            String input = scanner.nextLine();
+            try {
+                BetSizeConfiguration.loadFromFile(new File(input));
+                configured = true;
+            } catch (Exception e) {
+                System.out.println(e);
+            }
+        } while(!configured);
     }
 }

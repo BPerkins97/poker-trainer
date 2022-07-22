@@ -1,12 +1,13 @@
 package de.poker.solver.game;
 
+import de.poker.solver.BetSizeConfiguration;
 import de.poker.solver.utility.CardInfoSetBuilder;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 
 public class HoldEmGameTree implements Cloneable {
-    private static final Map<Integer, Action> CACHED_ACTIONS = new HashMap<>();
     private static final int NUM_BITS_FOR_STACK = 8;
     private static final long STACK_BITMASK = 0xff;
 
@@ -214,10 +215,6 @@ public class HoldEmGameTree implements Cloneable {
         return payment > 0;
     }
 
-    public HoldEmGameTree takeAction(int actionId) {
-        return takeAction(ACTIONS[actionIds[actionId]]);
-    }
-
     public HoldEmGameTree takeAction(Action action) {
         try {
             HoldEmGameTree next = (HoldEmGameTree) this.clone();
@@ -249,21 +246,31 @@ public class HoldEmGameTree implements Cloneable {
                 getFlopActions();
                 break;
             case BETTING_ROUND_TURN:
-                getPostFlopActions();
+                getTurnActions();
                 break;
             case BETTING_ROUND_RIVER:
-                getPostFlopActions();
+                getRiverActions();
                 break;
             default:
                 throw new IllegalStateException();
         }
     }
 
-    private void getPostFlopActions() {
+    private void getRiverActions() {
         if (isFoldLegal()) {
             nextActions.add(Action.fold());
         }
         nextActions.add(Action.call());
+        BetSizeConfiguration.BET_SIZES[BETTING_ROUND_RIVER].forEach(betSize -> addRaiseIfLegal(betSize.calculate(getPot())));
+        addRaiseIfLegal(getStack(currentPlayer));
+    }
+
+    private void getTurnActions() {
+        if (isFoldLegal()) {
+            nextActions.add(Action.fold());
+        }
+        nextActions.add(Action.call());
+        BetSizeConfiguration.BET_SIZES[BETTING_ROUND_TURN].forEach(betSize -> addRaiseIfLegal(betSize.calculate(getPot())));
         addRaiseIfLegal(getStack(currentPlayer));
     }
 
@@ -272,6 +279,7 @@ public class HoldEmGameTree implements Cloneable {
             nextActions.add(Action.fold());
         }
         nextActions.add(Action.call());
+        BetSizeConfiguration.BET_SIZES[BETTING_ROUND_FLOP].forEach(betSize -> addRaiseIfLegal(betSize.calculate(getPot())));
         addRaiseIfLegal(getStack(currentPlayer));
     }
 
@@ -280,22 +288,18 @@ public class HoldEmGameTree implements Cloneable {
             nextActions.add(Action.fold());
         }
         nextActions.add(Action.call());
+        BetSizeConfiguration.BET_SIZES[BETTING_ROUND_PRE_FLOP].forEach(betSize -> addRaiseIfLegal(betSize.calculate(getPot())));
         addRaiseIfLegal(getStack(currentPlayer));
     }
 
     private void addRaiseIfLegal(int raiseAmount) {
-        if (isRaiseLegal(raiseAmount)) {
-            nextActions.add(getCachedAction(raiseAmount));
+        if (!isRaiseLegal(raiseAmount)) {
+            return;
         }
-    }
-
-    private Action getCachedAction(int raiseAmount) {
-        Action action = CACHED_ACTIONS.get(raiseAmount);
-        if (Objects.isNull(action)) {
-            action = Action.raise(raiseAmount);
-            CACHED_ACTIONS.put(raiseAmount, action);
+        Action raise = Action.raise(raiseAmount);
+        if (!nextActions.contains(raise)) {
+            nextActions.add(raise);
         }
-        return action;
     }
 
     private void determineNextPlayer() {
