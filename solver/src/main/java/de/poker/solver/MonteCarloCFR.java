@@ -52,7 +52,6 @@ public class MonteCarloCFR {
                 for (Action action : actions) {
                     node.addRegretForAction(action, (int)strategy.normalizedValue(action));
                 }
-                nodeMap.updateForCurrentPlayer(state, node);
                 return strategy.expectedValue();
             } else {
                 ActionMap node = nodeMap.getNodeForCurrentPlayer(state);
@@ -81,7 +80,6 @@ public class MonteCarloCFR {
                     node.addRegretForAction(action, (int) (strategy.normalizedValue(action)));
                 }
             }
-            nodeMap.updateForCurrentPlayer(state, node);
             return strategy.expectedValue();
         } else {
             ActionMap node = nodeMap.getNodeForCurrentPlayer(state);

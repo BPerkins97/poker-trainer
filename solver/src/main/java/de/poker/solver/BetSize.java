@@ -3,8 +3,8 @@ package de.poker.solver;
 import de.poker.solver.game.Constants;
 
 public record BetSize(int amount, byte unit) {
-    private static final byte PERCENT = 1;
-    private static final byte BLINDS = 2;
+    public static final byte PERCENT = 1;
+    public static final byte BLINDS = 2;
 
     public int calculate(int pot) {
         if (unit == PERCENT) {
