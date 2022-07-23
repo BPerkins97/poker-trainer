@@ -442,7 +442,7 @@ public class HoldEmGameTree implements Cloneable {
     }
 
     public boolean shouldUpdateRegrets() {
-        return true;
+        return bettingRound < 2;
     }
 
     public boolean isGameOver() {

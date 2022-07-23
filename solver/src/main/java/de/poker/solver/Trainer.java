@@ -18,6 +18,7 @@ public class Trainer {
     private ThreadPoolExecutor executorService;
     public File file;
     int iterations;
+    long startTime;
 
     public Trainer() {
         executorService = (ThreadPoolExecutor) Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
@@ -37,6 +38,8 @@ public class Trainer {
     }
 
     private void run() {
+        startTime = System.currentTimeMillis();
+        printDebugInfo();
         do {
             double randomNumber = ThreadLocalRandom.current().nextDouble();
             boolean prune = iterations > ApplicationConfiguration.PRUNING_THRESHOLD && randomNumber > 0.05;
@@ -57,6 +60,11 @@ public class Trainer {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    private void printDebugInfo() {
+        long time = (System.currentTimeMillis() - startTime) / 1000;
+        System.out.println("Ran for " + time + " seconds and iterated " + iterations + " times");
     }
 
     private void testForDiscount() {
@@ -83,7 +91,7 @@ public class Trainer {
     }
 
     private void testForStrategy(HoldEmGameTree rootNode, int player) {
-        if (iterations % ApplicationConfiguration.STRATEGY_INTERVAL == 0) {
+        if (iterations >= ApplicationConfiguration.STRATEGY_THRESHOLD && iterations % ApplicationConfiguration.STRATEGY_INTERVAL == 0) {
             updateStrategy(nodeMap, rootNode, player);
         }
     }
@@ -91,6 +99,9 @@ public class Trainer {
     private synchronized void incrementIterations() {
         iterations++;
         testForDiscount();
+        if (iterations % 1000 == 0) {
+            printDebugInfo();
+        }
     }
 
     private void doIterationNoPruning() {
