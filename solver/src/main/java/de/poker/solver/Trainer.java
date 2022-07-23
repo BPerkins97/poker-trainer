@@ -20,7 +20,7 @@ public class Trainer {
 
     public Trainer() throws SQLException {
         dao = new DAO();
-        executorService = (ThreadPoolExecutor) Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
+        executorService = (ThreadPoolExecutor) Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors() * 5);
     }
 
     public void start() {
@@ -85,8 +85,12 @@ public class Trainer {
             // If we fail during the select we dont care, we simply inform about the error  and return
             return;
         }
+        for  (int i=0;i<100;i++) {
+            for (int p = 0; p < Constants.NUM_PLAYERS; p++) {
+                traverseMCCFR_WithPruning(nodeMap, rootNode, p);
+            }
+        }
         for (int p = 0; p < Constants.NUM_PLAYERS; p++) {
-            traverseMCCFR_WithPruning(nodeMap, rootNode, p);
             testForStrategy(rootNode, p, nodeMap);
         }
         incrementIterations();
@@ -123,8 +127,12 @@ public class Trainer {
             // If we fail during the select we dont care, we simply inform about the error  and return
             return;
         }
+        for  (int i=0;i<100;i++) {
+            for (int p = 0; p < Constants.NUM_PLAYERS; p++) {
+                traverseMCCFR_NoPruning(nodeMap, rootNode, p);
+            }
+        }
         for (int p = 0; p < Constants.NUM_PLAYERS; p++) {
-            traverseMCCFR_NoPruning(nodeMap, rootNode, p);
             testForStrategy(rootNode, p, nodeMap);
         }
         incrementIterations();
