@@ -3,8 +3,6 @@ package de.poker.solver.game;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-import java.util.concurrent.ExecutionException;
-
 public class SuitTest {
 
     @Test

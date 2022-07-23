@@ -1,15 +1,13 @@
 package de.poker.solver;
 
-import java.io.File;
-import java.io.IOException;
+import java.sql.SQLException;
 import java.util.Scanner;
-import java.util.concurrent.atomic.AtomicInteger;
 
 public class UserInterface {
     private final Trainer trainer;
     private Scanner scanner;
 
-    public UserInterface() {
+    public UserInterface() throws SQLException {
         this.trainer = new Trainer();
         this.scanner = new Scanner(System.in);
     }
@@ -36,44 +34,9 @@ public class UserInterface {
                 return;
             case "quit":
                 return;
-            case "persist":
-                executePersist();
-                return;
             default:
                 System.out.println("Unknown command, type help to get info about commands");
         }
-    }
-
-    private void executePersist() {
-        System.out.println("Please specify an file to which we should write");
-        boolean success = false;
-        do {
-            String input = scanner.nextLine();
-            if (input.equals("quit")) {
-                break;
-            }
-
-            File file = new File(input);
-            if (!file.exists()) {
-                try {
-                    if (file.createNewFile()) {
-                        trainer.save(file);
-                        success = true;
-                    } else {
-                        System.out.println("Please try again we couldnt read the fild");
-                    }
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            } else {
-                try {
-                    trainer.save(file);
-                    success = true;
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        } while (!success);
     }
 
     private void executeHelp() {
@@ -89,47 +52,5 @@ public class UserInterface {
     private void executeStart() {
         Thread thread = new Thread(trainer::start);
         thread.start();
-    }
-
-
-    public void configure() {
-        Scanner scanner = new Scanner(System.in);
-        boolean configured = false;
-        do {
-            System.out.println("Save file");
-            String input = scanner.nextLine();
-            try {
-                trainer.loadFile(new File(input));
-                configured = true;
-            } catch (Exception e) {
-                System.out.println(e);
-            }
-        } while (!configured);
-
-        configured = false;
-
-        do {
-            System.out.println("Bet size configuration file");
-            String input = scanner.nextLine();
-            try {
-                BetSizeConfiguration.loadFromFile(new File(input));
-                configured = true;
-            } catch (Exception e) {
-                System.out.println(e);
-            }
-        } while(!configured);
-
-        configured = false;
-        do {
-            System.out.println("Start at iteration");
-            String input = scanner.nextLine();
-            try {
-                int iteration = Integer.parseInt(input);
-                trainer.iterations = iteration;
-                configured = true;
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        } while(!configured);
     }
 }

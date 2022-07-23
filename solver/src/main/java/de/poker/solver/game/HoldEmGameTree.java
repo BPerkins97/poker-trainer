@@ -1,6 +1,7 @@
 package de.poker.solver.game;
 
 import de.poker.solver.BetSizeConfiguration;
+import de.poker.solver.database.InfoSet;
 import de.poker.solver.utility.CardInfoSetBuilder;
 
 import java.util.ArrayList;
@@ -20,7 +21,7 @@ public class HoldEmGameTree implements Cloneable {
     private static final byte ROUND_TURN = 2;
     private static final byte ROUND_RIVER = 3;
 
-    private static final int[][] BETTING_ORDER_PER_ROUND = new int[Constants.NUM_BETTING_ROUNDS][Constants.NUM_PLAYERS];
+    private static final byte[][] BETTING_ORDER_PER_ROUND = new byte[Constants.NUM_BETTING_ROUNDS][Constants.NUM_PLAYERS];
 
     private static final int FLOP_CARD1;
     private static final int FLOP_CARD2;
@@ -36,10 +37,10 @@ public class HoldEmGameTree implements Cloneable {
 
     static {
         for (int i = 0; i < Constants.NUM_PLAYERS; i++) {
-            BETTING_ORDER_PER_ROUND[0][i] = (i + 2) % Constants.NUM_PLAYERS;
-            BETTING_ORDER_PER_ROUND[1][i] = i;
-            BETTING_ORDER_PER_ROUND[2][i] = i;
-            BETTING_ORDER_PER_ROUND[3][i] = i;
+            BETTING_ORDER_PER_ROUND[0][i] = (byte) ((i + 2) % Constants.NUM_PLAYERS);
+            BETTING_ORDER_PER_ROUND[1][i] = (byte) i;
+            BETTING_ORDER_PER_ROUND[2][i] = (byte) i;
+            BETTING_ORDER_PER_ROUND[3][i] = (byte) i;
         }
         FLOP_CARD1 = Constants.NUM_PLAYERS * 2;
         FLOP_CARD2 = Constants.NUM_PLAYERS * 2 + 1;
@@ -54,8 +55,8 @@ public class HoldEmGameTree implements Cloneable {
     }
 
     private String history = "";
-    public String[][] cardInfoSets;
-    public int currentPlayer;
+    public long[][] cardInfoSets;
+    public byte currentPlayer;
     public byte playersWhoFolded;
     public long playersStacks;
     public long playerInvestments;
@@ -75,30 +76,24 @@ public class HoldEmGameTree implements Cloneable {
         pay(POSITION_SMALL_BLIND, Constants.SMALL_BLIND);
         pay(POSITION_BIG_BLIND, Constants.BIG_BLIND);
         currentPlayer = BETTING_ORDER_PER_ROUND[0][0];
-        cardInfoSets = new String[Constants.NUM_BETTING_ROUNDS][Constants.NUM_PLAYERS];
+        cardInfoSets = new long[Constants.NUM_BETTING_ROUNDS][Constants.NUM_PLAYERS];
         lastRaiser = -1;
         long[] playersHands = new long[Constants.NUM_PLAYERS];
         for (int i = 0; i < Constants.NUM_PLAYERS; i++) {
             int startIndex = 2 * i;
 
-            CardInfoSetBuilder infoSetBuilder = new CardInfoSetBuilder();
-            infoSetBuilder.appendHoleCards(deck[startIndex], deck[startIndex + 1]);
-            cardInfoSets[0][i] = infoSetBuilder.toString();
-            infoSetBuilder.appendFlop(deck[FLOP_CARD1], deck[FLOP_CARD2], deck[FLOP_CARD3]);
-            cardInfoSets[1][i] = infoSetBuilder.toString();
-            infoSetBuilder.appendCard(deck[TURN_CARD]);
-            cardInfoSets[2][i] = infoSetBuilder.toString();
-            infoSetBuilder.appendCard(deck[RIVER_CARD]);
-            cardInfoSets[3][i] = infoSetBuilder.toString();
-
             List<Card> cards = new ArrayList<>(7);
             cards.add(deck[startIndex]);
             cards.add(deck[startIndex + 1]);
+            cardInfoSets[0][i] = CardInfoSetBuilder.hand2Long(cards);
             cards.add(deck[FLOP_CARD1]);
             cards.add(deck[FLOP_CARD2]);
             cards.add(deck[FLOP_CARD3]);
+            cardInfoSets[1][i] = CardInfoSetBuilder.hand2Long(cards);
             cards.add(deck[TURN_CARD]);
+            cardInfoSets[2][i] = CardInfoSetBuilder.hand2Long(cards);
             cards.add(deck[RIVER_CARD]);
+            cardInfoSets[3][i] = CardInfoSetBuilder.hand2Long(cards);
             playersHands[i] = HandEvaluator.of(cards);
         }
 
@@ -459,5 +454,14 @@ public class HoldEmGameTree implements Cloneable {
 
     public List<Action> actions() {
         return nextActions;
+    }
+
+    public long cardInfoSet(int bettingRound, int player) {
+        return cardInfoSets[bettingRound][player];
+    }
+
+    public InfoSet toInfoSet() {
+        return new InfoSet(currentPlayer, cardInfoSet(bettingRound, currentPlayer), history);
+        // TODO
     }
 }

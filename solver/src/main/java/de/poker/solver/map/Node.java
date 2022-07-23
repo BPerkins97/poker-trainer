@@ -4,10 +4,11 @@ import de.poker.solver.ApplicationConfiguration;
 
 public class Node {
     private int regret;
+    private int regretChange;
     private int averageAction;
 
     public Node(int regret, int averageAction) {
-        this.regret = regret;
+        this.regret = Math.max(regret, ApplicationConfiguration.MINIMUM_REGRET);
         this.averageAction = averageAction;
     }
 
@@ -15,8 +16,12 @@ public class Node {
         return regret;
     }
 
+    public int getRegretChange() {
+        return regretChange;
+    }
+
     public synchronized void addRegret(int regret) {
-        this.regret = Math.max(regret + this.regret, ApplicationConfiguration.MINIMUM_REGRET);
+        this.regretChange += regret;
     }
 
     public synchronized void incrementAverageAction() {
@@ -25,9 +30,5 @@ public class Node {
 
     public synchronized int getAverageAction() {
         return averageAction;
-    }
-
-    public synchronized void discount(double discountValue) {
-        this.regret += discountValue;
     }
 }

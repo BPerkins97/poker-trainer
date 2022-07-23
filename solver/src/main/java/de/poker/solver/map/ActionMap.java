@@ -31,6 +31,10 @@ public class ActionMap {
         return strategy;
     }
 
+    public void addAction(Action action, Node node) {
+        map.put(action, node);
+    }
+
     private Node getNode(Action a) {
         Node node = map.get(a);
         if (Objects.isNull(node)) {
@@ -59,12 +63,6 @@ public class ActionMap {
     public void addRegretForAction(Action action, int regret) {
         Node node = getNode(action);
         node.addRegret(regret);
-    }
-
-    public void discount(double discountValue) {
-        synchronized (map) {
-            map.forEach((k, v) -> v.discount(discountValue));
-        }
     }
 
     public boolean regretForActionisAboveLimit(Action action, int limit) {

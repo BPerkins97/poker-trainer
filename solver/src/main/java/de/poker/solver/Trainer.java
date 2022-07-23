@@ -1,11 +1,12 @@
 package de.poker.solver;
 
+import de.poker.solver.database.DAO;
+import de.poker.solver.database.NodeMap;
 import de.poker.solver.game.Constants;
 import de.poker.solver.game.HoldEmGameTree;
-import de.poker.solver.map.HoldEmNodeMap;
 
 import java.io.File;
-import java.io.IOException;
+import java.sql.SQLException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -14,13 +15,14 @@ import static de.poker.solver.MonteCarloCFR.*;
 
 public class Trainer {
     private volatile boolean isRunning = false;
-    private HoldEmNodeMap nodeMap = new HoldEmNodeMap();
-    private ThreadPoolExecutor executorService;
+    private final ThreadPoolExecutor executorService;
     public File file;
     int iterations;
     long startTime;
+    private DAO dao;
 
-    public Trainer() {
+    public Trainer() throws SQLException {
+        dao = new DAO();
         executorService = (ThreadPoolExecutor) Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
     }
 
@@ -55,11 +57,6 @@ public class Trainer {
 //                }
             preventQueueFromOvergrowing();
         } while (isRunning);
-        try {
-            save(file);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
     }
 
     private void printDebugInfo() {
@@ -68,11 +65,12 @@ public class Trainer {
     }
 
     private void testForDiscount() {
-        if (iterations % ApplicationConfiguration.DISCOUNT_INTERVAL == 0 && iterations < ApplicationConfiguration.DISCOUNT_THRESHOLD) {
-            System.out.println("Now performing discount");
-            double discountValue = calculateDiscountValue(iterations % ApplicationConfiguration.DISCOUNT_INTERVAL);
-            nodeMap.discount(discountValue);
-        }
+        // TODO this can be implemented in the database as trigger
+//        if (iterations % ApplicationConfiguration.DISCOUNT_INTERVAL == 0 && iterations < ApplicationConfiguration.DISCOUNT_THRESHOLD) {
+//            System.out.println("Now performing discount");
+//            double discountValue = calculateDiscountValue(iterations % ApplicationConfiguration.DISCOUNT_INTERVAL);
+//            dao.discount(discountValue);
+//        }
     }
 
     private void preventQueueFromOvergrowing() {;
@@ -83,14 +81,29 @@ public class Trainer {
 
     private void doIterationWithPruning() {
         HoldEmGameTree rootNode = HoldEmGameTree.getRandomRootState();
+        NodeMap nodeMap;
+        try {
+            nodeMap = dao.getNodes(rootNode);
+        } catch (SQLException e) {
+            e.printStackTrace();
+            // If we fail during the select we dont care, we simply inform about the error  and return
+            return;
+        }
         for (int p = 0; p < Constants.NUM_PLAYERS; p++) {
             traverseMCCFR_WithPruning(nodeMap, rootNode, p);
-            testForStrategy(rootNode, p);
+            testForStrategy(rootNode, p, nodeMap);
         }
         incrementIterations();
+
+        try {
+            dao.updateNodes(nodeMap);
+        } catch (SQLException e) {
+            // TODO think about what we could do here
+            throw new RuntimeException(e);
+        }
     }
 
-    private void testForStrategy(HoldEmGameTree rootNode, int player) {
+    private void testForStrategy(HoldEmGameTree rootNode, int player, NodeMap nodeMap) {
         if (iterations >= ApplicationConfiguration.STRATEGY_THRESHOLD && iterations % ApplicationConfiguration.STRATEGY_INTERVAL == 0) {
             updateStrategy(nodeMap, rootNode, player);
         }
@@ -106,23 +119,28 @@ public class Trainer {
 
     private void doIterationNoPruning() {
         HoldEmGameTree rootNode = HoldEmGameTree.getRandomRootState();
+        NodeMap nodeMap;
+        try {
+            nodeMap = dao.getNodes(rootNode);
+        } catch (SQLException e) {
+            e.printStackTrace();
+            // If we fail during the select we dont care, we simply inform about the error  and return
+            return;
+        }
         for (int p = 0; p < Constants.NUM_PLAYERS; p++) {
             traverseMCCFR_NoPruning(nodeMap, rootNode, p);
-            testForStrategy(rootNode, p);
+            testForStrategy(rootNode, p, nodeMap);
         }
         incrementIterations();
+        try {
+            dao.updateNodes(nodeMap);
+        } catch (SQLException e) {
+            // TODO think about what we could do here
+            throw new RuntimeException(e);
+        }
     }
 
     private static double calculateDiscountValue(int numDiscount) {
         return numDiscount / (numDiscount + 1);
-    }
-
-    public void loadFile(File file) throws IOException {
-        this.file = file;
-        nodeMap.loadFromFile(file);
-    }
-
-    public void save(File file) throws IOException {
-        nodeMap.saveToFile(file);
     }
 }

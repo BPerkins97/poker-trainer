@@ -1,11 +1,7 @@
 package de.poker.solver.game;
 
 
-import java.util.Objects;
 import java.util.Random;
-
-import static de.poker.solver.game.Suit.*;
-import static de.poker.solver.game.Value.*;
 
 public record Card(Value value, Suit suit, String presentation) implements Comparable<Card> {
     public static final int NUM_CARDS = 52;
@@ -36,6 +32,10 @@ public record Card(Value value, Suit suit, String presentation) implements Compa
 
     public int toInt() {
         return value.value() * 4 + suit.value();
+    }
+
+    public long toLong() {
+        return (long)toInt();
     }
 
     public static Card of(int card) {

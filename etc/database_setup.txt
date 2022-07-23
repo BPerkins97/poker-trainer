@@ -1,0 +1,11 @@
+1.
+Install MySQL Server
+
+2.
+mysql -u root -p
+
+3.
+CREATE DATABASE poker
+
+4.
+CREATE_TABLE_NODES.sql

@@ -43,6 +43,15 @@ public record Action(byte type, int amount, String presentation) {
         throw new IllegalArgumentException();
     }
 
+    public static Action of(byte actionId, int amount) {
+        return switch (actionId) {
+            case FOLD -> Action.fold();
+            case CALL -> Action.call();
+            case RAISE -> Action.raise(amount);
+            default -> throw new IllegalArgumentException();
+        };
+    }
+
     public boolean isFold() {
         return type == FOLD;
     }

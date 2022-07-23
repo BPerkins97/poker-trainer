@@ -1,7 +1,6 @@
 package de.poker.solver.utility;
 
 import java.util.Collection;
-import java.util.List;
 
 public class CollectionUtils {
 

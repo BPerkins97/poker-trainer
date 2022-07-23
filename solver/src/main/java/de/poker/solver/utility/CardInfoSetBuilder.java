@@ -3,7 +3,9 @@ package de.poker.solver.utility;
 import de.poker.solver.game.Card;
 import de.poker.solver.game.Suit;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import static de.poker.solver.utility.ComparisonUtils.isXGreaterThanY;
 
@@ -15,6 +17,14 @@ public class CardInfoSetBuilder {
     private StringBuilder sb = new StringBuilder(15);
     private Map<Suit, Suit> suitMapper = new HashMap<>();
     private int suitCounter = 0;
+
+    public static long hand2Long(List<Card> hand) {
+        long sum = 0;
+        for (int i=0;i<hand.size();i++) {
+            sum += (hand.get(i).toLong() + 1) << (6 * i);
+        }
+        return sum;
+    }
 
     public CardInfoSetBuilder() {}
 
