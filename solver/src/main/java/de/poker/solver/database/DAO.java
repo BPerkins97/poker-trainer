@@ -22,6 +22,7 @@ public class DAO {
     }
 
     public void updateNodes(NodeMap nodeMap) throws SQLException {
+        CallableStatement callableStatement = connection.prepareCall("CALL INSERT_OR_UPDATE_NODES(?,?,?,?,?,?,?)");
         for (Map.Entry<InfoSet, ActionMap> entry : nodeMap.map.entrySet()) {
             String infoSet = "CALL INSERT_OR_UPDATE_NODES (" +
                     entry.getKey().player() + "," +
@@ -31,15 +32,17 @@ public class DAO {
                 if (regretHasntChanged(nodeEntry)) {
                     continue;
                 }
-                String sql = infoSet +
-                        nodeEntry.getKey().type() + "," +
-                        nodeEntry.getKey().amount() + "," +
-                        nodeEntry.getValue().getRegretChange() + "," +
-                        nodeEntry.getValue().getAverageAction() + ")";
-                PreparedStatement preparedStatement = connection.prepareStatement(sql);
-                preparedStatement.execute();
+                callableStatement.setByte(1, entry.getKey().player());
+                callableStatement.setLong(2, entry.getKey().cards());
+                callableStatement.setString(3, entry.getKey().history());
+                callableStatement.setByte(4, nodeEntry.getKey().type());
+                callableStatement.setShort(5, (short)nodeEntry.getKey().amount());
+                callableStatement.setInt(6, nodeEntry.getValue().getRegretChange());
+                callableStatement.setShort(7, (short) nodeEntry.getValue().getAverageAction());
+                callableStatement.addBatch();
             }
         }
+        callableStatement.executeBatch();
     }
 
     private boolean regretHasntChanged(Map.Entry<Action, Node> nodeEntry) {
@@ -57,7 +60,7 @@ public class DAO {
 
         stringBuilder.append("(");
         playerConditional(gameTree, stringBuilder, Constants.NUM_PLAYERS - 1);
-        stringBuilder.append(")) AND HISTORY = '").append(gameTree.history()).append("'");
+        stringBuilder.append("))");
 
 
         PreparedStatement preparedStatement = connection.prepareStatement(stringBuilder.toString());

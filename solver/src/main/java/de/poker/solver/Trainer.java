@@ -75,7 +75,11 @@ public class Trainer {
 
     private void preventQueueFromOvergrowing() {;
         while (executorService.getQueue().size() > executorService.getMaximumPoolSize() * 10) {
-            Thread.yield();
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
         }
     }
 
