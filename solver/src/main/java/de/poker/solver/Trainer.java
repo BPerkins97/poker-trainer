@@ -5,7 +5,6 @@ import de.poker.solver.database.NodeMap;
 import de.poker.solver.game.Constants;
 import de.poker.solver.game.HoldEmGameTree;
 
-import java.io.File;
 import java.sql.SQLException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadLocalRandom;
@@ -14,12 +13,10 @@ import java.util.concurrent.ThreadPoolExecutor;
 import static de.poker.solver.MonteCarloCFR.*;
 
 public class Trainer {
-    private volatile boolean isRunning = false;
     private final ThreadPoolExecutor executorService;
-    public File file;
     int iterations;
     long startTime;
-    private DAO dao;
+    private final DAO dao;
 
     public Trainer() throws SQLException {
         dao = new DAO();
@@ -27,16 +24,11 @@ public class Trainer {
     }
 
     public void start() {
-        isRunning = true;
         run();
     }
 
     private long calculateNextDiscountTimestamp() {
         return System.currentTimeMillis() + ApplicationConfiguration.DISCOUNT_INTERVAL * 60 * 1000;
-    }
-
-    public void stop() {
-        isRunning = false;
     }
 
     private void run() {
@@ -56,7 +48,7 @@ public class Trainer {
 //                    updateStrategy(nodeMap, rootNode, p);
 //                }
             preventQueueFromOvergrowing();
-        } while (isRunning);
+        } while (true);
     }
 
     private void printDebugInfo() {

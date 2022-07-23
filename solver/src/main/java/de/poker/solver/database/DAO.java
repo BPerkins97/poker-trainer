@@ -19,15 +19,12 @@ public class DAO {
         String user = "root";
         String password = "password";
         connection = DriverManager.getConnection(url, user, password);
+        connection.setAutoCommit(false);
     }
 
     public void updateNodes(NodeMap nodeMap) throws SQLException {
         CallableStatement callableStatement = connection.prepareCall("CALL INSERT_OR_UPDATE_NODES(?,?,?,?,?,?,?)");
         for (Map.Entry<InfoSet, ActionMap> entry : nodeMap.map.entrySet()) {
-            String infoSet = "CALL INSERT_OR_UPDATE_NODES (" +
-                    entry.getKey().player() + "," +
-                    entry.getKey().cards() + ",'" +
-                    entry.getKey().history() + "',";
             for (Map.Entry<Action, Node> nodeEntry : entry.getValue().getMap().entrySet()) {
                 if (regretHasntChanged(nodeEntry)) {
                     continue;
@@ -43,6 +40,7 @@ public class DAO {
             }
         }
         callableStatement.executeBatch();
+        connection.commit();
     }
 
     private boolean regretHasntChanged(Map.Entry<Action, Node> nodeEntry) {
