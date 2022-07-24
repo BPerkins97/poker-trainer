@@ -92,7 +92,7 @@ public class Database {
             preparedStatement.executeQuery();
 
             try (ResultSet resultSet = preparedStatement.getResultSet()) {
-                resultSet.setFetchSize(1000);
+                resultSet.setFetchSize(10000);
                 Map<InfoSet, ActionMap> map = new HashMap<>();
                 while (resultSet.next()) {
                     byte playerId = resultSet.getByte("PLAYER");
