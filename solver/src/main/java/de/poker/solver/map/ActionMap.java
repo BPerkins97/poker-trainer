@@ -48,7 +48,7 @@ public class ActionMap {
         synchronized (map) {
             Node node = map.get(a);
             if (Objects.isNull(node)) {
-                node = new Node(0, 0);
+                node = new Node(0, 0, -1);
                 map.put(a, node);
             }
             return node;

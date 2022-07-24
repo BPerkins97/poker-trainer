@@ -6,10 +6,12 @@ public class Node {
     private int regret;
     private int regretChange;
     private int averageAction;
+    private long nodeId;
 
-    public Node(int regret, int averageAction) {
+    public Node(int regret, int averageAction, long nodeId) {
         this.regret = Math.max(regret, ApplicationConfiguration.MINIMUM_REGRET);
         this.averageAction = averageAction;
+        this.nodeId = nodeId;
     }
 
     public synchronized int getRegret() {
@@ -30,5 +32,9 @@ public class Node {
 
     public synchronized int getAverageAction() {
         return averageAction;
+    }
+
+    public long id() {
+        return nodeId;
     }
 }

@@ -42,20 +42,21 @@ public class Database {
     }
 
     public static void updateNodes(NodeMap nodeMap) throws SQLException {
-        try (Connection connection = connection(); CallableStatement callableStatement = connection.prepareCall("CALL INSERT_OR_UPDATE_NODES(?,?,?,?,?,?,?)");) {
+        try (Connection connection = connection(); CallableStatement callableStatement = connection.prepareCall("CALL INSERT_OR_UPDATE_NODES(?,?,?,?,?,?,?,?)");) {
 
             for (Map.Entry<InfoSet, ActionMap> entry : nodeMap.map.entrySet()) {
                 for (Map.Entry<Action, Node> nodeEntry : entry.getValue().getMap().entrySet()) {
                     if (regretHasntChanged(nodeEntry)) {
                         continue;
                     }
-                    callableStatement.setByte(1, entry.getKey().player());
-                    callableStatement.setLong(2, entry.getKey().cards());
-                    callableStatement.setString(3, entry.getKey().history());
-                    callableStatement.setByte(4, nodeEntry.getKey().type());
-                    callableStatement.setShort(5, (short) nodeEntry.getKey().amount());
-                    callableStatement.setInt(6, nodeEntry.getValue().getRegretChange());
-                    callableStatement.setShort(7, (short) nodeEntry.getValue().getAverageAction());
+                    callableStatement.setLong(1, nodeEntry.getValue().id());
+                    callableStatement.setByte(2, entry.getKey().player());
+                    callableStatement.setLong(3, entry.getKey().cards());
+                    callableStatement.setString(4, entry.getKey().history());
+                    callableStatement.setByte(5, nodeEntry.getKey().type());
+                    callableStatement.setShort(6, (short) nodeEntry.getKey().amount());
+                    callableStatement.setInt(7, nodeEntry.getValue().getRegretChange());
+                    callableStatement.setShort(8, (short) nodeEntry.getValue().getAverageAction());
                     callableStatement.addBatch();
                 }
             }
@@ -68,7 +69,7 @@ public class Database {
     }
 
     public static NodeMap getNodes(HoldEmGameTree gameTree) throws SQLException {
-        StringBuilder stringBuilder = new StringBuilder("SELECT PLAYER, CARDS, HISTORY, ACTION_ID, AMOUNT, REGRET FROM NODE WHERE (");
+        StringBuilder stringBuilder = new StringBuilder("SELECT NODE_ID, PLAYER, CARDS, HISTORY, ACTION_ID, AMOUNT, REGRET FROM NODE WHERE (");
 
         for (int i = 0; i < Constants.NUM_PLAYERS - 1; i++) {
             stringBuilder.append("(");
@@ -99,7 +100,7 @@ public class Database {
                         actionMap = new ActionMap();
                         map.put(infoSet, actionMap);
                     }
-                    Node node = new Node(resultSet.getInt("REGRET"), 0);
+                    Node node = new Node(resultSet.getInt("REGRET"), 0, resultSet.getLong("NODE_ID"));
                     actionMap.addAction(action, node);
                 }
                 return new NodeMap(map);
