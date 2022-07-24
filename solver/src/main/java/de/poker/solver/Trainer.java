@@ -84,7 +84,7 @@ public class Trainer {
     }
 
     private void testForStrategy(HoldEmGameTree rootNode, int player, NodeMap nodeMap) {
-        updateStrategy(nodeMap, rootNode, player, ThreadLocalRandom.current());
+        // TODO this has a memory leakupdateStrategy(nodeMap, rootNode, player, ThreadLocalRandom.current());
     }
 
     private synchronized void incrementIterations() {
