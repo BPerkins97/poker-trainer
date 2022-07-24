@@ -60,7 +60,13 @@ public class Database {
                     callableStatement.addBatch();
                 }
             }
-            callableStatement.executeBatch();
+            try {
+                callableStatement.executeBatch();
+            } catch (Exception e) {
+                // Wait for other threads, then restart
+                Thread.yield();
+                callableStatement.executeBatch();
+            }
         }
     }
 
