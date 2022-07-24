@@ -25,10 +25,6 @@ public class Trainer {
         run();
     }
 
-    private long calculateNextDiscountTimestamp() {
-        return System.currentTimeMillis() + (long) ApplicationConfiguration.DISCOUNT_INTERVAL * 60 * 1000;
-    }
-
     private void run() {
         startTime = System.currentTimeMillis();
         printDebugInfo();
@@ -52,15 +48,6 @@ public class Trainer {
     private void printDebugInfo() {
         long time = (System.currentTimeMillis() - startTime) / 1000;
         System.out.println("Ran for " + time + " seconds and iterated " + iterations + " times");
-    }
-
-    private void testForDiscount() {
-        // TODO this can be implemented in the database as trigger
-//        if (iterations % ApplicationConfiguration.DISCOUNT_INTERVAL == 0 && iterations < ApplicationConfiguration.DISCOUNT_THRESHOLD) {
-//            System.out.println("Now performing discount");
-//            double discountValue = calculateDiscountValue(iterations % ApplicationConfiguration.DISCOUNT_INTERVAL);
-//            dao.discount(discountValue);
-//        }
     }
 
     private void preventQueueFromOvergrowing() {;
@@ -109,9 +96,11 @@ public class Trainer {
 
     private synchronized void incrementIterations() {
         iterations++;
-        testForDiscount();
-        if (iterations % 1000 == 0) {
+        if (iterations % 100 == 0) {
             printDebugInfo();
+        }
+        if (iterations > 100) {
+            System.exit(0);
         }
     }
 
@@ -140,9 +129,5 @@ public class Trainer {
             // TODO think about what we could do here
             throw new RuntimeException(e);
         }
-    }
-
-    private static double calculateDiscountValue(int numDiscount) {
-        return numDiscount / (numDiscount + 1);
     }
 }

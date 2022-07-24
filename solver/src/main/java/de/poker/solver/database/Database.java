@@ -20,7 +20,10 @@ public class Database {
 
     static {
         Properties properties = new Properties();
-        properties.put("username", "root");
+//        properties.put("username", "poker-trainer");
+//        properties.put("password", "password");
+//        properties.put("url", "jdbc:mysql://h2979271.stratoserver.net:3306/poker");
+        properties.put("username", "poker-trainer");
         properties.put("password", "password");
         properties.put("url", "jdbc:mysql://localhost:3306/poker");
         properties.put("defaultAutoCommit", "false");
