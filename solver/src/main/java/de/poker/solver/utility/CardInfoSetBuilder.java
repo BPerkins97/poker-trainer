@@ -3,6 +3,7 @@ package de.poker.solver.utility;
 import de.poker.solver.game.Card;
 import de.poker.solver.game.Suit;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -14,11 +15,11 @@ public class CardInfoSetBuilder {
             Suit.CLUB, Suit.DIAMOND, Suit.HEART, Suit.SPADES
     };
 
-    private StringBuilder sb = new StringBuilder(15);
+    private List<Card> cards = new ArrayList<>(7);
     private Map<Suit, Suit> suitMapper = new HashMap<>();
     private int suitCounter = 0;
 
-    public static long hand2Long(List<Card> hand) {
+    private static long hand2Long(List<Card> hand) {
         long sum = 0;
         for (int i=0;i<hand.size();i++) {
             sum += (hand.get(i).toLong() + 1) << (6 * i);
@@ -33,8 +34,7 @@ public class CardInfoSetBuilder {
             suitMapper.put(card.suit(), SUITS_IN_ORDER[suitCounter]);
             suitCounter++;
         }
-        sb.append(card.value());
-        sb.append(suitMapper.get(card.suit()));
+        cards.add(Card.of(card.value(), suitMapper.get(card.suit())));
     }
 
     public void appendHoleCards(Card card1, Card card2) {
@@ -82,12 +82,7 @@ public class CardInfoSetBuilder {
         }
     }
 
-    @Override
-    public String toString() {
-        return sb.toString();
-    }
-
-    public static String toInfoSet(List<Card> cards) {
+    public static long toInfoSet(List<Card> cards) {
         CardInfoSetBuilder cardInfoSetBuilder = new CardInfoSetBuilder();
         cardInfoSetBuilder.appendHoleCards(cards.get(0), cards.get(1));
         if (cards.size() >= 5) {
@@ -99,6 +94,14 @@ public class CardInfoSetBuilder {
         if (cards.size() >= 7) {
             cardInfoSetBuilder.appendCard(cards.get(6));
         }
-        return cardInfoSetBuilder.toString();
+        return cardInfoSetBuilder.toLong();
+    }
+
+    public List<Card> cards() {
+        return cards;
+    }
+
+    public long toLong() {
+        return hand2Long(cards);
     }
 }

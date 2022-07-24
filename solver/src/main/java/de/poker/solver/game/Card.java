@@ -6,7 +6,7 @@ import java.util.Random;
 public record Card(Value value, Suit suit, String presentation) implements Comparable<Card> {
     public static final int NUM_CARDS = 52;
 
-    private static final Card[] CARDS = new Card[NUM_CARDS];
+    public static final Card[] CARDS = new Card[NUM_CARDS];
 
     static {
         for (Value v : Value.valuesInOrder()) {

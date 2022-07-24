@@ -82,19 +82,16 @@ public class HoldEmGameTree implements Cloneable {
         for (int i = 0; i < Constants.NUM_PLAYERS; i++) {
             int startIndex = 2 * i;
 
-            List<Card> cards = new ArrayList<>(7);
-            cards.add(deck[startIndex]);
-            cards.add(deck[startIndex + 1]);
-            cardInfoSets[0][i] = CardInfoSetBuilder.hand2Long(cards);
-            cards.add(deck[FLOP_CARD1]);
-            cards.add(deck[FLOP_CARD2]);
-            cards.add(deck[FLOP_CARD3]);
-            cardInfoSets[1][i] = CardInfoSetBuilder.hand2Long(cards);
-            cards.add(deck[TURN_CARD]);
-            cardInfoSets[2][i] = CardInfoSetBuilder.hand2Long(cards);
-            cards.add(deck[RIVER_CARD]);
-            cardInfoSets[3][i] = CardInfoSetBuilder.hand2Long(cards);
-            playersHands[i] = HandEvaluator.of(cards);
+            CardInfoSetBuilder infoSetBuilder = new CardInfoSetBuilder();
+            infoSetBuilder.appendHoleCards(deck[startIndex], deck[startIndex + 1]);
+            cardInfoSets[0][i] = infoSetBuilder.toLong();
+            infoSetBuilder.appendFlop(deck[FLOP_CARD1], deck[FLOP_CARD2], deck[FLOP_CARD3]);
+            cardInfoSets[1][i] = infoSetBuilder.toLong();
+            infoSetBuilder.appendCard(deck[TURN_CARD]);
+            cardInfoSets[2][i] = infoSetBuilder.toLong();
+            infoSetBuilder.appendCard(deck[RIVER_CARD]);
+            cardInfoSets[3][i] = infoSetBuilder.toLong();
+            playersHands[i] = HandEvaluator.of(infoSetBuilder.cards());
         }
 
         long bestHandValue = Long.MIN_VALUE;
