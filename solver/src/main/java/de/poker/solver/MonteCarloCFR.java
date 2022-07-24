@@ -7,10 +7,11 @@ import de.poker.solver.map.ActionMap;
 import de.poker.solver.map.Strategy;
 
 import java.util.List;
+import java.util.Random;
 
 // As implemented in http://www.cs.cmu.edu/~noamb/papers/19-Science-Superhuman_Supp.pdf
 public class MonteCarloCFR {
-    public static double traverseMCCFR_NoPruning(NodeMap nodeMap, HoldEmGameTree state, int traversingPlayerId) {
+    public static double traverseMCCFR_NoPruning(NodeMap nodeMap, HoldEmGameTree state, int traversingPlayerId, Random random) {
         if (state.isGameOverForPlayer(traversingPlayerId)) {
             return state.getPayoffForPlayer(traversingPlayerId);
         } else {
@@ -19,7 +20,7 @@ public class MonteCarloCFR {
                 ActionMap node = nodeMap.getActionMap(state);
                 Strategy strategy = node.calculateStrategy(actions);
                 for (Action action : actions) {
-                    strategy.value(action, traverseMCCFR_NoPruning(nodeMap, state.takeAction(action), traversingPlayerId));
+                    strategy.value(action, traverseMCCFR_NoPruning(nodeMap, state.takeAction(action), traversingPlayerId, random));
                 }
                 for (Action action : actions) {
                     node.addRegretForAction(action, (int)strategy.normalizedValue(action));
@@ -28,13 +29,13 @@ public class MonteCarloCFR {
             } else {
                 ActionMap node = nodeMap.getActionMap(state);
                 Strategy strategy = node.calculateStrategy(actions);
-                Action action = strategy.randomAction();
-                return traverseMCCFR_NoPruning(nodeMap, state.takeAction(action), traversingPlayerId);
+                Action action = strategy.randomAction(random);
+                return traverseMCCFR_NoPruning(nodeMap, state.takeAction(action), traversingPlayerId, random);
             }
         }
     }
 
-    public static double traverseMCCFR_WithPruning(NodeMap nodeMap, HoldEmGameTree state, int traversingPlayerId) {
+    public static double traverseMCCFR_WithPruning(NodeMap nodeMap, HoldEmGameTree state, int traversingPlayerId, Random random) {
         if (state.isGameOverForPlayer(traversingPlayerId)) {
             return state.getPayoffForPlayer(traversingPlayerId);
         } else if (state.isCurrentPlayer(traversingPlayerId)) {
@@ -43,7 +44,7 @@ public class MonteCarloCFR {
             Strategy strategy = node.calculateStrategy(actions);
             for (Action action : actions) {
                 if (node.regretForActionisAboveLimit(action, ApplicationConfiguration.MINIMUM_REGRET)) {
-                    strategy.value(action, traverseMCCFR_WithPruning(nodeMap, state.takeAction(action), traversingPlayerId));
+                    strategy.value(action, traverseMCCFR_WithPruning(nodeMap, state.takeAction(action), traversingPlayerId, random));
                     strategy.explored(action);
                 }
             }
@@ -56,12 +57,12 @@ public class MonteCarloCFR {
         } else {
             ActionMap node = nodeMap.getActionMap(state);
             Strategy strategy = node.calculateStrategy(state.actions());
-            HoldEmGameTree nextState = state.takeAction(strategy.randomAction());
-            return traverseMCCFR_WithPruning(nodeMap, nextState, traversingPlayerId);
+            HoldEmGameTree nextState = state.takeAction(strategy.randomAction(random));
+            return traverseMCCFR_WithPruning(nodeMap, nextState, traversingPlayerId, random);
         }
     }
 
-    public static void updateStrategy(NodeMap nodeMap, HoldEmGameTree state, int traversingPlayer) {
+    public static void updateStrategy(NodeMap nodeMap, HoldEmGameTree state, int traversingPlayer, Random random) {
         if (state.isGameOverForPlayer(traversingPlayer) || !state.shouldUpdateRegrets()) {
             return;
         } else {
@@ -69,12 +70,12 @@ public class MonteCarloCFR {
             if (state.isCurrentPlayer(traversingPlayer)) {
                 ActionMap node = nodeMap.getActionMap(state);
                 Strategy strategy = node.calculateStrategy(actions);
-                Action chosenAction = strategy.randomAction();
+                Action chosenAction = strategy.randomAction(random);
                 node.visitAction(chosenAction);
-                updateStrategy(nodeMap, state.takeAction(chosenAction), traversingPlayer);
+                updateStrategy(nodeMap, state.takeAction(chosenAction), traversingPlayer, random);
             } else {
                 for (Action action : actions) {
-                    updateStrategy(nodeMap, state.takeAction(action), traversingPlayer);
+                    updateStrategy(nodeMap, state.takeAction(action), traversingPlayer, random);
                 }
             }
         }

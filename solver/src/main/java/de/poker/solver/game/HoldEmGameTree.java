@@ -6,6 +6,7 @@ import de.poker.solver.utility.CardInfoSetBuilder;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
 
 public class HoldEmGameTree implements Cloneable {
@@ -119,6 +120,19 @@ public class HoldEmGameTree implements Cloneable {
             Card card;
             do {
                 card = Card.randomCard(ThreadLocalRandom.current());
+            } while (cardAlreadyInDeck(deck, card, i));
+            deck[i] = card;
+        }
+        return new HoldEmGameTree(deck);
+    }
+
+    public static HoldEmGameTree getRandomRootState(Random random) {
+        int numCards = Constants.NUM_PLAYERS * 2 + 5;
+        Card[] deck = new Card[numCards];
+        for (int i = 0; i < numCards; i++) {
+            Card card;
+            do {
+                card = Card.randomCard(random);
             } while (cardAlreadyInDeck(deck, card, i));
             deck[i] = card;
         }

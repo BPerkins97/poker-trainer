@@ -23,12 +23,12 @@ public class Database {
         properties.put("username", "root");
         properties.put("password", "password");
         properties.put("url", "jdbc:mysql://localhost:3306/poker");
-        properties.put("defaultAutoCommit", false);
-        properties.put("enableAutoCommitOnReturn", true);
-        properties.put("rollbackOnReturn", false);
+        properties.put("defaultAutoCommit", "false");
+        properties.put("enableAutoCommitOnReturn", "true");
+        properties.put("rollbackOnReturn", "false");
         properties.put("maxTotal", ApplicationConfiguration.NUM_THREADS);
         properties.put("maxIdle", ApplicationConfiguration.NUM_THREADS);
-        properties.put("poolPreparedStatements", true);
+        properties.put("poolPreparedStatements", "true");
         try {
             DATA_SOURCE = BasicDataSourceFactory.createDataSource(properties);
         } catch (Exception e) {
@@ -85,6 +85,7 @@ public class Database {
             preparedStatement.executeQuery();
 
             try (ResultSet resultSet = preparedStatement.getResultSet()) {
+                resultSet.setFetchSize(1000);
                 Map<InfoSet, ActionMap> map = new HashMap<>();
                 while (resultSet.next()) {
                     byte playerId = resultSet.getByte("PLAYER");

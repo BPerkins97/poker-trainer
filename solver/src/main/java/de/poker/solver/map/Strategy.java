@@ -3,6 +3,7 @@ package de.poker.solver.map;
 import de.poker.solver.game.Action;
 
 import java.util.List;
+import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
 
 public class Strategy {
@@ -74,9 +75,9 @@ public class Strategy {
         return expectedValue;
     }
 
-    public Action randomAction() {
+    public Action randomAction(Random random) {
         double accumulatedActionProbability = 0;
-        double randomActionProbability = ThreadLocalRandom.current().nextDouble();
+        double randomActionProbability = random.nextDouble();
         for (Action action : actions) {
             accumulatedActionProbability += probability[getIndex(action)];
             if (randomActionProbability < accumulatedActionProbability) {

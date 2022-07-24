@@ -85,7 +85,7 @@ public class Trainer {
         }
         for  (int i=0;i<100;i++) {
             for (int p = 0; p < Constants.NUM_PLAYERS; p++) {
-                traverseMCCFR_WithPruning(nodeMap, rootNode, p);
+                traverseMCCFR_WithPruning(nodeMap, rootNode, p, ThreadLocalRandom.current());
             }
         }
         for (int p = 0; p < Constants.NUM_PLAYERS; p++) {
@@ -103,7 +103,7 @@ public class Trainer {
 
     private void testForStrategy(HoldEmGameTree rootNode, int player, NodeMap nodeMap) {
         if (iterations >= ApplicationConfiguration.STRATEGY_THRESHOLD && iterations % ApplicationConfiguration.STRATEGY_INTERVAL == 0) {
-            updateStrategy(nodeMap, rootNode, player);
+            updateStrategy(nodeMap, rootNode, player, ThreadLocalRandom.current());
         }
     }
 
@@ -127,7 +127,7 @@ public class Trainer {
         }
         for  (int i=0;i<100;i++) {
             for (int p = 0; p < Constants.NUM_PLAYERS; p++) {
-                traverseMCCFR_NoPruning(nodeMap, rootNode, p);
+                traverseMCCFR_NoPruning(nodeMap, rootNode, p, ThreadLocalRandom.current());
             }
         }
         for (int p = 0; p < Constants.NUM_PLAYERS; p++) {
