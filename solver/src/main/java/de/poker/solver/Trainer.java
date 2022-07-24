@@ -36,11 +36,6 @@ public class Trainer {
             } else {
                 executorService.execute(this::doIterationNoPruning);
             }
-
-            // TODO
-//                if (i % ApplicationConfiguration.STRATEGY_INTERVAL == 0) {
-//                    updateStrategy(nodeMap, rootNode, p);
-//                }
             preventQueueFromOvergrowing();
         } while (true);
     }
@@ -50,7 +45,7 @@ public class Trainer {
         System.out.println("Ran for " + time + " seconds and iterated " + iterations + " times");
     }
 
-    private void preventQueueFromOvergrowing() {;
+    private void preventQueueFromOvergrowing() {
         while (executorService.getQueue().size() > ApplicationConfiguration.NUM_THREADS * 5) {
             try {
                 Thread.sleep(1000);
@@ -70,7 +65,7 @@ public class Trainer {
             // If we fail during the select we dont care, we simply inform about the error  and return
             return;
         }
-        for  (int i=0;i<100;i++) {
+        for (int i = 0; i < 25; i++) {
             for (int p = 0; p < Constants.NUM_PLAYERS; p++) {
                 traverseMCCFR_WithPruning(nodeMap, rootNode, p, ThreadLocalRandom.current());
             }
@@ -89,18 +84,13 @@ public class Trainer {
     }
 
     private void testForStrategy(HoldEmGameTree rootNode, int player, NodeMap nodeMap) {
-        if (iterations >= ApplicationConfiguration.STRATEGY_THRESHOLD && iterations % ApplicationConfiguration.STRATEGY_INTERVAL == 0) {
-            updateStrategy(nodeMap, rootNode, player, ThreadLocalRandom.current());
-        }
+        updateStrategy(nodeMap, rootNode, player, ThreadLocalRandom.current());
     }
 
     private synchronized void incrementIterations() {
         iterations++;
         if (iterations % 100 == 0) {
             printDebugInfo();
-        }
-        if (iterations > 100) {
-            System.exit(0);
         }
     }
 
@@ -114,7 +104,7 @@ public class Trainer {
             // If we fail during the select we dont care, we simply inform about the error  and return
             return;
         }
-        for  (int i=0;i<100;i++) {
+        for (int i = 0; i < 25; i++) {
             for (int p = 0; p < Constants.NUM_PLAYERS; p++) {
                 traverseMCCFR_NoPruning(nodeMap, rootNode, p, ThreadLocalRandom.current());
             }
