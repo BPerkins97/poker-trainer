@@ -1,6 +1,9 @@
 package de.poker.solver;
 
 public class ApplicationConfiguration {
+    public static final int NUM_THREADS = Runtime.getRuntime().availableProcessors();
+
+
     /**
      * The rate at which the cfr algorithm refines its final strategy.
      * A rate of 1 means every round, a rate of 1000 every 1000th round.

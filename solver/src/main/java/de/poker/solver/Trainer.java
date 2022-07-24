@@ -1,6 +1,6 @@
 package de.poker.solver;
 
-import de.poker.solver.database.DAO;
+import de.poker.solver.database.Database;
 import de.poker.solver.database.NodeMap;
 import de.poker.solver.game.Constants;
 import de.poker.solver.game.HoldEmGameTree;
@@ -16,11 +16,9 @@ public class Trainer {
     private final ThreadPoolExecutor executorService;
     int iterations;
     long startTime;
-    private final DAO dao;
 
-    public Trainer() throws SQLException {
-        dao = new DAO();
-        executorService = (ThreadPoolExecutor) Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors() * 5);
+    public Trainer() {
+        executorService = (ThreadPoolExecutor) Executors.newFixedThreadPool(ApplicationConfiguration.NUM_THREADS);
     }
 
     public void start() {
@@ -28,7 +26,7 @@ public class Trainer {
     }
 
     private long calculateNextDiscountTimestamp() {
-        return System.currentTimeMillis() + ApplicationConfiguration.DISCOUNT_INTERVAL * 60 * 1000;
+        return System.currentTimeMillis() + (long) ApplicationConfiguration.DISCOUNT_INTERVAL * 60 * 1000;
     }
 
     private void run() {
@@ -66,7 +64,7 @@ public class Trainer {
     }
 
     private void preventQueueFromOvergrowing() {;
-        while (executorService.getQueue().size() > executorService.getMaximumPoolSize() * 10) {
+        while (executorService.getQueue().size() > ApplicationConfiguration.NUM_THREADS * 5) {
             try {
                 Thread.sleep(1000);
             } catch (InterruptedException e) {
@@ -79,7 +77,7 @@ public class Trainer {
         HoldEmGameTree rootNode = HoldEmGameTree.getRandomRootState();
         NodeMap nodeMap;
         try {
-            nodeMap = dao.getNodes(rootNode);
+            nodeMap = Database.getNodes(rootNode);
         } catch (SQLException e) {
             e.printStackTrace();
             // If we fail during the select we dont care, we simply inform about the error  and return
@@ -96,7 +94,7 @@ public class Trainer {
         incrementIterations();
 
         try {
-            dao.updateNodes(nodeMap);
+            Database.updateNodes(nodeMap);
         } catch (SQLException e) {
             // TODO think about what we could do here
             throw new RuntimeException(e);
@@ -121,7 +119,7 @@ public class Trainer {
         HoldEmGameTree rootNode = HoldEmGameTree.getRandomRootState();
         NodeMap nodeMap;
         try {
-            nodeMap = dao.getNodes(rootNode);
+            nodeMap = Database.getNodes(rootNode);
         } catch (SQLException e) {
             e.printStackTrace();
             // If we fail during the select we dont care, we simply inform about the error  and return
@@ -137,7 +135,7 @@ public class Trainer {
         }
         incrementIterations();
         try {
-            dao.updateNodes(nodeMap);
+            Database.updateNodes(nodeMap);
         } catch (SQLException e) {
             // TODO think about what we could do here
             throw new RuntimeException(e);
