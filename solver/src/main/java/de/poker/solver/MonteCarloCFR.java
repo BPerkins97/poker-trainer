@@ -1,5 +1,6 @@
 package de.poker.solver;
 
+import de.poker.solver.database.FileSystem;
 import de.poker.solver.database.NodeMap;
 import de.poker.solver.game.Action;
 import de.poker.solver.game.HoldEmGameTree;
@@ -11,7 +12,7 @@ import java.util.Random;
 
 // As implemented in http://www.cs.cmu.edu/~noamb/papers/19-Science-Superhuman_Supp.pdf
 public class MonteCarloCFR {
-    public static double traverseMCCFR_NoPruning(NodeMap nodeMap, HoldEmGameTree state, int traversingPlayerId, Random random) {
+    public static double traverseMCCFR_NoPruning(FileSystem nodeMap, HoldEmGameTree state, int traversingPlayerId, Random random) {
         if (state.isGameOverForPlayer(traversingPlayerId)) {
             return state.getPayoffForPlayer(traversingPlayerId);
         } else {
@@ -35,7 +36,7 @@ public class MonteCarloCFR {
         }
     }
 
-    public static double traverseMCCFR_WithPruning(NodeMap nodeMap, HoldEmGameTree state, int traversingPlayerId, Random random) {
+    public static double traverseMCCFR_WithPruning(FileSystem nodeMap, HoldEmGameTree state, int traversingPlayerId, Random random) {
         if (state.isGameOverForPlayer(traversingPlayerId)) {
             return state.getPayoffForPlayer(traversingPlayerId);
         } else if (state.isCurrentPlayer(traversingPlayerId)) {

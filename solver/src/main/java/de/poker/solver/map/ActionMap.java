@@ -2,14 +2,13 @@ package de.poker.solver.map;
 
 import de.poker.solver.game.Action;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
 // TODO https://www.nakivo.com/blog/how-to-use-remote-desktop-connection-ubuntu-linux-walkthrough/
-public class ActionMap {
-    private final Map<Action, Node> map = new HashMap<>();
+public class ActionMap implements ActionMapInterface {
+    Map<Action, Node> map;
     // Reuse this object for performance reasons
 
     public Strategy calculateStrategy(List<Action> actions) {
@@ -48,7 +47,7 @@ public class ActionMap {
         synchronized (map) {
             Node node = map.get(a);
             if (Objects.isNull(node)) {
-                node = new Node(0, 0, -1);
+                node = new Node(0, (short) 0);
                 map.put(a, node);
             }
             return node;
@@ -72,7 +71,13 @@ public class ActionMap {
         }
     }
 
+    @Override
     public Map<Action, Node> getMap() {
         return map;
+    }
+
+    @Override
+    public void setMap(Map<Action, Node> map) {
+        this.map = map;
     }
 }

@@ -1,6 +1,6 @@
 package de.poker.solver;
 
-import de.poker.solver.database.Database;
+import de.poker.solver.database.FileSystem;
 import de.poker.solver.database.NodeMap;
 import de.poker.solver.game.Constants;
 import de.poker.solver.game.HoldEmGameTree;
@@ -18,6 +18,7 @@ public class Trainer {
     long startTime;
 
     public Trainer() {
+        FileSystem.generate();
         executorService = (ThreadPoolExecutor) Executors.newFixedThreadPool(ApplicationConfiguration.NUM_THREADS);
     }
 
@@ -57,33 +58,18 @@ public class Trainer {
 
     private void doIterationWithPruning() {
         HoldEmGameTree rootNode = HoldEmGameTree.getRandomRootState();
-        NodeMap nodeMap;
-        try {
-            nodeMap = Database.getNodes(rootNode);
-        } catch (SQLException e) {
-            e.printStackTrace();
-            // If we fail during the select we dont care, we simply inform about the error  and return
-            return;
-        }
         for (int i = 0; i < 25; i++) {
             for (int p = 0; p < Constants.NUM_PLAYERS; p++) {
-                traverseMCCFR_WithPruning(nodeMap, rootNode, p, ThreadLocalRandom.current());
+                traverseMCCFR_WithPruning(FileSystem.getInstance(), rootNode, p, ThreadLocalRandom.current());
             }
         }
         for (int p = 0; p < Constants.NUM_PLAYERS; p++) {
-            testForStrategy(rootNode, p, nodeMap);
+            testForStrategy(rootNode, p, FileSystem.getInstance());
         }
         incrementIterations();
-
-        try {
-            Database.updateNodes(nodeMap);
-        } catch (SQLException e) {
-            // TODO think about what we could do here
-            throw new RuntimeException(e);
-        }
     }
 
-    private void testForStrategy(HoldEmGameTree rootNode, int player, NodeMap nodeMap) {
+    private void testForStrategy(HoldEmGameTree rootNode, int player, FileSystem nodeMap) {
         // TODO this has a memory leakupdateStrategy(nodeMap, rootNode, player, ThreadLocalRandom.current());
     }
 
@@ -96,28 +82,14 @@ public class Trainer {
 
     private void doIterationNoPruning() {
         HoldEmGameTree rootNode = HoldEmGameTree.getRandomRootState();
-        NodeMap nodeMap;
-        try {
-            nodeMap = Database.getNodes(rootNode);
-        } catch (SQLException e) {
-            e.printStackTrace();
-            // If we fail during the select we dont care, we simply inform about the error  and return
-            return;
-        }
         for (int i = 0; i < 25; i++) {
             for (int p = 0; p < Constants.NUM_PLAYERS; p++) {
-                traverseMCCFR_NoPruning(nodeMap, rootNode, p, ThreadLocalRandom.current());
+                traverseMCCFR_NoPruning(FileSystem.getInstance(), rootNode, p, ThreadLocalRandom.current());
             }
         }
         for (int p = 0; p < Constants.NUM_PLAYERS; p++) {
-            testForStrategy(rootNode, p, nodeMap);
+            testForStrategy(rootNode, p, FileSystem.getInstance());
         }
         incrementIterations();
-        try {
-            Database.updateNodes(nodeMap);
-        } catch (SQLException e) {
-            // TODO think about what we could do here
-            throw new RuntimeException(e);
-        }
     }
 }

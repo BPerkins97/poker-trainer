@@ -2,17 +2,17 @@ package de.poker.solver.game;
 
 import java.util.Objects;
 
-public record Action(byte type, int amount, String presentation) {
+public record Action(byte type, short amount, String presentation) {
     private static final byte FOLD = 1;
     private static final byte CALL = 2;
     private static final byte RAISE = 4;
-    private static final Action ACTION_FOLD = new Action(FOLD, 0, "f");
-    private static final Action ACTION_CALL = new Action(CALL, 0, "c");
+    private static final Action ACTION_FOLD = new Action(FOLD, (short) 0, "f");
+    private static final Action ACTION_CALL = new Action(CALL, (short) 0, "c");
 
     private static final Action[] ACTION_RAISE = new Action[Constants.STARTING_STACK_SIZE];
 
     static {
-        for (int i=1;i<=Constants.STARTING_STACK_SIZE;i++) {
+        for (short i=1;i<=Constants.STARTING_STACK_SIZE;i++) {
             ACTION_RAISE[i-1] = new Action(RAISE, i, "r" + i);
         }
     }
@@ -60,7 +60,7 @@ public record Action(byte type, int amount, String presentation) {
         return type == CALL;
     }
 
-    public int amount() {
+    public short amount() {
         return amount;
     }
 

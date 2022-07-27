@@ -2,39 +2,40 @@ package de.poker.solver.map;
 
 import de.poker.solver.ApplicationConfiguration;
 
-public class Node {
+public class Node implements NodeInterface {
     private int regret;
-    private int regretChange;
-    private int averageAction;
-    private long nodeId;
+    private short averageAction;
 
-    public Node(int regret, int averageAction, long nodeId) {
+    public Node(int regret, short averageAction) {
         this.regret = Math.max(regret, ApplicationConfiguration.MINIMUM_REGRET);
         this.averageAction = averageAction;
-        this.nodeId = nodeId;
     }
 
+    @Override
     public synchronized int getRegret() {
         return regret;
     }
 
-    public int getRegretChange() {
-        return regretChange;
-    }
-
-    public synchronized void addRegret(int regret) {
-        this.regretChange += regret;
+    @Override
+    public void setRegret(int regret) {
+        this.regret = regret;
     }
 
     public synchronized void incrementAverageAction() {
         averageAction++;
     }
 
-    public synchronized int getAverageAction() {
+    @Override
+    public short getAverageAction() {
         return averageAction;
     }
 
-    public long id() {
-        return nodeId;
+    @Override
+    public void setAverageAction(short averageAction) {
+        this.averageAction = averageAction;
+    }
+
+    public void addRegret(int regret) {
+        this.regret += regret;
     }
 }
