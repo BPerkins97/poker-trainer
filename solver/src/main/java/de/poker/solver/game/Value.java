@@ -52,6 +52,10 @@ public enum Value {
         return values();
     }
 
+    public static Value of(byte value) {
+        return VALUES[value];
+    }
+
     public int value() {
         return ordinal();
     }

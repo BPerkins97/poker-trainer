@@ -51,4 +51,8 @@ public record Card(Value value, Suit suit, String presentation) implements Compa
     public int compareTo(Card o) {
         return Integer.compare(this.toInt(), o.toInt());
     }
+
+    public byte toByte() {
+        return (byte)(value.value() * 4 + suit.value());
+    }
 }

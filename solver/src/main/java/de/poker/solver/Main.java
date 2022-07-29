@@ -7,7 +7,7 @@ import java.sql.SQLException;
 // TODO put config into database
 // TODO discounting
 public class Main {
-    public static void main(String[] args) throws SQLException {
+    public static void main(String[] args) {
         BetSizeConfiguration.BET_SIZES[0].add(new BetSize(50, BetSize.PERCENT));
         BetSizeConfiguration.BET_SIZES[0].add(new BetSize(100, BetSize.PERCENT));
         BetSizeConfiguration.BET_SIZES[0].add(new BetSize(150, BetSize.PERCENT));

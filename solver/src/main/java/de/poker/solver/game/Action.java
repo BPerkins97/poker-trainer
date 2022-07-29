@@ -3,9 +3,9 @@ package de.poker.solver.game;
 import java.util.Objects;
 
 public record Action(byte type, short amount, String presentation) {
-    private static final byte FOLD = 1;
-    private static final byte CALL = 2;
-    private static final byte RAISE = 4;
+    public static final byte FOLD = 1;
+    public static final byte CALL = 2;
+    public static final byte RAISE = 4;
     private static final Action ACTION_FOLD = new Action(FOLD, (short) 0, "f");
     private static final Action ACTION_CALL = new Action(CALL, (short) 0, "c");
 

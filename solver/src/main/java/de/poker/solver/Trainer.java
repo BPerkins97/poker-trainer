@@ -1,11 +1,9 @@
 package de.poker.solver;
 
 import de.poker.solver.database.FileSystem;
-import de.poker.solver.database.NodeMap;
 import de.poker.solver.game.Constants;
 import de.poker.solver.game.HoldEmGameTree;
 
-import java.sql.SQLException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -18,7 +16,6 @@ public class Trainer {
     long startTime;
 
     public Trainer() {
-        FileSystem.generate();
         executorService = (ThreadPoolExecutor) Executors.newFixedThreadPool(ApplicationConfiguration.NUM_THREADS);
     }
 
@@ -60,16 +57,16 @@ public class Trainer {
         HoldEmGameTree rootNode = HoldEmGameTree.getRandomRootState();
         for (int i = 0; i < 25; i++) {
             for (int p = 0; p < Constants.NUM_PLAYERS; p++) {
-                traverseMCCFR_WithPruning(FileSystem.getInstance(), rootNode, p, ThreadLocalRandom.current());
+                traverseMCCFR_WithPruning(rootNode, p, ThreadLocalRandom.current());
             }
         }
         for (int p = 0; p < Constants.NUM_PLAYERS; p++) {
-            testForStrategy(rootNode, p, FileSystem.getInstance());
+            testForStrategy(rootNode, p);
         }
         incrementIterations();
     }
 
-    private void testForStrategy(HoldEmGameTree rootNode, int player, FileSystem nodeMap) {
+    private void testForStrategy(HoldEmGameTree rootNode, int player) {
         // TODO this has a memory leakupdateStrategy(nodeMap, rootNode, player, ThreadLocalRandom.current());
     }
 
@@ -84,11 +81,11 @@ public class Trainer {
         HoldEmGameTree rootNode = HoldEmGameTree.getRandomRootState();
         for (int i = 0; i < 25; i++) {
             for (int p = 0; p < Constants.NUM_PLAYERS; p++) {
-                traverseMCCFR_NoPruning(FileSystem.getInstance(), rootNode, p, ThreadLocalRandom.current());
+                traverseMCCFR_NoPruning(rootNode, p, ThreadLocalRandom.current());
             }
         }
         for (int p = 0; p < Constants.NUM_PLAYERS; p++) {
-            testForStrategy(rootNode, p, FileSystem.getInstance());
+            testForStrategy(rootNode, p);
         }
         incrementIterations();
     }

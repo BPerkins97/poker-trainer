@@ -10,10 +10,10 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
-public class Marshaller implements BytesWriter<ActionMapInterface>, BytesReader<ActionMapInterface>, ReadResolvable<Marshaller> {
-    public static final Marshaller INSTANCE = new Marshaller();
+public class ActionMapMarshaller implements BytesWriter<ActionMapInterface>, BytesReader<ActionMapInterface>, ReadResolvable<ActionMapMarshaller> {
+    public static final ActionMapMarshaller INSTANCE = new ActionMapMarshaller();
 
-    private Marshaller() {}
+    private ActionMapMarshaller() {}
 
     @Override
     public void write(Bytes out, ActionMapInterface toWrite) {
@@ -56,7 +56,7 @@ public class Marshaller implements BytesWriter<ActionMapInterface>, BytesReader<
     }
 
     @Override
-    public Marshaller readResolve() {
+    public ActionMapMarshaller readResolve() {
         return INSTANCE;
     }
 }

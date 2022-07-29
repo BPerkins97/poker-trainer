@@ -24,6 +24,10 @@ public enum Suit {
         return values();
     }
 
+    public static Suit of(byte suit) {
+        return SUITS[suit];
+    }
+
     public int value() {
         return ordinal();
     }

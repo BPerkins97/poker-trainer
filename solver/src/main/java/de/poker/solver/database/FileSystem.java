@@ -1,12 +1,8 @@
 package de.poker.solver.database;
 
-import de.poker.solver.game.Action;
-import de.poker.solver.game.HoldEmGameTree;
-import de.poker.solver.map.ActionMap;
-import de.poker.solver.map.ActionMapInterface;
-import de.poker.solver.map.Marshaller;
-import de.poker.solver.map.Node;
-import net.openhft.chronicle.bytes.BytesUtil;
+import de.poker.solver.game.*;
+import de.poker.solver.map.*;
+import jnr.ffi.annotations.In;
 import net.openhft.chronicle.map.ChronicleMap;
 import net.openhft.chronicle.map.ChronicleMapBuilder;
 
@@ -16,47 +12,49 @@ import java.util.HashMap;
 import java.util.Objects;
 
 public class FileSystem {
-    private static ChronicleMap<CharSequence, ActionMapInterface> MAP;
-    private static final FileSystem INSTANCE = new FileSystem();
+    private static ChronicleMap<InfoSetInterface, ActionMapInterface> MAP;
 
-    public static void generate() {
+    static {
+        InfoSet averageKey = new InfoSet();
+        averageKey.setCards(new byte[]{52,41,37,13,15,1,5});
+        averageKey.setHistory(new Action[]{Action.call(), Action.call(), Action.call(), Action.call(), Action.call(), Action.call(), Action.call(), Action.call(), Action.call(), Action.call(), Action.call(), Action.call(), Action.call(), Action.call(), Action.call(), Action.call(), Action.call(), Action.raise(100), Action.raise(13), Action.raise(64), Action.raise(5), Action.raise(100), Action.raise(100), Action.raise(100), Action.raise(100), Action.raise(100), Action.raise(100), Action.raise(100), Action.raise(55), Action.raise(12), Action.raise(100)});
+
         HashMap<Action, Node> averageMap = new HashMap<>();
         averageMap.put(Action.fold(), new Node(0, (short) 0));
         averageMap.put(Action.call(), new Node(0, (short) 0));
         averageMap.put(Action.raise(50), new Node(0, (short) 0));
         averageMap.put(Action.raise(100), new Node(0, (short) 0));
         averageMap.put(Action.raise(150), new Node(0, (short) 0));
-        ActionMap actionMap = new ActionMap();
-        actionMap.setMap(averageMap);
+        ActionMap averageValue = new ActionMap();
+        averageValue.setMap(averageMap);
         try {
             MAP = ChronicleMapBuilder
-                    .of(CharSequence.class, ActionMapInterface.class)
+                    .of(InfoSetInterface.class, ActionMapInterface.class)
                     .name("poker-trainer-map")
-                    .averageKey("AcKcQcJcTc9c8ccccccccccccccccccccccccccccccccccccr100r100r100r100r100r100")
-                    .entries(1_000_000_000)
-                    .averageValue(actionMap)
-                    .valueMarshallers(Marshaller.INSTANCE, Marshaller.INSTANCE)
-                    .createPersistedTo(new File("/root/tst.txt"));
+                    .averageKey(averageKey)
+                    .entries(1_000_000)
+                    .averageValue(averageValue)
+                    .keyMarshaller(InfoSetMarshaller.INSTANCE)
+                    .valueMarshallers(ActionMapMarshaller.INSTANCE, ActionMapMarshaller.INSTANCE)
+                    .createPersistedTo(new File("C:/Temp/tst.txt"));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
 
-    public static FileSystem getInstance() {
-        return INSTANCE;
-    }
+    private FileSystem() {}
 
-    public ActionMapInterface get(String key) {
+
+    public static ActionMapInterface get(InfoSetInterface key) {
         return MAP.get(key);
     }
 
-    public void update(String key, ActionMapInterface actionMap) {
+    public static void update(InfoSet key, ActionMapInterface actionMap) {
         MAP.replace(key, actionMap);
     }
 
-    public ActionMap getActionMap(HoldEmGameTree state) {
-        ChronicleMap<CharSequence, ActionMapInterface> map = MAP;
-        String key = state.cardInfoSet(state.bettingRound, state.currentPlayer) + state.history();
+    public static ActionMap getActionMap(HoldEmGameTree state) {
+        InfoSetInterface key = state.toInfoSet();
         ActionMapInterface actionMap = get(key);
         if (Objects.isNull(actionMap)) {
             actionMap = new ActionMap();

@@ -104,4 +104,12 @@ public class CardInfoSetBuilder {
     public long toLong() {
         return hand2Long(cards);
     }
+
+    public byte[] toBytes() {
+        byte[] bytes = new byte[cards.size()];
+        for (int i=0;i<cards.size();i++) {
+            bytes[i] = (byte)cards.get(i).toInt();
+        }
+        return bytes;
+    }
 }
