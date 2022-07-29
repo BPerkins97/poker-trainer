@@ -39,7 +39,7 @@ public class ActionMapMarshaller implements BytesWriter<ActionMapInterface>, Byt
         if (Objects.isNull(using)) {
             using = new ActionMap();
         }
-        byte numAction = in.rawReadByte();
+        byte numAction = in.readByte();
         Map<Action, Node> map = using.getMap();
         if (Objects.isNull(map)) {
             map = new HashMap<>(numAction, 1);

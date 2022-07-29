@@ -65,9 +65,9 @@ public class InfoSetMarshaller implements BytesWriter<InfoSetInterface>, BytesRe
         Action[] history = toWrite.getHistory();
         int numActions = 0;
         if (!Objects.isNull(history)) {
-            numActions = history.length - Byte.MAX_VALUE;
+            numActions = history.length;
+            out.writeByte((byte)(history.length - Byte.MAX_VALUE));
         }
-        out.writeByte((byte)numActions);
         for (int i=0;i<numActions;i++) {
             byte type = history[i].type();
             out.writeByte(type);

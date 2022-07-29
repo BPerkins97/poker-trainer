@@ -2,6 +2,8 @@ package de.poker.solver.map;
 
 import de.poker.solver.ApplicationConfiguration;
 
+import java.util.Objects;
+
 public class Node {
     private int regret;
     private int regretGrowth;
@@ -12,14 +14,9 @@ public class Node {
         this.averageAction = averageAction;
     }
 
-    public int getRegretGrowth() {
-        return regretGrowth;
-    }
-
     public int getRegret() {
         return regret;
     }
-
 
     public void incrementAverageAction() {
         averageAction++;
@@ -36,5 +33,27 @@ public class Node {
     public void add(Node node) {
         this.regret = node.regret + regretGrowth;
         this.averageAction += node.averageAction;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Node node = (Node) o;
+        return regret == node.regret && regretGrowth == node.regretGrowth && averageAction == node.averageAction;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(regret, regretGrowth, averageAction);
+    }
+
+    @Override
+    public String toString() {
+        return "Node{" +
+                "regret=" + regret +
+                ", regretGrowth=" + regretGrowth +
+                ", averageAction=" + averageAction +
+                '}';
     }
 }

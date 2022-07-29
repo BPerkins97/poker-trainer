@@ -76,4 +76,9 @@ public record Action(byte type, short amount, String presentation) {
     public int hashCode() {
         return Objects.hash(type, amount);
     }
+
+    @Override
+    public String toString() {
+        return presentation;
+    }
 }

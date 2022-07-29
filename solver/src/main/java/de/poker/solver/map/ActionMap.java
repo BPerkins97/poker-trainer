@@ -29,10 +29,6 @@ public class ActionMap implements ActionMapInterface {
         return strategy;
     }
 
-    public void addAction(Action action, Node node) {
-        map.put(action, node);
-    }
-
     private Node getNode(Action a) {
         Node node = map.get(a);
         if (Objects.isNull(node)) {
@@ -75,5 +71,25 @@ public class ActionMap implements ActionMapInterface {
                 value.add(node);
             }
         });
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        ActionMap actionMap = (ActionMap) o;
+        return Objects.equals(map, actionMap.map);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(map);
+    }
+
+    @Override
+    public String toString() {
+        return "ActionMap{" +
+                "map=" + map +
+                '}';
     }
 }
