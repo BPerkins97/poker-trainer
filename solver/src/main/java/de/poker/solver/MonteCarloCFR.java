@@ -11,30 +11,6 @@ import java.util.Random;
 
 // As implemented in http://www.cs.cmu.edu/~noamb/papers/19-Science-Superhuman_Supp.pdf
 public class MonteCarloCFR {
-    public static double traverseMCCFR_NoPruning(HoldEmGameTree state, int traversingPlayerId, Random random) {
-        if (state.isGameOverForPlayer(traversingPlayerId)) {
-            return state.getPayoffForPlayer(traversingPlayerId);
-        } else {
-            List<Action> actions = state.actions();
-            if (state.isCurrentPlayer(traversingPlayerId)) {
-                ActionMap node = FileSystem.getActionMap(state.toInfoSet());
-                Strategy strategy = node.calculateStrategy(actions);
-                for (Action action : actions) {
-                    strategy.value(action, traverseMCCFR_NoPruning(state.takeAction(action), traversingPlayerId, random));
-                }
-                for (Action action : actions) {
-                    node.addRegretForAction(action, (int)strategy.normalizedValue(action));
-                }
-                return strategy.expectedValue();
-            } else {
-                ActionMap node = FileSystem.getActionMap(state.toInfoSet());
-                Strategy strategy = node.calculateStrategy(actions);
-                Action action = strategy.randomAction(random);
-                return traverseMCCFR_NoPruning(state.takeAction(action), traversingPlayerId, random);
-            }
-        }
-    }
-
     public static double traverseMCCFR_WithPruning(HoldEmGameTree state, int traversingPlayerId, Random random) {
         if (state.isGameOverForPlayer(traversingPlayerId)) {
             return state.getPayoffForPlayer(traversingPlayerId);

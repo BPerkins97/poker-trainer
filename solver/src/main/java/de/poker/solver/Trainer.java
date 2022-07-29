@@ -26,13 +26,7 @@ public class Trainer {
         startTime = System.currentTimeMillis();
         printDebugInfo();
         do {
-            double randomNumber = ThreadLocalRandom.current().nextDouble();
-            boolean prune = iterations > ApplicationConfiguration.PRUNING_THRESHOLD && randomNumber > 0.05;
-            if (prune) {
-                executorService.execute(this::doIterationWithPruning);
-            } else {
-                executorService.execute(this::doIterationNoPruning);
-            }
+            executorService.execute(this::doIteration);
             preventQueueFromOvergrowing();
         } while (true);
     }
@@ -52,14 +46,10 @@ public class Trainer {
         }
     }
 
-    private void doIterationWithPruning() {
+    private void doIteration() {
         HoldEmGameTree rootNode = HoldEmGameTree.getRandomRootState();
-        for (int i = 0; i < 25; i++) {
-            for (int p = 0; p < Constants.NUM_PLAYERS; p++) {
-                traverseMCCFR_WithPruning(rootNode, p, ThreadLocalRandom.current());
-            }
-        }
         for (int p = 0; p < Constants.NUM_PLAYERS; p++) {
+            traverseMCCFR_WithPruning(rootNode, p, ThreadLocalRandom.current());
             testForStrategy(rootNode, p);
         }
         incrementIterations();
@@ -74,18 +64,5 @@ public class Trainer {
         if (iterations % 100 == 0) {
             printDebugInfo();
         }
-    }
-
-    private void doIterationNoPruning() {
-        HoldEmGameTree rootNode = HoldEmGameTree.getRandomRootState();
-        for (int i = 0; i < 25; i++) {
-            for (int p = 0; p < Constants.NUM_PLAYERS; p++) {
-                traverseMCCFR_NoPruning(rootNode, p, ThreadLocalRandom.current());
-            }
-        }
-        for (int p = 0; p < Constants.NUM_PLAYERS; p++) {
-            testForStrategy(rootNode, p);
-        }
-        incrementIterations();
     }
 }
