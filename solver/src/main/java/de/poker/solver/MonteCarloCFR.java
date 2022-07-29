@@ -1,11 +1,11 @@
 package de.poker.solver;
 
+import de.poker.solver.map.InfoSet;
 import de.poker.solver.map.persistence.FileSystem;
 import de.poker.solver.game.Action;
 import de.poker.solver.game.HoldEmGameTree;
 import de.poker.solver.map.ActionMap;
 import de.poker.solver.map.Strategy;
-import de.poker.solver.map.persistence.InfoSetInterface;
 
 import java.util.List;
 import java.util.Random;
@@ -17,7 +17,7 @@ public class MonteCarloCFR {
             return state.getPayoffForPlayer(traversingPlayerId);
         } if (state.isCurrentPlayer(traversingPlayerId)) {
             List<Action> actions = state.actions();
-            InfoSetInterface key = state.toInfoSet();
+            InfoSet key = state.toInfoSet();
             ActionMap node = FileSystem.getActionMap(key);
             Strategy strategy = node.calculateStrategy(actions);
             for (Action action : actions) {

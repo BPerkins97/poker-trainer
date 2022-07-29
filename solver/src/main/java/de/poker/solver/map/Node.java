@@ -1,10 +1,11 @@
 package de.poker.solver.map;
 
 import de.poker.solver.ApplicationConfiguration;
+import net.openhft.chronicle.bytes.BytesMarshallable;
 
 import java.util.Objects;
 
-public class Node {
+public class Node implements BytesMarshallable {
     private int regret;
     private int regretGrowth;
     private short averageAction;

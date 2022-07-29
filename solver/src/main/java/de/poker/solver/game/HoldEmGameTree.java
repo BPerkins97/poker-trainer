@@ -2,7 +2,6 @@ package de.poker.solver.game;
 
 import de.poker.solver.BetSizeConfiguration;
 import de.poker.solver.map.InfoSet;
-import de.poker.solver.map.persistence.InfoSetInterface;
 import de.poker.solver.utility.CardInfoSetBuilder;
 
 import java.util.*;
@@ -475,10 +474,10 @@ public class HoldEmGameTree implements Cloneable {
         return nextActions;
     }
 
-    public InfoSetInterface toInfoSet() {
-        InfoSetInterface infoSet = new InfoSet();
-        infoSet.setCards(cardInfoSets[bettingRound][currentPlayer]);
-        infoSet.setHistory(history);
+    public InfoSet toInfoSet() {
+        InfoSet infoSet = new InfoSet();
+        infoSet.cards(cardInfoSets[bettingRound][currentPlayer]);
+        infoSet.history(history);
         return infoSet;
     }
 }

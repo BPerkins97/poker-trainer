@@ -1,32 +1,70 @@
 package de.poker.solver.map;
 
-import de.poker.solver.game.Action;
-import de.poker.solver.map.persistence.InfoSetInterface;
+import net.openhft.chronicle.bytes.BytesIn;
+import net.openhft.chronicle.bytes.BytesMarshallable;
+import net.openhft.chronicle.bytes.BytesOut;
+import net.openhft.chronicle.core.io.IORuntimeException;
 
+import java.nio.BufferOverflowException;
+import java.nio.BufferUnderflowException;
 import java.util.Arrays;
+import java.util.Objects;
 
-public class InfoSet implements InfoSetInterface {
+public class InfoSet implements BytesMarshallable {
     private byte[] cards;
     private byte[] history;
 
-    @Override
-    public byte[] getCards() {
+    public byte[] cards() {
         return cards;
     }
 
-    @Override
-    public void setCards(byte[] cards) {
+    public void cards(byte[] cards) {
         this.cards = cards;
     }
 
-    @Override
-    public byte[] getHistory() {
+    public byte[] history() {
         return history;
     }
 
-    @Override
-    public void setHistory(byte[] action) {
+    public void history(byte[] action) {
         this.history = action;
+    }
+
+    @Override
+    public void readMarshallable(BytesIn in) throws IORuntimeException, BufferUnderflowException, IllegalStateException {
+        byte numCards = in.readByte();
+        if (Objects.isNull(cards) || cards.length != numCards) {
+            cards = new byte[numCards];
+        }
+        for (int i=0;i<numCards;i++) {
+            cards[i] = in.readByte();
+        }
+
+        int numActionBytes = in.readByte() + Byte.MAX_VALUE;
+        if (Objects.isNull(history) || history.length != numActionBytes) {
+            history = new byte[numActionBytes];
+        }
+        for (int i=0;i<numActionBytes;i++) {
+            history[i] = in.readByte();
+        }
+    }
+
+    @Override
+    public void writeMarshallable(BytesOut out) throws IllegalStateException, BufferOverflowException, BufferUnderflowException, ArithmeticException {
+        int numCards = cards.length;
+        out.writeByte((byte) numCards);
+        for (int i=0;i<numCards;i++) {
+            out.writeByte(cards[i]);
+        }
+
+        int numActionBytes = 0;
+        if (!Objects.isNull(history)) {
+            numActionBytes = history.length;
+            out.writeByte((byte)(history.length - Byte.MAX_VALUE));
+        }
+        for (int i=0;i<numActionBytes;i++) {
+            out.writeByte(history[i]);
+        }
     }
 
     @Override

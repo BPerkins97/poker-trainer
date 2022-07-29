@@ -1,8 +1,10 @@
 package de.poker.solver.game;
 
+import net.openhft.chronicle.bytes.BytesMarshallable;
+
 import java.util.Objects;
 
-public record Action(byte type, short amount, String presentation) {
+public record Action(byte type, short amount, String presentation) implements BytesMarshallable {
     public static final byte FOLD = 1;
     public static final byte CALL = 2;
     public static final byte RAISE = 4;
