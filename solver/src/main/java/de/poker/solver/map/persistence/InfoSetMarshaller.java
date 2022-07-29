@@ -36,18 +36,13 @@ public class InfoSetMarshaller implements BytesWriter<InfoSetInterface>, BytesRe
         }
         using.setCards(cards);
 
-        int numActions = in.readByte() + Byte.MAX_VALUE;
-        Action[] history = using.getHistory();
-        if (Objects.isNull(history) || history.length != numActions) {
-            history = new Action[numActions];
+        int numActionBytes = in.readByte() + Byte.MAX_VALUE;
+        byte[] history = using.getHistory();
+        if (Objects.isNull(history) || history.length != numActionBytes) {
+            history = new byte[numActionBytes];
         }
-        for (int i=0;i<numActions;i++) {
-            byte type = in.readByte();
-            int amount = 0;
-            if (type == RAISE) {
-                amount = in.readByte() + Byte.MAX_VALUE;
-            }
-            history[i] = Action.of(type, amount);
+        for (int i=0;i<numActionBytes;i++) {
+            history[i] = in.readByte();
         }
         using.setHistory(history);
         return using;
@@ -62,19 +57,14 @@ public class InfoSetMarshaller implements BytesWriter<InfoSetInterface>, BytesRe
             out.writeByte(cards[i]);
         }
 
-        Action[] history = toWrite.getHistory();
-        int numActions = 0;
+        byte[] history = toWrite.getHistory();
+        int numActionBytes = 0;
         if (!Objects.isNull(history)) {
-            numActions = history.length;
+            numActionBytes = history.length;
             out.writeByte((byte)(history.length - Byte.MAX_VALUE));
         }
-        for (int i=0;i<numActions;i++) {
-            byte type = history[i].type();
-            out.writeByte(type);
-            if (type == RAISE) {
-                int amount = history[i].amount() - Byte.MAX_VALUE;
-                out.writeByte((byte)amount);
-            }
+        for (int i=0;i<numActionBytes;i++) {
+            out.writeByte(history[i]);
         }
     }
 }

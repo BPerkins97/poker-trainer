@@ -54,7 +54,7 @@ public class HoldEmGameTree implements Cloneable {
         ACTIONS[101] = Action.call();
     }
 
-    private Action[] history;
+    private byte[] history;
     public byte[][][] cardInfoSets;
     public byte currentPlayer;
     public byte playersWhoFolded;
@@ -226,12 +226,15 @@ public class HoldEmGameTree implements Cloneable {
             }
             next.determineNextPlayer();
             next.setNextActions();
+            int numBytesForAction = action.type() == Action.RAISE ? 2 : 1;
             if (Objects.isNull(history)) {
-                next.history = new Action[1];
-                next.history[0] = action;
+                next.history = new byte[numBytesForAction];
             } else {
-                next.history = Arrays.copyOf(history, history.length+1);
-                next.history[history.length] = action;
+                next.history = Arrays.copyOf(history, history.length+numBytesForAction);
+            }
+            next.history[next.history.length-numBytesForAction] = action.type();
+            if (action.type() == Action.RAISE) {
+                next.history[next.history.length-1] = (byte) (action.amount() - Byte.MAX_VALUE);
             }
             return next;
         } catch (CloneNotSupportedException e) {
@@ -460,7 +463,7 @@ public class HoldEmGameTree implements Cloneable {
         return isGameOver;
     }
 
-    public Action[] history() {
+    public byte[] history() {
         return history;
     }
 

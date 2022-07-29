@@ -7,7 +7,7 @@ import java.util.Arrays;
 
 public class InfoSet implements InfoSetInterface {
     private byte[] cards;
-    private Action[] history;
+    private byte[] history;
 
     @Override
     public byte[] getCards() {
@@ -20,12 +20,12 @@ public class InfoSet implements InfoSetInterface {
     }
 
     @Override
-    public Action[] getHistory() {
+    public byte[] getHistory() {
         return history;
     }
 
     @Override
-    public void setHistory(Action[] action) {
+    public void setHistory(byte[] action) {
         this.history = action;
     }
 

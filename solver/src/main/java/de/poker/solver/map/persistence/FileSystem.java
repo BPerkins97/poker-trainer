@@ -16,7 +16,7 @@ public class FileSystem {
     static {
         InfoSet averageKey = new InfoSet();
         averageKey.setCards(new byte[]{52,41,37,13,15,1,5});
-        averageKey.setHistory(new Action[]{Action.call(), Action.call(), Action.call(), Action.call(), Action.call(), Action.call(), Action.call(), Action.call(), Action.call(), Action.call(), Action.call(), Action.call(), Action.call(), Action.call(), Action.call(), Action.call(), Action.call(), Action.raise(100), Action.raise(13), Action.raise(64), Action.raise(5), Action.raise(100), Action.raise(100), Action.raise(100), Action.raise(100), Action.raise(100), Action.raise(100), Action.raise(100), Action.raise(55), Action.raise(12), Action.raise(100)});
+        averageKey.setHistory(new byte[]{1, 2, 4, 5, 4, 10, 1, 1, 1, 2, 2, 4, -50, 4, 50, 4, -50});
 
         HashMap<Action, Node> averageMap = new HashMap<>();
         averageMap.put(Action.fold(), new Node(0, (short) 0));
