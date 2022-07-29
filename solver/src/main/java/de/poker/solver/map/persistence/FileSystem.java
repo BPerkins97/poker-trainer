@@ -20,7 +20,7 @@ public class FileSystem {
                     .name("poker-trainer-map")
                     .averageKeySize(200)
                     .averageValueSize(80)
-                    .entries(10_000_000L)
+                    .entries(1_000_000L)
                     .createPersistedTo(new File("C:/Temp/tst.txt"));
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -51,6 +51,7 @@ public class FileSystem {
 
     public synchronized static void close() {
         if (MAP.isOpen()) {
+            System.out.println("Closing file system");
             MAP.close();
         }
     }

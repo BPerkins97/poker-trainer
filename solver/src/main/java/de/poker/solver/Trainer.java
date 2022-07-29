@@ -23,6 +23,7 @@ public class Trainer {
     }
 
     public void start() {
+        running = true;
         run();
     }
 
@@ -36,13 +37,15 @@ public class Trainer {
             executorService.execute(this::doIteration);
             preventQueueFromOvergrowing();
         } while (running);
+        executorService.getQueue().clear();
         try {
-            executorService.awaitTermination(5L, TimeUnit.MINUTES);
+            executorService.awaitTermination(10L, TimeUnit.SECONDS);
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
-        } finally {
-            FileSystem.close();
         }
+        executorService.shutdown();
+        System.out.println("stopping");
+        FileSystem.close();
     }
 
     public void printDebugInfo() {
@@ -65,7 +68,11 @@ public class Trainer {
         for (int p = 0; p < Constants.NUM_PLAYERS; p++) {
             traverse(rootNode, p, ThreadLocalRandom.current());
         }
-        iterations++;
+        incrementIteration();
         // TODO enable this later seems to be broken updateStrategy(rootNode, ThreadLocalRandom.current());
+    }
+
+    private synchronized void incrementIteration() {
+        iterations++;
     }
 }

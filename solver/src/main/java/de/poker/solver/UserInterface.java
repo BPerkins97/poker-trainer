@@ -24,6 +24,7 @@ public class UserInterface {
                 trainer.printDebugInfo();
             }
         } while (!input.equals("stop"));
+        System.out.println("Stopped");
         trainer.stop();
     }
 }
