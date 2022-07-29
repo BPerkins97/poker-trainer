@@ -2,17 +2,21 @@ package de.poker.solver;
 
 import de.poker.solver.game.Constants;
 import de.poker.solver.game.HoldEmGameTree;
+import de.poker.solver.map.persistence.FileSystem;
 
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 import static de.poker.solver.MonteCarloCFR.*;
 
 public class Trainer {
     private final ThreadPoolExecutor executorService;
-    int iterations;
+    volatile int iterations;
     long startTime;
+
+    volatile boolean running = false;
 
     public Trainer() {
         executorService = (ThreadPoolExecutor) Executors.newFixedThreadPool(ApplicationConfiguration.NUM_THREADS);
@@ -22,16 +26,26 @@ public class Trainer {
         run();
     }
 
+    public void stop() {
+        running = false;
+    }
+
     private void run() {
         startTime = System.currentTimeMillis();
-        printDebugInfo();
         do {
             executorService.execute(this::doIteration);
             preventQueueFromOvergrowing();
-        } while (true);
+        } while (running);
+        try {
+            executorService.awaitTermination(5L, TimeUnit.MINUTES);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        } finally {
+            FileSystem.close();
+        }
     }
 
-    private void printDebugInfo() {
+    public void printDebugInfo() {
         long time = (System.currentTimeMillis() - startTime) / 1000;
         System.out.println("Ran for " + time + " seconds and iterated " + iterations + " times");
     }
@@ -50,19 +64,8 @@ public class Trainer {
         HoldEmGameTree rootNode = HoldEmGameTree.getRandomRootState();
         for (int p = 0; p < Constants.NUM_PLAYERS; p++) {
             traverse(rootNode, p, ThreadLocalRandom.current());
-            testForStrategy(rootNode, p);
         }
-        incrementIterations();
-    }
-
-    private void testForStrategy(HoldEmGameTree rootNode, int player) {
-        // TODO this has a memory leakupdateStrategy(nodeMap, rootNode, player, ThreadLocalRandom.current());
-    }
-
-    private synchronized void incrementIterations() {
         iterations++;
-        if (iterations % 100 == 0) {
-            printDebugInfo();
-        }
+        // TODO enable this later seems to be broken updateStrategy(rootNode, ThreadLocalRandom.current());
     }
 }

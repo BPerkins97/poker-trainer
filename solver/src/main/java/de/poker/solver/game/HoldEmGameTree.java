@@ -124,19 +124,6 @@ public class HoldEmGameTree implements Cloneable {
         return new HoldEmGameTree(deck);
     }
 
-    public static HoldEmGameTree getRandomRootState(Random random) {
-        int numCards = Constants.NUM_PLAYERS * 2 + 5;
-        Card[] deck = new Card[numCards];
-        for (int i = 0; i < numCards; i++) {
-            Card card;
-            do {
-                card = Card.randomCard(random);
-            } while (cardAlreadyInDeck(deck, card, i));
-            deck[i] = card;
-        }
-        return new HoldEmGameTree(deck);
-    }
-
     public static boolean cardAlreadyInDeck(Card[] deck, Card card, int insertAtPosition) {
         for (int i = 0; i < insertAtPosition; i++) {
             if (deck[i] == card) {

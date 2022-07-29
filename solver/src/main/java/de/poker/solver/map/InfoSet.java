@@ -40,7 +40,7 @@ public class InfoSet implements BytesMarshallable {
             cards[i] = in.readByte();
         }
 
-        int numActionBytes = in.readByte() + Byte.MAX_VALUE;
+        int numActionBytes = in.readShort();
         if (Objects.isNull(history) || history.length != numActionBytes) {
             history = new byte[numActionBytes];
         }
@@ -57,11 +57,12 @@ public class InfoSet implements BytesMarshallable {
             out.writeByte(cards[i]);
         }
 
-        int numActionBytes = 0;
+        short numActionBytes = 0;
         if (!Objects.isNull(history)) {
-            numActionBytes = history.length;
+            numActionBytes = (short) history.length;
             out.writeByte((byte)(history.length - Byte.MAX_VALUE));
         }
+        assert numActionBytes >= 0;
         for (int i=0;i<numActionBytes;i++) {
             out.writeByte(history[i]);
         }

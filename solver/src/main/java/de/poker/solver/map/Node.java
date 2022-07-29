@@ -6,9 +6,14 @@ import net.openhft.chronicle.bytes.BytesMarshallable;
 import java.util.Objects;
 
 public class Node implements BytesMarshallable {
-    private int regret;
-    private int regretGrowth;
-    private short averageAction;
+    int regret;
+    int regretGrowth;
+    short averageAction;
+    byte numTouchedSinceLastDiscount;
+    byte numDiscounted;
+
+    public Node() {
+    }
 
     public Node(int regret, short averageAction) {
         this.regret = Math.max(regret, ApplicationConfiguration.MINIMUM_REGRET);
@@ -34,6 +39,15 @@ public class Node implements BytesMarshallable {
     public void add(Node node) {
         this.regret = node.regret + regretGrowth;
         this.averageAction += node.averageAction;
+        if (node.numDiscounted < 100) {
+            if (node.numTouchedSinceLastDiscount > 100) {
+                this.numDiscounted = (byte)(node.numDiscounted + 1);
+                this.numTouchedSinceLastDiscount = Byte.MIN_VALUE;
+                this.regret *= (double) node.numDiscounted / this.numDiscounted;
+            } else {
+                this.numTouchedSinceLastDiscount = (byte) (node.numTouchedSinceLastDiscount + 1);
+            }
+        }
     }
 
     @Override
@@ -56,5 +70,10 @@ public class Node implements BytesMarshallable {
                 ", regretGrowth=" + regretGrowth +
                 ", averageAction=" + averageAction +
                 '}';
+    }
+
+    public void makePersistable() {
+        this.regret = regretGrowth;
+        this.numTouchedSinceLastDiscount = Byte.MIN_VALUE;
     }
 }

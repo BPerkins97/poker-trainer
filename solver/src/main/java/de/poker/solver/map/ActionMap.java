@@ -71,6 +71,8 @@ public class ActionMap implements BytesMarshallable {
             Node node = persisted.getMap().get(key);
             if (!Objects.isNull(node)) {
                 value.add(node);
+            } else {
+                value.makePersistable();
             }
         });
     }
@@ -88,6 +90,8 @@ public class ActionMap implements BytesMarshallable {
             int regret = in.readInt();
             short averageAction =  in.readShort();
             Node node = new Node(regret, averageAction);
+            node.numTouchedSinceLastDiscount = in.readByte();
+            node.numDiscounted = in.readByte();
             map.put(action, node);
         }
     }
@@ -104,6 +108,8 @@ public class ActionMap implements BytesMarshallable {
                 out.writeShort(action.amount());
                 out.writeInt(node.getRegret());
                 out.writeShort(node.getAverageAction());
+                out.writeByte(node.numTouchedSinceLastDiscount);
+                out.writeByte(node.numDiscounted);
             });
         }
     }

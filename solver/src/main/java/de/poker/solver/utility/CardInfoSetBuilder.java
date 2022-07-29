@@ -97,6 +97,21 @@ public class CardInfoSetBuilder {
         return cardInfoSetBuilder.toLong();
     }
 
+    public static List<Card> toNormalizedList(List<Card> cards) {
+        CardInfoSetBuilder cardInfoSetBuilder = new CardInfoSetBuilder();
+        cardInfoSetBuilder.appendHoleCards(cards.get(0), cards.get(1));
+        if (cards.size() >= 5) {
+            cardInfoSetBuilder.appendFlop(cards.get(2), cards.get(3), cards.get(4));
+        }
+        if (cards.size() >= 6) {
+            cardInfoSetBuilder.appendCard(cards.get(5));
+        }
+        if (cards.size() >= 7) {
+            cardInfoSetBuilder.appendCard(cards.get(6));
+        }
+        return cardInfoSetBuilder.cards;
+    }
+
     public List<Card> cards() {
         return cards;
     }

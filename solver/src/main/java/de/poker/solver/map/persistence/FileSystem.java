@@ -14,25 +14,13 @@ public class FileSystem {
     private static ChronicleMap<InfoSet, ActionMap> MAP;
 
     static {
-        InfoSet averageKey = new InfoSet();
-        averageKey.cards(new byte[]{52,41,37,13,15,1,5});
-        averageKey.history(new byte[]{1, 2, 4, 5, 4, 10, 1, 1, 1, 2, 2, 4, -50, 4, 50, 4, -50});
-
-        HashMap<Action, Node> averageMap = new HashMap<>();
-        averageMap.put(Action.fold(), new Node(0, (short) 0));
-        averageMap.put(Action.call(), new Node(0, (short) 0));
-        averageMap.put(Action.raise(50), new Node(0, (short) 0));
-        averageMap.put(Action.raise(100), new Node(0, (short) 0));
-        averageMap.put(Action.raise(150), new Node(0, (short) 0));
-        ActionMap averageValue = new ActionMap();
-        averageValue.setMap(averageMap);
         try {
             MAP = ChronicleMapBuilder
                     .of(InfoSet.class, ActionMap.class)
                     .name("poker-trainer-map")
-                    .averageKey(averageKey)
-                    .entries(1_000_000)
-                    .averageValue(averageValue)
+                    .averageKeySize(200)
+                    .averageValueSize(80)
+                    .entries(10_000_000L)
                     .createPersistedTo(new File("C:/Temp/tst.txt"));
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -41,7 +29,6 @@ public class FileSystem {
 
     private FileSystem() {}
 
-
     public synchronized static ActionMap get(InfoSet key) {
         return MAP.get(key);
     }
@@ -49,7 +36,7 @@ public class FileSystem {
     public synchronized static void update(InfoSet key, ActionMap toPersist) {
         ActionMap persisted = MAP.get(key);
         toPersist.add(persisted);
-        MAP.replace(key, persisted, toPersist);
+        MAP.put(key, toPersist);
     }
 
     public synchronized static ActionMap getActionMap(InfoSet key) {
@@ -59,6 +46,12 @@ public class FileSystem {
             actionMap.setMap(new HashMap<>());
             MAP.putIfAbsent(key, actionMap);
         }
-        return (ActionMap) actionMap;
+        return actionMap;
+    }
+
+    public synchronized static void close() {
+        if (MAP.isOpen()) {
+            MAP.close();
+        }
     }
 }
