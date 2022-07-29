@@ -68,9 +68,9 @@ public class ActionMap implements ActionMapInterface {
     }
 
     @Override
-    public void add(ActionMapInterface toPersist) {
+    public void add(ActionMapInterface persisted) {
         map.forEach((key, value) -> {
-            Node node = toPersist.getMap().get(key);
+            Node node = persisted.getMap().get(key);
             if (!Objects.isNull(node)) {
                 value.add(node);
             }

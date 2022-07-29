@@ -34,7 +34,7 @@ public class Node {
     }
 
     public void add(Node node) {
-        this.regret += node.regretGrowth;
+        this.regret = node.regret + regretGrowth;
         this.averageAction += node.averageAction;
     }
 }

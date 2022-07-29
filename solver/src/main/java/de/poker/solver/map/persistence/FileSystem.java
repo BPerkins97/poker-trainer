@@ -50,8 +50,8 @@ public class FileSystem {
 
     public synchronized static void update(InfoSetInterface key, ActionMapInterface toPersist) {
         ActionMapInterface persisted = MAP.get(key);
-        persisted.add(toPersist);
-        MAP.replace(key, toPersist);
+        toPersist.add(persisted);
+        MAP.replace(key, persisted, toPersist);
     }
 
     public synchronized static ActionMap getActionMap(InfoSetInterface key) {
