@@ -1,9 +1,7 @@
-package de.poker.solver.map;
+package de.poker.solver.map.persistence;
 
 import de.poker.solver.game.Action;
-import de.poker.solver.game.Card;
-import de.poker.solver.game.Suit;
-import de.poker.solver.game.Value;
+import de.poker.solver.map.InfoSet;
 import net.openhft.chronicle.bytes.Bytes;
 import net.openhft.chronicle.core.util.ReadResolvable;
 import net.openhft.chronicle.hash.serialization.BytesReader;

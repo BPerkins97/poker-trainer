@@ -12,7 +12,7 @@ public class Node implements NodeInterface {
     }
 
     @Override
-    public synchronized int getRegret() {
+    public int getRegret() {
         return regret;
     }
 
@@ -21,7 +21,7 @@ public class Node implements NodeInterface {
         this.regret = regret;
     }
 
-    public synchronized void incrementAverageAction() {
+    public void incrementAverageAction() {
         averageAction++;
     }
 

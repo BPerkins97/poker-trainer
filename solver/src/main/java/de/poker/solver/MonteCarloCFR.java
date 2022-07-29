@@ -1,6 +1,6 @@
 package de.poker.solver;
 
-import de.poker.solver.database.FileSystem;
+import de.poker.solver.map.persistence.FileSystem;
 import de.poker.solver.game.Action;
 import de.poker.solver.game.HoldEmGameTree;
 import de.poker.solver.map.ActionMap;
@@ -17,7 +17,7 @@ public class MonteCarloCFR {
         } else {
             List<Action> actions = state.actions();
             if (state.isCurrentPlayer(traversingPlayerId)) {
-                ActionMap node = FileSystem.getActionMap(state);
+                ActionMap node = FileSystem.getActionMap(state.toInfoSet());
                 Strategy strategy = node.calculateStrategy(actions);
                 for (Action action : actions) {
                     strategy.value(action, traverseMCCFR_NoPruning(state.takeAction(action), traversingPlayerId, random));
@@ -27,7 +27,7 @@ public class MonteCarloCFR {
                 }
                 return strategy.expectedValue();
             } else {
-                ActionMap node = FileSystem.getActionMap(state);
+                ActionMap node = FileSystem.getActionMap(state.toInfoSet());
                 Strategy strategy = node.calculateStrategy(actions);
                 Action action = strategy.randomAction(random);
                 return traverseMCCFR_NoPruning(state.takeAction(action), traversingPlayerId, random);
@@ -40,7 +40,7 @@ public class MonteCarloCFR {
             return state.getPayoffForPlayer(traversingPlayerId);
         } else if (state.isCurrentPlayer(traversingPlayerId)) {
             List<Action> actions = state.actions();
-            ActionMap node = FileSystem.getActionMap(state);
+            ActionMap node = FileSystem.getActionMap(state.toInfoSet());
             Strategy strategy = node.calculateStrategy(actions);
             for (Action action : actions) {
                 if (node.regretForActionisAboveLimit(action, ApplicationConfiguration.MINIMUM_REGRET)) {
@@ -55,7 +55,7 @@ public class MonteCarloCFR {
             }
             return strategy.expectedValue();
         } else {
-            ActionMap node = FileSystem.getActionMap(state);
+            ActionMap node = FileSystem.getActionMap(state.toInfoSet());
             Strategy strategy = node.calculateStrategy(state.actions());
             HoldEmGameTree nextState = state.takeAction(strategy.randomAction(random));
             return traverseMCCFR_WithPruning(nextState, traversingPlayerId, random);
@@ -68,7 +68,7 @@ public class MonteCarloCFR {
         } else {
             List<Action> actions = state.actions();
             if (state.isCurrentPlayer(traversingPlayer)) {
-                ActionMap node = FileSystem.getActionMap(state);
+                ActionMap node = FileSystem.getActionMap(state.toInfoSet());
                 Strategy strategy = node.calculateStrategy(actions);
                 Action chosenAction = strategy.randomAction(random);
                 node.visitAction(chosenAction);

@@ -1,7 +1,5 @@
 package de.poker.solver;
 
-import java.sql.SQLException;
-
 // TODO write tests for everything
 // TODO build poker app to play against
 // TODO put config into database

@@ -1,8 +1,7 @@
-package de.poker.solver.database;
+package de.poker.solver.map.persistence;
 
-import de.poker.solver.game.*;
+import de.poker.solver.game.Action;
 import de.poker.solver.map.*;
-import jnr.ffi.annotations.In;
 import net.openhft.chronicle.map.ChronicleMap;
 import net.openhft.chronicle.map.ChronicleMapBuilder;
 
@@ -45,16 +44,15 @@ public class FileSystem {
     private FileSystem() {}
 
 
-    public static ActionMapInterface get(InfoSetInterface key) {
+    public synchronized static ActionMapInterface get(InfoSetInterface key) {
         return MAP.get(key);
     }
 
-    public static void update(InfoSet key, ActionMapInterface actionMap) {
+    public synchronized static void update(InfoSet key, ActionMapInterface actionMap) {
         MAP.replace(key, actionMap);
     }
 
-    public static ActionMap getActionMap(HoldEmGameTree state) {
-        InfoSetInterface key = state.toInfoSet();
+    public synchronized static ActionMap getActionMap(InfoSetInterface key) {
         ActionMapInterface actionMap = get(key);
         if (Objects.isNull(actionMap)) {
             actionMap = new ActionMap();

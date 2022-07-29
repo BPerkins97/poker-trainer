@@ -1,6 +1,5 @@
 package de.poker.solver;
 
-import de.poker.solver.database.FileSystem;
 import de.poker.solver.game.Constants;
 import de.poker.solver.game.HoldEmGameTree;
 

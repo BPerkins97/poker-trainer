@@ -1,7 +1,7 @@
 package de.poker.solver.map;
 
 import de.poker.solver.game.Action;
-import de.poker.solver.game.Card;
+import de.poker.solver.map.persistence.InfoSetInterface;
 
 public class InfoSet implements InfoSetInterface {
     private byte[] cards;

@@ -2,7 +2,7 @@ package de.poker.solver.game;
 
 import de.poker.solver.BetSizeConfiguration;
 import de.poker.solver.map.InfoSet;
-import de.poker.solver.map.InfoSetInterface;
+import de.poker.solver.map.persistence.InfoSetInterface;
 import de.poker.solver.utility.CardInfoSetBuilder;
 
 import java.util.*;

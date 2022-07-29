@@ -1,6 +1,7 @@
 package de.poker.solver.map;
 
 import de.poker.solver.game.Action;
+import de.poker.solver.map.persistence.ActionMapInterface;
 
 import java.util.List;
 import java.util.Map;
@@ -14,13 +15,11 @@ public class ActionMap implements ActionMapInterface {
     public Strategy calculateStrategy(List<Action> actions) {
         double sum = 0;
         Strategy strategy = new Strategy(actions);
-        synchronized (map) {
-            for (Action action : actions) {
-                Node node = getNode(action);
-                int max = Math.max(0, node.getRegret());
-                strategy.probabilityFor(action, max);
-                sum += max;
-            }
+        for (Action action : actions) {
+            Node node = getNode(action);
+            int max = Math.max(0, node.getRegret());
+            strategy.probabilityFor(action, max);
+            sum += max;
         }
         if (sum > 0) {
             strategy.normalize(sum);
@@ -44,14 +43,12 @@ public class ActionMap implements ActionMapInterface {
     }
 
     private Node getOrPut(Action a) {
-        synchronized (map) {
-            Node node = map.get(a);
-            if (Objects.isNull(node)) {
-                node = new Node(0, (short) 0);
-                map.put(a, node);
-            }
-            return node;
+        Node node = map.get(a);
+        if (Objects.isNull(node)) {
+            node = new Node(0, (short) 0);
+            map.put(a, node);
         }
+        return node;
     }
 
     public void visitAction(Action action) {
@@ -66,9 +63,7 @@ public class ActionMap implements ActionMapInterface {
 
     public boolean regretForActionisAboveLimit(Action action, int limit) {
         Node node = getNode(action);
-        synchronized (node) {
-            return node.getRegret() > limit;
-        }
+        return node.getRegret() > limit;
     }
 
     @Override
