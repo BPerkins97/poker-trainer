@@ -9,7 +9,7 @@ import java.util.Objects;
 
 // TODO https://www.nakivo.com/blog/how-to-use-remote-desktop-connection-ubuntu-linux-walkthrough/
 public class ActionMap implements ActionMapInterface {
-    Map<Action, Node> map;
+    private Map<Action, Node> map;
     // Reuse this object for performance reasons
 
     public Strategy calculateStrategy(List<Action> actions) {
@@ -34,15 +34,6 @@ public class ActionMap implements ActionMapInterface {
     }
 
     private Node getNode(Action a) {
-        Node node = map.get(a);
-        if (Objects.isNull(node)) {
-            return getOrPut(a);
-        } else {
-            return node;
-        }
-    }
-
-    private Node getOrPut(Action a) {
         Node node = map.get(a);
         if (Objects.isNull(node)) {
             node = new Node(0, (short) 0);
@@ -74,5 +65,15 @@ public class ActionMap implements ActionMapInterface {
     @Override
     public void setMap(Map<Action, Node> map) {
         this.map = map;
+    }
+
+    @Override
+    public void add(ActionMapInterface toPersist) {
+        map.forEach((key, value) -> {
+            Node node = toPersist.getMap().get(key);
+            if (!Objects.isNull(node)) {
+                value.add(node);
+            }
+        });
     }
 }

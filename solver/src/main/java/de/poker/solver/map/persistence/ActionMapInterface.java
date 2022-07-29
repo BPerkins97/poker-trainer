@@ -8,4 +8,5 @@ import java.util.Map;
 public interface ActionMapInterface {
     Map<Action, Node> getMap();
     void setMap(Map<Action, Node> map);
+    void add(ActionMapInterface toPersist);
 }

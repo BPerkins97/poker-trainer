@@ -49,7 +49,7 @@ public class Trainer {
     private void doIteration() {
         HoldEmGameTree rootNode = HoldEmGameTree.getRandomRootState();
         for (int p = 0; p < Constants.NUM_PLAYERS; p++) {
-            traverseMCCFR_WithPruning(rootNode, p, ThreadLocalRandom.current());
+            traverse(rootNode, p, ThreadLocalRandom.current());
             testForStrategy(rootNode, p);
         }
         incrementIterations();

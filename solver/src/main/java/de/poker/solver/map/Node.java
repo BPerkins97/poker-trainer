@@ -2,8 +2,9 @@ package de.poker.solver.map;
 
 import de.poker.solver.ApplicationConfiguration;
 
-public class Node implements NodeInterface {
+public class Node {
     private int regret;
+    private int regretGrowth;
     private short averageAction;
 
     public Node(int regret, short averageAction) {
@@ -11,31 +12,29 @@ public class Node implements NodeInterface {
         this.averageAction = averageAction;
     }
 
-    @Override
+    public int getRegretGrowth() {
+        return regretGrowth;
+    }
+
     public int getRegret() {
         return regret;
     }
 
-    @Override
-    public void setRegret(int regret) {
-        this.regret = regret;
-    }
 
     public void incrementAverageAction() {
         averageAction++;
     }
 
-    @Override
     public short getAverageAction() {
         return averageAction;
     }
 
-    @Override
-    public void setAverageAction(short averageAction) {
-        this.averageAction = averageAction;
+    public void addRegret(int regret) {
+        this.regretGrowth += regret;
     }
 
-    public void addRegret(int regret) {
-        this.regret += regret;
+    public void add(Node node) {
+        this.regret += node.regretGrowth;
+        this.averageAction += node.averageAction;
     }
 }
