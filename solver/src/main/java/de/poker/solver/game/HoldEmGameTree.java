@@ -463,6 +463,7 @@ public class HoldEmGameTree implements Cloneable {
 
     public InfoSet toInfoSet() {
         InfoSet infoSet = new InfoSet();
+        infoSet.player(currentPlayer);
         infoSet.cards(cardInfoSets[bettingRound][currentPlayer]);
         infoSet.history(history);
         return infoSet;

@@ -11,6 +11,7 @@ import java.util.Arrays;
 import java.util.Objects;
 
 public class InfoSet implements BytesMarshallable {
+    private byte player;
     private byte[] cards;
     private byte[] history;
 
@@ -28,6 +29,14 @@ public class InfoSet implements BytesMarshallable {
 
     public void history(byte[] action) {
         this.history = action;
+    }
+
+    public byte player() {
+        return player;
+    }
+
+    public void player(byte player) {
+        this.player = player;
     }
 
     @Override
