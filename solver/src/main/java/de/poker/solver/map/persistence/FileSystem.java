@@ -1,65 +1,91 @@
 package de.poker.solver.map.persistence;
 
+import de.poker.solver.game.Card;
 import de.poker.solver.game.Constants;
-import de.poker.solver.game.HoldEmGameTree;
 import de.poker.solver.map.ActionMap;
 import de.poker.solver.map.InfoSet;
+import de.poker.solver.utility.CardInfoSetBuilder;
 import net.openhft.chronicle.map.ChronicleMap;
 import net.openhft.chronicle.map.ChronicleMapBuilder;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Objects;
+import java.util.*;
 
 public class FileSystem {
-    private static ChronicleMap<InfoSet, ActionMap>[] MAP = new ChronicleMap[Constants.NUM_PLAYERS];
+    private static Map<String, ChronicleMap<InfoSet, ActionMap>>[] MAP = new Map[Constants.NUM_PLAYERS];
 
     static {
-        File file = new File("root/poker");
-        file.mkdir();
-        try {
-            for (int i=0;i<Constants.NUM_PLAYERS;i++) {
-                MAP[i] = ChronicleMapBuilder
-                        .of(InfoSet.class, ActionMap.class)
-                        .name("poker-trainer-map")
-                        .averageKeySize(200)
-                        .averageValueSize(80)
-                        .entries(100_000_000L)
-                        .createPersistedTo(new File("/root/poker/tst" + i + " .txt"));
+        for (int k=0;k<Constants.NUM_PLAYERS;k++) {
+            MAP[k] = new HashMap<>();
+        }
+        for (int i=0;i<Card.NUM_CARDS;i++) {
+            for (int j=i+1;j<Card.NUM_CARDS;j++) {
+                for (int k=0;k<Constants.NUM_PLAYERS;k++) {
+                    List<Card> cards = CardInfoSetBuilder.toNormalizedList(Arrays.asList(Card.of(i), Card.of(j)));
+                    String key = cards.get(0).toString() + cards.get(1).toString();
+                    String pathName = "/root/poker/player" + k;
+                    String fileName = pathName + "/" + key + ".txt";
+                    File file = new File(fileName);
+                    File directory = new File(pathName);
+                    if (file.exists()) {
+                        break;
+                    }
+
+                    directory.mkdirs();
+                    try {
+                        ChronicleMap<InfoSet, ActionMap> persistedTo = ChronicleMapBuilder
+                                .of(InfoSet.class, ActionMap.class)
+                                .name("poker-trainer-map-" + k + "-" + key)
+                                .averageKeySize(200)
+                                .averageValueSize(80)
+                                .entries(1_000_000L)
+                                .createPersistedTo(file);
+                        MAP[k].put(key, persistedTo);
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
+                }
             }
-        } catch (IOException e) {
-            throw new RuntimeException(e);
         }
     }
 
     private FileSystem() {}
 
+    private static ChronicleMap<InfoSet, ActionMap> getMap(InfoSet key) {
+        return MAP[key.player()].get(key.holeCards());
+    }
+
     public static void update(InfoSet key, ActionMap toPersist) {
-        synchronized (MAP[key.player()]) {
-            ActionMap persisted = MAP[key.player()].get(key);
+        ChronicleMap<InfoSet, ActionMap> map = getMap(key);
+        synchronized (map) {
+            ActionMap persisted = map.get(key);
             toPersist.add(persisted);
-            MAP[key.player()].put(key, toPersist);
+            map.put(key, toPersist);
         }
     }
 
     public synchronized static ActionMap getActionMap(InfoSet key) {
-        synchronized (MAP[key.player()]) {
-            ActionMap actionMap = MAP[key.player()].get(key);
+        ChronicleMap<InfoSet, ActionMap> map = getMap(key);
+        synchronized (map) {
+            ActionMap actionMap = map.get(key);
             if (Objects.isNull(actionMap)) {
                 actionMap = new ActionMap();
                 actionMap.setMap(new HashMap<>());
-                MAP[key.player()].putIfAbsent(key, actionMap);
+                map.putIfAbsent(key, actionMap);
             }
             return actionMap;
         }
     }
 
     public synchronized static void close() {
-        for (int i=0;i<Constants.NUM_PLAYERS;i++)
-        if (MAP[i].isOpen()) {
-            MAP[i].close();
-            System.out.println("Closed file for player " + i);
+        for (int i=0;i<Constants.NUM_PLAYERS;i++) {
+            for (ChronicleMap<InfoSet, ActionMap> value : MAP[i].values()) {
+                if (value.isOpen()) {
+                    value.close();
+                }
+            }
+            System.out.println("Closed files for player " + i);
         }
     }
 }

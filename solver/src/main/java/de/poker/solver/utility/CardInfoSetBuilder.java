@@ -127,4 +127,13 @@ public class CardInfoSetBuilder {
         }
         return bytes;
     }
+
+    @Override
+    public String toString() {
+        StringBuilder stringBuilder = new StringBuilder(cards.size()*2);
+        for (int i=0;i<cards.size();i++) {
+            stringBuilder.append(cards.get(i));
+        }
+        return stringBuilder.toString();
+    }
 }

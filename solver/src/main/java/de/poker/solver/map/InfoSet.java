@@ -14,6 +14,7 @@ public class InfoSet implements BytesMarshallable {
     private byte player;
     private byte[] cards;
     private byte[] history;
+    private String holeCards;
 
     public byte[] cards() {
         return cards;
@@ -21,6 +22,14 @@ public class InfoSet implements BytesMarshallable {
 
     public void cards(byte[] cards) {
         this.cards = cards;
+    }
+
+    public String holeCards() {
+        return holeCards;
+    }
+
+    public void holeCards(String holeCards) {
+        this.holeCards = holeCards;
     }
 
     public byte[] history() {

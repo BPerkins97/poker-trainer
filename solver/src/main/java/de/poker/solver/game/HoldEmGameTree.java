@@ -31,8 +31,6 @@ public class HoldEmGameTree implements Cloneable {
     public static final int BETTING_ROUND_FLOP = 1;
     public static final int BETTING_ROUND_TURN = 2;
     public static final int BETTING_ROUND_RIVER = 3;
-    public static final int ACTION_ID_FOLD = 100;
-    public static final int ACTION_ID_CALL = 101;
 
     static {
         for (int i = 0; i < Constants.NUM_PLAYERS; i++) {
@@ -55,6 +53,7 @@ public class HoldEmGameTree implements Cloneable {
 
     private byte[] history;
     public byte[][][] cardInfoSets;
+    private String[] holeCards;
     public byte currentPlayer;
     public byte playersWhoFolded;
     public long playersStacks;
@@ -77,6 +76,7 @@ public class HoldEmGameTree implements Cloneable {
         currentPlayer = BETTING_ORDER_PER_ROUND[0][0];
         cardInfoSets = new byte[Constants.NUM_BETTING_ROUNDS][Constants.NUM_PLAYERS][Constants.NUM_CARDS_IN_HAND];
         lastRaiser = -1;
+        holeCards = new String[Constants.NUM_PLAYERS];
         long[] playersHands = new long[Constants.NUM_PLAYERS];
         for (int i = 0; i < Constants.NUM_PLAYERS; i++) {
             int startIndex = 2 * i;
@@ -84,6 +84,7 @@ public class HoldEmGameTree implements Cloneable {
             CardInfoSetBuilder infoSetBuilder = new CardInfoSetBuilder();
             infoSetBuilder.appendHoleCards(deck[startIndex], deck[startIndex + 1]);
             cardInfoSets[0][i] = infoSetBuilder.toBytes();
+            holeCards[i] = infoSetBuilder.toString();
             infoSetBuilder.appendFlop(deck[FLOP_CARD1], deck[FLOP_CARD2], deck[FLOP_CARD3]);
             cardInfoSets[1][i] = infoSetBuilder.toBytes();
             infoSetBuilder.appendCard(deck[TURN_CARD]);
@@ -464,6 +465,7 @@ public class HoldEmGameTree implements Cloneable {
     public InfoSet toInfoSet() {
         InfoSet infoSet = new InfoSet();
         infoSet.player(currentPlayer);
+        infoSet.holeCards(holeCards[currentPlayer]);
         infoSet.cards(cardInfoSets[bettingRound][currentPlayer]);
         infoSet.history(history);
         return infoSet;
