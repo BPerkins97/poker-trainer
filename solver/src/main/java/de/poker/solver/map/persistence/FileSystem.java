@@ -16,7 +16,7 @@ public class FileSystem {
     private static ChronicleMap<InfoSet, ActionMap>[] MAP = new ChronicleMap[Constants.NUM_PLAYERS];
 
     static {
-        File file = new File("C:/Temp/poker");
+        File file = new File("root/poker");
         file.mkdir();
         try {
             for (int i=0;i<Constants.NUM_PLAYERS;i++) {
@@ -25,8 +25,8 @@ public class FileSystem {
                         .name("poker-trainer-map")
                         .averageKeySize(200)
                         .averageValueSize(80)
-                        .entries(1_000_000L)
-                        .createPersistedTo(new File("C:/Temp/poker/tst" + i + " .txt"));
+                        .entries(100_000_000L)
+                        .createPersistedTo(new File("/root/poker/tst" + i + " .txt"));
             }
         } catch (IOException e) {
             throw new RuntimeException(e);
