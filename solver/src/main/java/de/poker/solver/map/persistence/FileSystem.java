@@ -20,8 +20,8 @@ public class FileSystem {
                     .name("poker-trainer-map")
                     .averageKeySize(200)
                     .averageValueSize(80)
-                    .entries(4_000_000_000L)
-                    .createPersistedTo(new File("/root/prod.txt"));
+                    .entries(4_000_000L)
+                    .createPersistedTo(new File("/root/poker2.txt"));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
