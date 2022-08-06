@@ -1,4 +1,4 @@
-package kuhn;
+package kuhn.cfr;
 
 public class Node {
     public double[] strategy;

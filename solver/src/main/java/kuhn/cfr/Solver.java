@@ -1,4 +1,4 @@
-package kuhn;
+package kuhn.cfr;
 
 public class Solver {
     public static void main(String[] args) {

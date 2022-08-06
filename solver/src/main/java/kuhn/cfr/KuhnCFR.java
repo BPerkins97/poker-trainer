@@ -1,4 +1,4 @@
-package kuhn;
+package kuhn.cfr;
 
 import java.util.ArrayList;
 import java.util.HashMap;

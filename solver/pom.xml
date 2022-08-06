@@ -11,6 +11,8 @@
     <properties>
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
+        <dl4j-master.version>1.0.0-M2</dl4j-master.version>
+        <nd4j.backend>nd4j-native</nd4j.backend>
     </properties>
 
     <build>
@@ -43,6 +45,19 @@
     </build>
 
     <dependencies>
+
+        <dependency>
+            <groupId>org.nd4j</groupId>
+            <artifactId>${nd4j.backend}</artifactId>
+            <version>${dl4j-master.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.deeplearning4j</groupId>
+            <artifactId>deeplearning4j-core</artifactId>
+            <version>${dl4j-master.version}</version>
+        </dependency>
+
         <dependency>
             <groupId>net.openhft</groupId>
             <artifactId>chronicle-map</artifactId>
