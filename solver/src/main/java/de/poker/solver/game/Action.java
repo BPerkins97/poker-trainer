@@ -83,4 +83,13 @@ public record Action(byte type, short amount, String presentation) implements By
     public String toString() {
         return presentation;
     }
+
+    public int typeValue() {
+        return switch (type) {
+            case FOLD -> 0;
+            case CALL -> 1;
+            case RAISE -> 2;
+            default -> throw new IllegalStateException("Unexpected value: " + type);
+        };
+    }
 }

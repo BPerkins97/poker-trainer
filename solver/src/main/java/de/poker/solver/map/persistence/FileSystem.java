@@ -3,7 +3,6 @@ package de.poker.solver.map.persistence;
 import de.poker.solver.game.Card;
 import de.poker.solver.game.Constants;
 import de.poker.solver.map.ActionMap;
-import de.poker.solver.map.InfoSet;
 import de.poker.solver.utility.CardInfoSetBuilder;
 import net.openhft.chronicle.map.ChronicleMap;
 import net.openhft.chronicle.map.ChronicleMapBuilder;

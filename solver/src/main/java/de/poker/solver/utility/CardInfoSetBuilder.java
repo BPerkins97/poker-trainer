@@ -144,4 +144,8 @@ public class CardInfoSetBuilder {
         }
         return stringBuilder.toString();
     }
+
+    public Card getCard(int i) {
+        return cards.get(i);
+    }
 }

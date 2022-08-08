@@ -1,7 +1,6 @@
 package de.poker.solver.game;
 
 import de.poker.solver.BetSizeConfiguration;
-import de.poker.solver.map.InfoSet;
 import de.poker.solver.utility.CardInfoSetBuilder;
 
 import java.util.*;
@@ -50,10 +49,6 @@ public class HoldEmGameTree implements Cloneable {
         ACTIONS[100] = Action.fold();
         ACTIONS[101] = Action.call();
     }
-
-    private byte[] history;
-    public byte[][][] cardInfoSets;
-    private String[] holeCards;
     public byte currentPlayer;
     public byte playersWhoFolded;
     public long playersStacks;
@@ -64,6 +59,10 @@ public class HoldEmGameTree implements Cloneable {
     public int lastRaiser;
     public int amountLastRaised;
     public List<Action> nextActions;
+    private Card[][] holeCards;
+    private Card[] communityCards;
+    private Action actionTaken;
+    public List<HoldEmGameTree> history;
 
 
     public HoldEmGameTree(Card[] deck) {
@@ -74,25 +73,27 @@ public class HoldEmGameTree implements Cloneable {
         pay(POSITION_SMALL_BLIND, Constants.SMALL_BLIND);
         pay(POSITION_BIG_BLIND, Constants.BIG_BLIND);
         currentPlayer = BETTING_ORDER_PER_ROUND[0][0];
-        cardInfoSets = new byte[Constants.NUM_BETTING_ROUNDS][Constants.NUM_PLAYERS][Constants.NUM_CARDS_IN_HAND];
         lastRaiser = -1;
-        holeCards = new String[Constants.NUM_PLAYERS];
+        holeCards = new Card[Constants.NUM_PLAYERS][2];
         long[] playersHands = new long[Constants.NUM_PLAYERS];
         for (int i = 0; i < Constants.NUM_PLAYERS; i++) {
             int startIndex = 2 * i;
 
             CardInfoSetBuilder infoSetBuilder = new CardInfoSetBuilder();
             infoSetBuilder.appendHoleCards(deck[startIndex], deck[startIndex + 1]);
-            cardInfoSets[0][i] = infoSetBuilder.toBytes();
-            holeCards[i] = infoSetBuilder.toString();
+            holeCards[i][0] = infoSetBuilder.getCard(0);
+            holeCards[i][1] = infoSetBuilder.getCard(1);
             infoSetBuilder.appendFlop(deck[FLOP_CARD1], deck[FLOP_CARD2], deck[FLOP_CARD3]);
-            cardInfoSets[1][i] = infoSetBuilder.toBytes();
             infoSetBuilder.appendCard(deck[TURN_CARD]);
-            cardInfoSets[2][i] = infoSetBuilder.toBytes();
             infoSetBuilder.appendCard(deck[RIVER_CARD]);
-            cardInfoSets[3][i] = infoSetBuilder.toBytes();
             playersHands[i] = HandEvaluator.of(infoSetBuilder.cards());
         }
+        communityCards = new Card[5];
+        communityCards[0] = deck[FLOP_CARD1];
+        communityCards[1] = deck[FLOP_CARD2];
+        communityCards[2] = deck[FLOP_CARD3];
+        communityCards[3] = deck[TURN_CARD];
+        communityCards[4] = deck[RIVER_CARD];
 
         long bestHandValue = Long.MIN_VALUE;
         for (int p = 0; p < Constants.NUM_PLAYERS; p++) {
@@ -104,8 +105,17 @@ public class HoldEmGameTree implements Cloneable {
                 addWinnerAtShowdown(i);
             }
         }
+        history = new ArrayList<>();
 
         setNextActions();
+    }
+
+    public static double getPlayerStackRelativeToPot(int player, HoldEmGameTree gameState) {
+        return 1.0 * gameState.getStack(player) / gameState.getPot();
+    }
+
+    public static double getActionAmountRelativeToPot(HoldEmGameTree gameState, Action action) {
+        return 1.0 * action.amount() / gameState.getPot();
     }
 
     private void addWinnerAtShowdown(int playerId) {
@@ -213,16 +223,9 @@ public class HoldEmGameTree implements Cloneable {
             }
             next.determineNextPlayer();
             next.setNextActions();
-            int numBytesForAction = action.type() == Action.RAISE ? 2 : 1;
-            if (Objects.isNull(history)) {
-                next.history = new byte[numBytesForAction];
-            } else {
-                next.history = Arrays.copyOf(history, history.length+numBytesForAction);
-            }
-            next.history[next.history.length-numBytesForAction] = action.type();
-            if (action.type() == Action.RAISE) {
-                next.history[next.history.length-1] = (byte) (action.amount() - Byte.MAX_VALUE);
-            }
+            next.actionTaken = action;
+            next.history = new ArrayList<>(history);
+            next.history.add(next);
             return next;
         } catch (CloneNotSupportedException e) {
             e.printStackTrace();
@@ -450,7 +453,7 @@ public class HoldEmGameTree implements Cloneable {
         return isGameOver;
     }
 
-    public byte[] history() {
+    public List<HoldEmGameTree> history() {
         return history;
     }
 
@@ -462,12 +465,15 @@ public class HoldEmGameTree implements Cloneable {
         return nextActions;
     }
 
-    public InfoSet toInfoSet() {
-        InfoSet infoSet = new InfoSet();
-        infoSet.player(currentPlayer);
-        infoSet.holeCards(holeCards[currentPlayer]);
-        infoSet.cards(cardInfoSets[bettingRound][currentPlayer]);
-        infoSet.history(history);
-        return infoSet;
+    public Card[] getHoleCardsFor(int player) {
+        return holeCards[player];
+    }
+
+    public static Card[] getCommunityCards(HoldEmGameTree gameState) {
+        return gameState.communityCards;
+    }
+
+    public Action actionTaken() {
+        return actionTaken;
     }
 }

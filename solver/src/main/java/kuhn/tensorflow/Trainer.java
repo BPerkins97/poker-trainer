@@ -39,8 +39,6 @@ public class Trainer {
                 .list()
                 .layer(new LSTM.Builder().name("lstm1")
                         .activation(Activation.TANH).nIn(NB_INPUTS).nOut(20).build())
-                .layer(new LSTM.Builder().name("lstm2")
-                        .activation(Activation.TANH).nOut(1).build())
                 .layer(new RnnOutputLayer.Builder().name("output")
                         .activation(Activation.IDENTITY).nOut(1).lossFunction(LossFunctions.LossFunction.MSE)
                         .build())
