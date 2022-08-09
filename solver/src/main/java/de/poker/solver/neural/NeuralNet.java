@@ -17,11 +17,14 @@ import org.nd4j.linalg.factory.Nd4j;
 import org.nd4j.linalg.learning.config.RmsProp;
 import org.nd4j.linalg.lossfunctions.LossFunctions;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
 public class NeuralNet {
+    private static final File FILE = new File("C:/Temp/test.txt");
     // The max history length is when everyone checks and at the end everyone bets 1 bb, so 100 raises + 23 actions
     private static final int MAX_HISTORY_LENGTH = 124;
     // Number of inputs are:
@@ -42,31 +45,43 @@ public class NeuralNet {
     private static final List<DataPoint> TRAINING_DATA;
 
     static {
-        MultiLayerConfiguration conf = new NeuralNetConfiguration.Builder()
-                .trainingWorkspaceMode(WorkspaceMode.ENABLED).inferenceWorkspaceMode(WorkspaceMode.ENABLED)
-                .seed(123L)
-                .optimizationAlgo(OptimizationAlgorithm.STOCHASTIC_GRADIENT_DESCENT)
-                .weightInit(WeightInit.XAVIER)
-                .updater(new RmsProp.Builder().rmsDecay(0.95).learningRate(1e-2).build())
-                .list()
-                .layer(new LSTM.Builder().name("lstm1")
-                        .activation(Activation.LEAKYRELU).nIn(NB_INPUTS).nOut(100).build())
-                .layer(new LSTM.Builder().name("lstm2")
-                        .activation(Activation.LEAKYRELU).nOut(100).build())
-                .layer(new LSTM.Builder().name("lstm3")
-                        .activation(Activation.LEAKYRELU).nOut(100).build())
-                .layer(new RnnOutputLayer.Builder().name("output")
-                        .activation(Activation.IDENTITY).nOut(1).lossFunction(LossFunctions.LossFunction.MSE)
-                        .build())
-                .build();
+        if (FILE.exists()) {
+            try {
+                NETWORK = MultiLayerNetwork.load(FILE, true);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        } else {
+            MultiLayerConfiguration conf = new NeuralNetConfiguration.Builder()
+                    .trainingWorkspaceMode(WorkspaceMode.ENABLED).inferenceWorkspaceMode(WorkspaceMode.ENABLED)
+                    .seed(123L)
+                    .optimizationAlgo(OptimizationAlgorithm.STOCHASTIC_GRADIENT_DESCENT)
+                    .weightInit(WeightInit.XAVIER)
+                    .updater(new RmsProp.Builder().rmsDecay(0.95).learningRate(1e-2).build())
+                    .list()
+                    .layer(new LSTM.Builder().name("lstm1")
+                            .activation(Activation.LEAKYRELU).nIn(NB_INPUTS).nOut(100).build())
+                    .layer(new LSTM.Builder().name("lstm2")
+                            .activation(Activation.LEAKYRELU).nOut(100).build())
+                    .layer(new LSTM.Builder().name("lstm3")
+                            .activation(Activation.LEAKYRELU).nOut(100).build())
+                    .layer(new RnnOutputLayer.Builder().name("output")
+                            .activation(Activation.IDENTITY).nOut(1).lossFunction(LossFunctions.LossFunction.MSE)
+                            .build())
+                    .build();
 
-        NETWORK = new MultiLayerNetwork(conf);
-        NETWORK.init();
+            NETWORK = new MultiLayerNetwork(conf);
+            NETWORK.init();
+            try {
+                save();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
         TRAINING_DATA = new ArrayList<>();
     }
 
-    private NeuralNet() {
-    }
+    private NeuralNet() {}
 
     public static void addTrainingData(HoldEmGameTree gameState, double expectedValue) {
         synchronized (TRAINING_DATA) {
@@ -74,6 +89,12 @@ public class NeuralNet {
             if (TRAINING_DATA.size() > 100) {
                 train();
             }
+        }
+    }
+
+    public static void save() throws IOException {
+        synchronized (NETWORK) {
+            NETWORK.save(FILE);
         }
     }
 

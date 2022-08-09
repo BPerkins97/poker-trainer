@@ -1,6 +1,9 @@
 package de.poker.solver;
 
+import de.poker.solver.neural.NeuralNet;
+
 import java.io.File;
+import java.io.IOException;
 import java.util.Scanner;
 
 public class UserInterface {
@@ -22,6 +25,13 @@ public class UserInterface {
             input = scanner.nextLine();
             if (input.equals("debug")) {
                 trainer.printDebugInfo();
+            }
+            if (input.equals("save")) {
+                try {
+                    NeuralNet.save();
+                } catch (IOException e) {
+                    System.out.println(e);
+                }
             }
         } while (!input.equals("stop"));
         System.out.println("Stopped");

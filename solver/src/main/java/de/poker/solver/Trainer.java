@@ -1,7 +1,9 @@
 package de.poker.solver;
 
 import de.poker.solver.game.HoldEmGameTree;
+import de.poker.solver.neural.NeuralNet;
 
+import java.io.IOException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -42,6 +44,15 @@ public class Trainer {
         }
         executorService.shutdown();
         System.out.println("stopping");
+        boolean saved;
+        do {
+            try {
+                NeuralNet.save();
+                saved = true;
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        } while (!saved);
     }
 
     public void printDebugInfo() {
