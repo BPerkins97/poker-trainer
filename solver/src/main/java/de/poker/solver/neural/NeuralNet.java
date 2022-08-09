@@ -1,6 +1,7 @@
 package de.poker.solver.neural;
 
 import de.poker.solver.game.*;
+import org.bytedeco.javacpp.annotation.Const;
 import org.deeplearning4j.nn.api.OptimizationAlgorithm;
 import org.deeplearning4j.nn.conf.MultiLayerConfiguration;
 import org.deeplearning4j.nn.conf.NeuralNetConfiguration;
@@ -40,7 +41,7 @@ public class NeuralNet {
     // 6 for the stacks of the individual players relative to the pot
     // 3 for the type of action, fold, call, raise
     // 1 for the amount of chips for the action relative to the pot
-    private static final int NB_INPUTS = 126;
+    private static final int NB_INPUTS = 127;
     private static final MultiLayerNetwork NETWORK;
     private static final List<DataPoint> TRAINING_DATA;
 
@@ -161,17 +162,22 @@ public class NeuralNet {
         putCards(features, i, player, holdEmGameTree, j); // 106
         putPlayerStacks(features, i, j, holdEmGameTree, player); // 6
         // 122
-        putAction(features, i, j, holdEmGameTree, action);
+        putAction(features, i, j, holdEmGameTree, action); // 4
+        putPot(features, i, j, holdEmGameTree); // 1
     }
 
     private static void putAction(INDArray features, int i, int j, HoldEmGameTree holdEmGameTree, Action action) {
         features.putScalar(new int[]{i, 122+action.typeValue(), j}, 1);
-        features.putScalar(new int[]{i, 125, j}, HoldEmGameTree.getActionAmountRelativeToPot(holdEmGameTree, action));
+        features.putScalar(new int[]{i, 125, j}, 1.0 * action.amount() / Constants.STARTING_STACK_SIZE);
     }
 
-    private static void putPlayerStacks(INDArray features, int i, int j, HoldEmGameTree holdEmGameTree, int player) {
+    private static void putPot(INDArray features, int i, int j, HoldEmGameTree state) {
+        features.putScalar(new int[]{i, 126, j}, 1.0 * state.getPot() / Constants.STARTING_STACK_SIZE / Constants.NUM_PLAYERS);
+    }
+
+    private static void putPlayerStacks(INDArray features, int i, int j, HoldEmGameTree state, int player) {
         for (int k = 0; k < Constants.NUM_PLAYERS; k++) {
-            features.putScalar(new int[]{i, 116+k, j}, HoldEmGameTree.getPlayerStackRelativeToPot(player, holdEmGameTree));
+            features.putScalar(new int[]{i, 116+k, j}, 1.0 * state.getStack(player) / Constants.STARTING_STACK_SIZE);
         }
     }
 

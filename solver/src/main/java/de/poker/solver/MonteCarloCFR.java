@@ -1,6 +1,7 @@
 package de.poker.solver;
 
 import de.poker.solver.game.Action;
+import de.poker.solver.game.Constants;
 import de.poker.solver.game.HoldEmGameTree;
 import de.poker.solver.neural.NeuralNet;
 import de.poker.solver.neural.Strategy;
@@ -23,7 +24,8 @@ public class MonteCarloCFR {
 
         HoldEmGameTree nextState = state.takeAction(maxEvAction);
         double[] payOffs = traverse(nextState);
-        NeuralNet.addTrainingData(nextState, payOffs[state.currentPlayer]);
+        double expectedValue = payOffs[state.currentPlayer] / Constants.STARTING_STACK_SIZE / Constants.NUM_PLAYERS;
+        NeuralNet.addTrainingData(nextState, expectedValue);
         return payOffs;
     }
 }

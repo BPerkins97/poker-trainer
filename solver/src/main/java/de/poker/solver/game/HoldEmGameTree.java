@@ -230,7 +230,7 @@ public class HoldEmGameTree implements Cloneable {
         return amount >= Constants.BIG_BLIND && amount >= amountLastRaised && amount <= getStack(currentPlayer) && amount > getCallAmount();
     }
 
-    private int getStack(int playerId) {
+    public int getStack(int playerId) {
         return stacks[playerId];
     }
 
