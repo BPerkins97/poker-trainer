@@ -1,15 +1,12 @@
 package de.poker.solver;
 
-import de.poker.solver.game.Constants;
 import de.poker.solver.game.HoldEmGameTree;
-import de.poker.solver.map.persistence.FileSystem;
 
 import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
-import static de.poker.solver.MonteCarloCFR.*;
+import static de.poker.solver.MonteCarloCFR.traverse;
 
 public class Trainer {
     private final ThreadPoolExecutor executorService;
@@ -45,7 +42,6 @@ public class Trainer {
         }
         executorService.shutdown();
         System.out.println("stopping");
-        FileSystem.close();
     }
 
     public void printDebugInfo() {
@@ -65,9 +61,7 @@ public class Trainer {
 
     private void doIteration() {
         HoldEmGameTree rootNode = HoldEmGameTree.getRandomRootState();
-        for (int p = 0; p < Constants.NUM_PLAYERS; p++) {
-            traverse(rootNode, p, ThreadLocalRandom.current());
-        }
+        traverse(rootNode);
         incrementIteration();
         // TODO enable this later seems to be broken updateStrategy(rootNode, ThreadLocalRandom.current());
     }

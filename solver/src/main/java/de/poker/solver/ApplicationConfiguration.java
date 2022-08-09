@@ -1,7 +1,7 @@
 package de.poker.solver;
 
 public class ApplicationConfiguration {
-    public static final int NUM_THREADS = Runtime.getRuntime().availableProcessors();
+    public static final int NUM_THREADS = 1;
 
     /**
      * The minimum regret at which actions are clipped.

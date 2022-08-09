@@ -1,61 +1,38 @@
 package de.poker.solver;
 
-import de.poker.solver.map.persistence.FileSystem;
 import de.poker.solver.game.Action;
+import de.poker.solver.game.Constants;
 import de.poker.solver.game.HoldEmGameTree;
-import de.poker.solver.map.ActionMap;
-import de.poker.solver.map.Strategy;
-
-import java.util.List;
-import java.util.Random;
+import de.poker.solver.neural.NeuralNet;
+import de.poker.solver.neural.Strategy;
 
 // As implemented in http://www.cs.cmu.edu/~noamb/papers/19-Science-Superhuman_Supp.pdf
 public class MonteCarloCFR {
-    public static double traverse(HoldEmGameTree state, int traversingPlayerId, Random random) {
-        if (state.isGameOverForPlayer(traversingPlayerId)) {
-            return state.getPayoffForPlayer(traversingPlayerId);
-        } if (state.isCurrentPlayer(traversingPlayerId)) {
-            List<Action> actions = state.actions();
-            InfoSet key = state.toInfoSet();
-            ActionMap node = FileSystem.getActionMap(key);
-            Strategy strategy = node.calculateStrategy(actions);
-            for (Action action : actions) {
-                if (node.regretForActionisAboveLimit(action, ApplicationConfiguration.MINIMUM_REGRET)) {
-                    strategy.value(action, traverse(state.takeAction(action), traversingPlayerId, random));
-                    strategy.explored(action);
-                }
-            }
-            for (Action action : actions) {
-                if (strategy.hasBeenExplored(action)) {
-                    node.addRegretForAction(action, (int) (strategy.normalizedValue(action)));
-                }
-            }
-            FileSystem.update(key, node);
-            return strategy.expectedValue();
-        } else {
-            ActionMap node = FileSystem.getActionMap(state.toInfoSet());
-            Strategy strategy = node.calculateStrategy(state.actions());
-            HoldEmGameTree nextState = state.takeAction(strategy.randomAction(random));
-            return traverse(nextState, traversingPlayerId, random);
+    public static double[] traverse(HoldEmGameTree state) {
+        if (state.isGameOver()) {
+            return HoldEmGameTree.getPayOffs(state);
         }
-    }
+        Strategy strategy = NeuralNet.getStrategy(state);
+        HoldEmGameTree[] nextStates = new HoldEmGameTree[strategy.actions.length];
+        double[] regrets = new double[strategy.actions.length];
+        double regretSum = 0;
+        double[] totalPayOffs = new double[Constants.NUM_PLAYERS];
+        for (int i = 0; i < strategy.actions.length; i++) {
+            Action action = strategy.actions[i];
+            nextStates[i] = state.takeAction(action);
+            double[] payOffs = traverse(nextStates[i]);
+            regrets[i] = payOffs[state.currentPlayer];
+            for (int j = 0; j < Constants.NUM_PLAYERS; j++) {
+                payOffs[j] *= strategy.probability[i];
+                totalPayOffs[j] += payOffs[j];
+            }
+            regretSum += regrets[i];
+        }
 
-    public static void updateStrategy(HoldEmGameTree state, int traversingPlayer, Random random) {
-        if (state.isGameOverForPlayer(traversingPlayer) || !state.shouldUpdateRegrets()) {
-            return;
-        } else {
-            List<Action> actions = state.actions();
-            if (state.isCurrentPlayer(traversingPlayer)) {
-                ActionMap node = FileSystem.getActionMap(state.toInfoSet());
-                Strategy strategy = node.calculateStrategy(actions);
-                Action chosenAction = strategy.randomAction(random);
-                node.visitAction(chosenAction);
-                updateStrategy(state.takeAction(chosenAction), traversingPlayer, random);
-            } else {
-                for (Action action : actions) {
-                    updateStrategy(state.takeAction(action), traversingPlayer, random);
-                }
-            }
+        for (int i = 0; i < strategy.actions.length; i++) {
+            regrets[i] -= regretSum;
+            NeuralNet.addTrainingData(nextStates[i], regrets[i]);
         }
+        return totalPayOffs;
     }
 }

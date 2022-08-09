@@ -32,9 +32,9 @@ public class NeuralNet {
     // 14 for second - 1 if suit matches first card
     // 15 for third - 2 for matching suits
     // 16 for four
-    // 17 for fifth
-    // 17 for sixth
-    // 17 for seventh
+    // 16 for fifth
+    // 16 for sixth
+    // 16 for seventh
     // 4 for the round in which we are in: preflop, flop, turn, river
     // 6 for the stacks of the individual players relative to the pot
     // 3 for the type of action, fold, call, raise
@@ -111,6 +111,37 @@ public class NeuralNet {
                 NETWORK.fit(dataSet);
             }
         }
+    }
+
+    public static Strategy getStrategy(HoldEmGameTree gameState) {
+        Strategy strategy = new Strategy();
+        strategy.actions = HoldEmGameTree.getPossibleActions(gameState);
+
+        INDArray features = Nd4j.zeros(new int[]{strategy.actions.length, NB_INPUTS, gameState.history().size()});
+        for (int j=0;j<strategy.actions.length;j++) {
+            for (int i=0;i<gameState.history().size()-1;i++) {
+                stateToPosition(features, j, gameState.currentPlayer, i, gameState.history().get(i), gameState.history().get(i+1).actionTaken());
+            }
+            stateToPosition(features, j, gameState.currentPlayer, gameState.history.size()-1, gameState.history().get(gameState.history.size()-1), strategy.actions[j]);
+        }
+        INDArray predictedRegrets;
+        synchronized (NETWORK) {
+            predictedRegrets = NETWORK.output(features);
+        }
+        strategy.probability = new double[strategy.actions.length];
+        double regretSum = 0;
+        for (int i=0;i<strategy.actions.length;i++) {
+            strategy.probability[i] = Math.max(predictedRegrets.getDouble(i, 0,gameState.history.size()-1), 0);
+            regretSum += strategy.probability[i];
+        }
+        for (int i=0;i<strategy.actions.length;i++) {
+            if (regretSum > 0) {
+                strategy.probability[i] /= regretSum;
+            } else {
+                strategy.probability[i] = 1.0 / strategy.actions.length;
+            }
+        }
+        return strategy;
     }
 
     private static void stateToPosition(INDArray features, int i, int player, int j, HoldEmGameTree holdEmGameTree, Action action) {

@@ -2,6 +2,7 @@ package de.poker.solver.game;
 
 import de.poker.solver.BetSizeConfiguration;
 import de.poker.solver.utility.CardInfoSetBuilder;
+import org.bytedeco.javacpp.annotation.Const;
 
 import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
@@ -106,6 +107,7 @@ public class HoldEmGameTree implements Cloneable {
             }
         }
         history = new ArrayList<>();
+        history.add(this);
 
         setNextActions();
     }
@@ -116,6 +118,49 @@ public class HoldEmGameTree implements Cloneable {
 
     public static double getActionAmountRelativeToPot(HoldEmGameTree gameState, Action action) {
         return 1.0 * action.amount() / gameState.getPot();
+    }
+
+    public static Action[] getPossibleActions(HoldEmGameTree gameState) {
+        int numActionsPossible = 0;
+        boolean isFoldLegal = false;
+        if (gameState.isFoldLegal()) {
+            isFoldLegal = true;
+            numActionsPossible++;
+        }
+        // check is always allowed
+        numActionsPossible++;
+        int minRaise = minRaise(gameState);
+        int maxRaise = maxRaise(gameState);
+        numActionsPossible += (maxRaise - minRaise) / Constants.BIG_BLIND + 1 + Math.min(1, (maxRaise - minRaise) % Constants.BIG_BLIND);
+        Action[] allowedActions = new Action[numActionsPossible];
+        allowedActions[0] = Action.call();
+        int counter = 1;
+        if (isFoldLegal) {
+            allowedActions[1] = Action.fold();
+            counter++;
+        }
+        for (int i=minRaise;i<maxRaise;i+=Constants.BIG_BLIND) {
+            allowedActions[counter] = Action.raise(i);
+            counter++;
+        }
+        allowedActions[counter] = Action.raise(maxRaise);
+        return allowedActions;
+    }
+
+    private static int minRaise(HoldEmGameTree gameState) {
+        return Math.max(gameState.amountLastRaised, Constants.BIG_BLIND);
+    }
+
+    private static int maxRaise(HoldEmGameTree state) {
+        return state.getStack(state.currentPlayer);
+    }
+
+    public static double[] getPayOffs(HoldEmGameTree state) {
+        double[] payOffs = new double[Constants.NUM_PLAYERS];
+        for (int i=0;i<Constants.NUM_PLAYERS;i++) {
+            payOffs[i] = state.getPayoffForPlayer(i);
+        }
+        return payOffs;
     }
 
     private void addWinnerAtShowdown(int playerId) {
