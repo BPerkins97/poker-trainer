@@ -1,8 +1,6 @@
 package de.poker.solver.game;
 
-import de.poker.solver.BetSizeConfiguration;
 import de.poker.solver.utility.CardInfoSetBuilder;
-import org.bytedeco.javacpp.annotation.Const;
 
 import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
@@ -11,7 +9,6 @@ public class HoldEmGameTree implements Cloneable {
     private static final int NUM_BITS_FOR_STACK = 8;
     private static final long STACK_BITMASK = 0xff;
 
-    private static final Action[] ACTIONS = new Action[102];
     private static final int POSITION_SMALL_BLIND = 0;
     private static final int POSITION_BIG_BLIND = 1;
 
@@ -44,16 +41,11 @@ public class HoldEmGameTree implements Cloneable {
         FLOP_CARD3 = Constants.NUM_PLAYERS * 2 + 2;
         TURN_CARD = Constants.NUM_PLAYERS * 2 + 3;
         RIVER_CARD = Constants.NUM_PLAYERS * 2 + 4;
-        for (int i = Constants.BIG_BLIND; i <= Constants.STARTING_STACK_SIZE; i += Constants.BIG_BLIND) {
-            ACTIONS[i / Constants.BIG_BLIND - 1] = Action.raise(i);
-        }
-        ACTIONS[100] = Action.fold();
-        ACTIONS[101] = Action.call();
     }
     public byte currentPlayer;
+    private short[] stacks;
+    private short[] investments;
     public byte playersWhoFolded;
-    public long playersStacks;
-    public long playerInvestments;
     public byte winnersAtShowdown;
     public boolean isGameOver;
     public byte bettingRound;
@@ -66,6 +58,8 @@ public class HoldEmGameTree implements Cloneable {
 
 
     public HoldEmGameTree(Card[] deck) {
+        stacks = new short[Constants.NUM_PLAYERS];
+        investments = new short[Constants.NUM_PLAYERS];
         for (int i = 0; i < Constants.NUM_PLAYERS; i++) {
             addToPlayerStack(i, Constants.STARTING_STACK_SIZE);
         }
@@ -223,7 +217,7 @@ public class HoldEmGameTree implements Cloneable {
     }
 
     public int getInvestment(int playerId) {
-        return (int) ((STACK_BITMASK << (NUM_BITS_FOR_STACK * playerId) & playerInvestments) >> (NUM_BITS_FOR_STACK * playerId));
+        return investments[playerId];
     }
 
     public boolean isCurrentPlayer(int playerId) {
@@ -235,7 +229,7 @@ public class HoldEmGameTree implements Cloneable {
     }
 
     private int getStack(int playerId) {
-        return (int) ((STACK_BITMASK << (NUM_BITS_FOR_STACK * playerId) & playersStacks) >> (NUM_BITS_FOR_STACK * playerId));
+        return stacks[playerId];
     }
 
     private boolean isFoldLegal() {
@@ -248,8 +242,12 @@ public class HoldEmGameTree implements Cloneable {
             if (action.isFold()) {
                 next.fold();
             } else if (action.isCall()) {
+                next.stacks = Arrays.copyOf(stacks, stacks.length);
+                next.investments = Arrays.copyOf(investments, investments.length);
                 next.call();
             } else {
+                next.investments = Arrays.copyOf(investments, investments.length);
+                next.stacks = Arrays.copyOf(stacks, stacks.length);
                 next.raise(action.amount());
             }
             next.determineNextPlayer();
@@ -380,15 +378,16 @@ public class HoldEmGameTree implements Cloneable {
     }
 
     private void subtractFromPlayerStack(int playerId, int amount) {
-        playersStacks -= (long) amount << (NUM_BITS_FOR_STACK * playerId);
+        stacks[playerId] -= amount;
+        assert stacks[playerId] >= 0;
     }
 
     private void addToPlayerInvestment(int playerId, int amount) {
-        playerInvestments += (long) amount << (NUM_BITS_FOR_STACK * playerId);
+        investments[playerId] += amount;
     }
 
     private void addToPlayerStack(int playerId, int stack) {
-        playersStacks += (long) stack << (NUM_BITS_FOR_STACK * playerId);
+        stacks[playerId] += stack;
     }
 
     private void fold() {

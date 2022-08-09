@@ -1,8 +1,6 @@
 package de.poker.solver.neural;
 
 import de.poker.solver.game.*;
-import kuhn.tensorflow.KuhnDataSet;
-import kuhn.tensorflow.Trainer;
 import org.deeplearning4j.nn.api.OptimizationAlgorithm;
 import org.deeplearning4j.nn.conf.MultiLayerConfiguration;
 import org.deeplearning4j.nn.conf.NeuralNetConfiguration;
@@ -70,13 +68,16 @@ public class NeuralNet {
     private NeuralNet() {
     }
 
-    public static void addTrainingData(HoldEmGameTree gameState, double regret) {
+    public static void addTrainingData(HoldEmGameTree gameState, double expectedValue) {
         synchronized (TRAINING_DATA) {
-            TRAINING_DATA.add(new DataPoint(gameState, regret));
+            TRAINING_DATA.add(new DataPoint(gameState, expectedValue));
+            if (TRAINING_DATA.size() > 100) {
+                train();
+            }
         }
     }
 
-    public static void train() {
+    private static void train() {
         List<DataPoint> trainingSet;
         synchronized (TRAINING_DATA) {
             trainingSet = new ArrayList<>(TRAINING_DATA);
@@ -124,22 +125,13 @@ public class NeuralNet {
             }
             stateToPosition(features, j, gameState.currentPlayer, gameState.history.size()-1, gameState.history().get(gameState.history.size()-1), strategy.actions[j]);
         }
-        INDArray predictedRegrets;
+        INDArray predictedEvs;
         synchronized (NETWORK) {
-            predictedRegrets = NETWORK.output(features);
+            predictedEvs = NETWORK.output(features);
         }
-        strategy.probability = new double[strategy.actions.length];
-        double regretSum = 0;
+        strategy.expectedValues = new double[strategy.actions.length];
         for (int i=0;i<strategy.actions.length;i++) {
-            strategy.probability[i] = Math.max(predictedRegrets.getDouble(i, 0,gameState.history.size()-1), 0);
-            regretSum += strategy.probability[i];
-        }
-        for (int i=0;i<strategy.actions.length;i++) {
-            if (regretSum > 0) {
-                strategy.probability[i] /= regretSum;
-            } else {
-                strategy.probability[i] = 1.0 / strategy.actions.length;
-            }
+            strategy.expectedValues[i] = predictedEvs.getDouble(i, 0,gameState.history.size()-1);
         }
         return strategy;
     }
