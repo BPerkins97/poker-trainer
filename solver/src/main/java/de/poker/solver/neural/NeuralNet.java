@@ -108,9 +108,7 @@ public class NeuralNet {
 
         DataSet dataSet = new DataSet(features, labels, featuresMask, labelsMask);
         synchronized (NETWORK) {
-            for (int i=0;i<10;i++) {
-                NETWORK.fit(dataSet);
-            }
+            NETWORK.fit(dataSet);
         }
     }
 

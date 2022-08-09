@@ -2,7 +2,9 @@ package de.poker.solver.game;
 
 import de.poker.solver.utility.CardInfoSetBuilder;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 
 public class HoldEmGameTree implements Cloneable {
@@ -24,10 +26,6 @@ public class HoldEmGameTree implements Cloneable {
     private static final int FLOP_CARD3;
     private static final int TURN_CARD;
     private static final int RIVER_CARD;
-    public static final int BETTING_ROUND_PRE_FLOP = 0;
-    public static final int BETTING_ROUND_FLOP = 1;
-    public static final int BETTING_ROUND_TURN = 2;
-    public static final int BETTING_ROUND_RIVER = 3;
 
     static {
         for (int i = 0; i < Constants.NUM_PLAYERS; i++) {
@@ -45,7 +43,7 @@ public class HoldEmGameTree implements Cloneable {
     public byte currentPlayer;
     private short[] stacks;
     private short[] investments;
-    public byte playersWhoFolded;
+    private boolean[] folded;
     public byte winnersAtShowdown;
     public boolean isGameOver;
     public byte bettingRound;
@@ -60,6 +58,7 @@ public class HoldEmGameTree implements Cloneable {
     public HoldEmGameTree(Card[] deck) {
         stacks = new short[Constants.NUM_PLAYERS];
         investments = new short[Constants.NUM_PLAYERS];
+        folded = new boolean[Constants.NUM_PLAYERS];
         for (int i = 0; i < Constants.NUM_PLAYERS; i++) {
             addToPlayerStack(i, Constants.STARTING_STACK_SIZE);
         }
@@ -119,6 +118,9 @@ public class HoldEmGameTree implements Cloneable {
         actions.add(Action.call());
         int minRaise = minRaise(gameState);
         int maxRaise = maxRaise(gameState);
+        if (maxRaise <= 0) {
+            return actions.toArray(new Action[0]);
+        }
         while (minRaise < maxRaise) {
             actions.add(Action.raise(minRaise));
             minRaise *= 1.5;
@@ -132,7 +134,7 @@ public class HoldEmGameTree implements Cloneable {
     }
 
     private static int maxRaise(HoldEmGameTree state) {
-        return state.getStack(state.currentPlayer);
+        return state.getStack(state.currentPlayer) - state.getCallAmount();
     }
 
     public static double[] getPayOffs(HoldEmGameTree state) {
@@ -174,7 +176,7 @@ public class HoldEmGameTree implements Cloneable {
     }
 
     private boolean hasFolded(int playerId) {
-        return (playersWhoFolded & (1 << playerId)) > 0;
+        return folded[playerId];
     }
 
     public int getPayoffForPlayer(int playerId) {
@@ -196,10 +198,10 @@ public class HoldEmGameTree implements Cloneable {
 
     private int getNumPlayersWhoFolded() {
         int count = 0;
-        byte folded = playersWhoFolded;
-        while (folded > 0) {
-            count += folded & 1;
-            folded >>= 1;
+        for (int i=0;i< Constants.NUM_PLAYERS;i++) {
+            if (hasFolded(i)) {
+                count++;
+            }
         }
         return count;
     }
@@ -240,6 +242,7 @@ public class HoldEmGameTree implements Cloneable {
         try {
             HoldEmGameTree next = (HoldEmGameTree) this.clone();
             if (action.isFold()) {
+                next.folded = Arrays.copyOf(folded, folded.length);
                 next.fold();
             } else if (action.isCall()) {
                 next.stacks = Arrays.copyOf(stacks, stacks.length);
@@ -391,7 +394,7 @@ public class HoldEmGameTree implements Cloneable {
     }
 
     private void fold() {
-        playersWhoFolded = (byte) (playersWhoFolded | (1 << currentPlayer));
+        folded[currentPlayer] = true;
     }
 
     private void call() {

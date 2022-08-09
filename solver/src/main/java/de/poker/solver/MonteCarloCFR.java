@@ -11,7 +11,7 @@ public class MonteCarloCFR {
             return HoldEmGameTree.getPayOffs(state);
         }
         Strategy strategy = NeuralNet.getStrategy(state);
-        double maxEV = Double.MIN_VALUE;
+        double maxEV = Integer.MIN_VALUE;
         Action maxEvAction = null;
         for (int i = 0; i<strategy.expectedValues.length; i++) {
             if (maxEV < strategy.expectedValues[i]) {
