@@ -25,7 +25,7 @@ import java.util.Objects;
 
 public class NeuralNet {
     // The max history length is when everyone checks and at the end everyone bets 1 bb, so 100 raises + 23 actions
-    private static final int MAX_HISTORY_LENGTH = 123;
+    private static final int MAX_HISTORY_LENGTH = 124;
     // Number of inputs are:
     // 6 - flags for the position of each player
     // 13 for first card - for value

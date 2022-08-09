@@ -59,7 +59,6 @@ public class HoldEmGameTree implements Cloneable {
     public byte bettingRound;
     public int lastRaiser;
     public int amountLastRaised;
-    public List<Action> nextActions;
     private Card[][] holeCards;
     private Card[] communityCards;
     private Action actionTaken;
@@ -108,8 +107,6 @@ public class HoldEmGameTree implements Cloneable {
         }
         history = new ArrayList<>();
         history.add(this);
-
-        setNextActions();
     }
 
     public static double getPlayerStackRelativeToPot(int player, HoldEmGameTree gameState) {
@@ -121,30 +118,19 @@ public class HoldEmGameTree implements Cloneable {
     }
 
     public static Action[] getPossibleActions(HoldEmGameTree gameState) {
-        int numActionsPossible = 0;
-        boolean isFoldLegal = false;
+        List<Action> actions = new ArrayList<>();
         if (gameState.isFoldLegal()) {
-            isFoldLegal = true;
-            numActionsPossible++;
+            actions.add(Action.fold());
         }
-        // check is always allowed
-        numActionsPossible++;
+        actions.add(Action.call());
         int minRaise = minRaise(gameState);
         int maxRaise = maxRaise(gameState);
-        numActionsPossible += (maxRaise - minRaise) / Constants.BIG_BLIND + 1 + Math.min(1, (maxRaise - minRaise) % Constants.BIG_BLIND);
-        Action[] allowedActions = new Action[numActionsPossible];
-        allowedActions[0] = Action.call();
-        int counter = 1;
-        if (isFoldLegal) {
-            allowedActions[1] = Action.fold();
-            counter++;
+        while (minRaise < maxRaise) {
+            actions.add(Action.raise(minRaise));
+            minRaise *= 1.5;
         }
-        for (int i=minRaise;i<maxRaise;i+=Constants.BIG_BLIND) {
-            allowedActions[counter] = Action.raise(i);
-            counter++;
-        }
-        allowedActions[counter] = Action.raise(maxRaise);
-        return allowedActions;
+        actions.add(Action.raise(maxRaise));
+        return actions.toArray(new Action[0]);
     }
 
     private static int minRaise(HoldEmGameTree gameState) {
@@ -267,7 +253,6 @@ public class HoldEmGameTree implements Cloneable {
                 next.raise(action.amount());
             }
             next.determineNextPlayer();
-            next.setNextActions();
             next.actionTaken = action;
             next.history = new ArrayList<>(history);
             next.history.add(next);
@@ -275,72 +260,6 @@ public class HoldEmGameTree implements Cloneable {
         } catch (CloneNotSupportedException e) {
             e.printStackTrace();
             throw new IllegalStateException();
-        }
-    }
-
-    private void setNextActions() {
-        this.nextActions = new ArrayList<>();
-        switch (bettingRound) {
-            case BETTING_ROUND_PRE_FLOP:
-                getPreFlopActions();
-                break;
-            case BETTING_ROUND_FLOP:
-                getFlopActions();
-                break;
-            case BETTING_ROUND_TURN:
-                getTurnActions();
-                break;
-            case BETTING_ROUND_RIVER:
-                getRiverActions();
-                break;
-            default:
-                throw new IllegalStateException();
-        }
-    }
-
-    private void getRiverActions() {
-        if (isFoldLegal()) {
-            nextActions.add(Action.fold());
-        }
-        nextActions.add(Action.call());
-        BetSizeConfiguration.BET_SIZES[BETTING_ROUND_RIVER].forEach(betSize -> addRaiseIfLegal(betSize.calculate(getPot())));
-        addRaiseIfLegal(getStack(currentPlayer));
-    }
-
-    private void getTurnActions() {
-        if (isFoldLegal()) {
-            nextActions.add(Action.fold());
-        }
-        nextActions.add(Action.call());
-        BetSizeConfiguration.BET_SIZES[BETTING_ROUND_TURN].forEach(betSize -> addRaiseIfLegal(betSize.calculate(getPot())));
-        addRaiseIfLegal(getStack(currentPlayer));
-    }
-
-    private void getFlopActions() {
-        if (isFoldLegal()) {
-            nextActions.add(Action.fold());
-        }
-        nextActions.add(Action.call());
-        BetSizeConfiguration.BET_SIZES[BETTING_ROUND_FLOP].forEach(betSize -> addRaiseIfLegal(betSize.calculate(getPot())));
-        addRaiseIfLegal(getStack(currentPlayer));
-    }
-
-    private void getPreFlopActions() {
-        if (isFoldLegal()) {
-            nextActions.add(Action.fold());
-        }
-        nextActions.add(Action.call());
-        BetSizeConfiguration.BET_SIZES[BETTING_ROUND_PRE_FLOP].forEach(betSize -> addRaiseIfLegal(betSize.calculate(getPot())));
-        addRaiseIfLegal(getStack(currentPlayer));
-    }
-
-    private void addRaiseIfLegal(int raiseAmount) {
-        if (!isRaiseLegal(raiseAmount)) {
-            return;
-        }
-        Action raise = Action.raise(raiseAmount);
-        if (!nextActions.contains(raise)) {
-            nextActions.add(raise);
         }
     }
 
@@ -438,17 +357,19 @@ public class HoldEmGameTree implements Cloneable {
         currentPlayer = BETTING_ORDER_PER_ROUND[bettingRound][nextPlayerIndex];
     }
 
-    private void raise(int amount) {
-        assert amount > 0;
-        assert amount <= getStack(currentPlayer);
-        pay(currentPlayer, amount);
+    private void raise(int raiseAmount) {
+        assert raiseAmount > 0;
+        assert raiseAmount <= getStack(currentPlayer);
+        int payAmount = raiseAmount + getCallAmount();
+        pay(currentPlayer, payAmount);
+        assert payAmount <= getStack(currentPlayer);
         for (int i = 0; i < Constants.NUM_PLAYERS; i++) {
             if (BETTING_ORDER_PER_ROUND[bettingRound][i] == currentPlayer) {
                 lastRaiser = currentPlayer;
                 break;
             }
         }
-        amountLastRaised = amount - amountLastRaised;
+        amountLastRaised = raiseAmount - amountLastRaised;
     }
 
     private void pay(int playerId, int amount) {
@@ -504,10 +425,6 @@ public class HoldEmGameTree implements Cloneable {
 
     public int bettingRound() {
         return bettingRound;
-    }
-
-    public List<Action> actions() {
-        return nextActions;
     }
 
     public Card[] getHoleCardsFor(int player) {

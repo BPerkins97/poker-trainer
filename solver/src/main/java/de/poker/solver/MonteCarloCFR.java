@@ -6,7 +6,6 @@ import de.poker.solver.game.HoldEmGameTree;
 import de.poker.solver.neural.NeuralNet;
 import de.poker.solver.neural.Strategy;
 
-// As implemented in http://www.cs.cmu.edu/~noamb/papers/19-Science-Superhuman_Supp.pdf
 public class MonteCarloCFR {
     public static double[] traverse(HoldEmGameTree state) {
         if (state.isGameOver()) {
