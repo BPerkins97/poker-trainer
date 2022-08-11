@@ -58,6 +58,10 @@ public record Action(byte type, short amount, String presentation) implements By
         return type == FOLD;
     }
 
+    public boolean isRaise() {
+        return type == RAISE;
+    }
+
     public boolean isCall() {
         return type == CALL;
     }
