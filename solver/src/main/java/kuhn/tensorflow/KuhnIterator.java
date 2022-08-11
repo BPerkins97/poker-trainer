@@ -1,7 +1,5 @@
 package kuhn.tensorflow;
 
-import kuhn.cfr.Node;
-
 import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Collectors;

@@ -1,19 +1,12 @@
 package kuhn.cfr;
 
+import algorithms.vanillacfr.InMemoryNodeMap;
+import algorithms.vanillacfr.VanillaCFR;
+
 public class Solver {
     public static void main(String[] args) {
-        KuhnCFR k = new KuhnCFR(10000000, 3);
-        k.cfrIterationsExternal();
-        k.nodes.forEach((key, value) -> {
-            double[] strategy = value.getAverageStrategy();
-            System.out.println(String.format("%s\t\t%.2f\t\t%.2f", rightPad(key, 7), strategy[0], strategy[1]));
-        });
-    }
-
-    public static String rightPad(String value, int length) {
-        for (int i=value.length();i<length;i++) {
-            value += " ";
-        }
-        return value;
+        VanillaCFR<String, String> cfr = new VanillaCFR<>(new InMemoryNodeMap<>(), new KuhnGameFactory(), 2);
+        double[] run = cfr.run(1000000);
+        System.out.println(run[0]);
     }
 }
