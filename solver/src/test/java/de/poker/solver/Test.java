@@ -1,7 +1,7 @@
 package de.poker.solver;
 
-import de.poker.solver.game.Card;
-import de.poker.solver.utility.CardInfoSetBuilder;
+import de.poker.trainer.solver.montecarlocfr.game.Card;
+import de.poker.trainer.solver.montecarlocfr.utility.CardInfoSetBuilder;
 
 import java.util.ArrayList;
 import java.util.Comparator;

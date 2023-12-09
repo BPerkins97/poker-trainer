@@ -1,5 +1,8 @@
 package de.poker.solver.game;
 
+import de.poker.trainer.solver.montecarlocfr.game.Card;
+import de.poker.trainer.solver.montecarlocfr.game.Suit;
+import de.poker.trainer.solver.montecarlocfr.game.Value;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 

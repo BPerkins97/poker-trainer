@@ -1,8 +1,8 @@
 package de.poker.solver;
 
-import de.poker.solver.game.Action;
-import de.poker.solver.game.Card;
-import de.poker.solver.game.HandEvaluator;
+import de.poker.trainer.solver.montecarlocfr.game.Action;
+import de.poker.trainer.solver.montecarlocfr.game.Card;
+import de.poker.trainer.solver.montecarlocfr.game.HandEvaluator;
 
 import java.util.Arrays;
 import java.util.Set;

@@ -1,14 +1,14 @@
 package de.poker.solver.utility;
 
-import de.poker.solver.game.Card;
-import de.poker.solver.game.Suit;
-import de.poker.solver.game.Value;
+import de.poker.trainer.solver.montecarlocfr.game.Card;
+import de.poker.trainer.solver.montecarlocfr.game.Suit;
+import de.poker.trainer.solver.montecarlocfr.game.Value;
+import de.poker.trainer.solver.montecarlocfr.utility.CardInfoSetBuilder;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 public class CardInfoSetTest {

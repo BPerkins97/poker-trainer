@@ -1,6 +1,10 @@
 package de.poker.solver.game;
 
 import de.poker.solver.TestUtility;
+import de.poker.trainer.solver.montecarlocfr.game.Action;
+import de.poker.trainer.solver.montecarlocfr.game.Card;
+import de.poker.trainer.solver.montecarlocfr.game.Constants;
+import de.poker.trainer.solver.montecarlocfr.game.HoldEmGameTree;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
