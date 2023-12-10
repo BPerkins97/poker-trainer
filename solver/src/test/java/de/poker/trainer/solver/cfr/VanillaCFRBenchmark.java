@@ -12,7 +12,6 @@ public class VanillaCFRBenchmark {
 
     /**
      * ~ 97 ops / s
-     * @param state
      */
     @Benchmark
     public void init(MyState state) {
@@ -22,6 +21,6 @@ public class VanillaCFRBenchmark {
 
     @State(Scope.Benchmark)
     public static class MyState {
-        InMemoryNodeMap<String, String> nodeMap = new InMemoryNodeMap<>();
+        final InMemoryNodeMap<String, String> nodeMap = new InMemoryNodeMap<>();
     }
 }

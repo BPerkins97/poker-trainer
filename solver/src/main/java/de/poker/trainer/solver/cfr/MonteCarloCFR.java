@@ -1,5 +1,7 @@
 package de.poker.trainer.solver.cfr;
 
+import de.poker.trainer.math.MathUtils;
+
 import java.util.Arrays;
 
 public final class MonteCarloCFR<ACTION, INFOSET> {
@@ -51,12 +53,7 @@ public final class MonteCarloCFR<ACTION, INFOSET> {
                 }
             }
 
-            double accumulatedProbability = 1.0;
-            for (int player = 0; player < numPlayers; player++) {
-                if (player != currentPlayer) {
-                    accumulatedProbability *= probabilities[player];
-                }
-            }
+            double accumulatedProbability = MathUtils.product(probabilities) / (probabilities[currentPlayer] == 0 ? 1 : probabilities[currentPlayer]);
 
             node.updateRegrets(actionUtility, accumulatedProbability);
 

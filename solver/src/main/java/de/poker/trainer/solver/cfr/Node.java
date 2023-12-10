@@ -4,11 +4,10 @@ import java.util.Random;
 
 public class Node<A> {
     private static final Random RANDOM = new Random();
-    double[] strategy;
-    double[] regretSum;
-    double[] strategySum;
-    A[] actions;
-    double reachProbability;
+    final double[] strategy;
+    final double[] regretSum;
+    final double[] strategySum;
+    final A[] actions;
 
     public Node(A[] actions) {
         this.actions = actions;
@@ -16,10 +15,6 @@ public class Node<A> {
         this.regretSum = new double[actions.length];
         this.strategySum = new double[actions.length];
         updateStrategy();
-    }
-
-    public double[] getStrategy() {
-        return strategy;
     }
 
     public double[] getAverageStrategy() {
@@ -52,7 +47,6 @@ public class Node<A> {
     }
 
     public int pickRandomActionIndexAccordingToStrategy() {
-        getStrategy();
         double randomValue = RANDOM.nextDouble();
         double accumulated = 0;
         for (int i=0;i<actions.length;i++) {

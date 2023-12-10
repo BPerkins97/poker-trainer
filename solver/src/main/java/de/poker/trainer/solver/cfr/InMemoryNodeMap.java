@@ -2,7 +2,6 @@ package de.poker.trainer.solver.cfr;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.function.Consumer;
 
 public class InMemoryNodeMap<ACTION, INFOSET> implements NodeMap<ACTION, INFOSET> {
     private final Map<INFOSET, Node<ACTION>> map = new HashMap<>();
@@ -20,11 +19,6 @@ public class InMemoryNodeMap<ACTION, INFOSET> implements NodeMap<ACTION, INFOSET
     @Override
     public void update(Game<ACTION, INFOSET> game, Node<ACTION> node) {
         map.put(game.getCurrentInfoSet(), node);
-    }
-
-    @Override
-    public void forEachNode(Consumer<Node<ACTION>> consumer) {
-        map.forEach((k, v) -> consumer.accept(v));
     }
 
     @Override

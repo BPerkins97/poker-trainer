@@ -22,6 +22,6 @@ public class MonteCarloCFRBenchmark {
 
     @State(Scope.Benchmark)
     public static class MyState {
-        InMemoryNodeMap<String, String> nodeMap = new InMemoryNodeMap<>();
+        final InMemoryNodeMap<String, String> nodeMap = new InMemoryNodeMap<>();
     }
 }
