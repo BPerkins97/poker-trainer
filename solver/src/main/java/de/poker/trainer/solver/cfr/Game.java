@@ -1,4 +1,4 @@
-package de.poker.trainer.solver.vanillacfr;
+package de.poker.trainer.solver.cfr;
 
 public interface Game<ACTION, INFOSET> {
     boolean isGameOver();

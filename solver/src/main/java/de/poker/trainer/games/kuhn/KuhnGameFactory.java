@@ -1,7 +1,7 @@
 package de.poker.trainer.games.kuhn;
 
-import de.poker.trainer.solver.vanillacfr.Game;
-import de.poker.trainer.solver.vanillacfr.GameFactory;
+import de.poker.trainer.solver.cfr.Game;
+import de.poker.trainer.solver.cfr.GameFactory;
 
 import java.util.concurrent.ThreadLocalRandom;
 

@@ -1,4 +1,4 @@
-package de.poker.trainer.solver.vanillacfr;
+package de.poker.trainer.solver.cfr;
 
 import java.util.HashMap;
 import java.util.Map;

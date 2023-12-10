@@ -1,6 +1,9 @@
-package de.poker.trainer.solver.vanillacfr;
+package de.poker.trainer.solver.cfr;
+
+import java.util.Random;
 
 public class Node<A> {
+    private static final Random RANDOM = new Random();
     double[] strategy;
     double[] regretSum;
     double[] strategySum;
@@ -66,5 +69,18 @@ public class Node<A> {
                     .append(String.format("%s: %.4f \t", actions[i], averageStrategy[i]));
         }
         return builder.toString();
+    }
+
+    public int pickRandomActionIndexAccordingToStrategy() {
+        getStrategy();
+        double randomValue = RANDOM.nextDouble();
+        double accumulated = 0;
+        for (int i=0;i<actions.length;i++) {
+            accumulated += strategy[i];
+            if (randomValue < accumulated) {
+                return i;
+            }
+        }
+        throw new IllegalStateException("Should not be able to reach this point!");
     }
 }

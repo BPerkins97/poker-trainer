@@ -1,6 +1,6 @@
 package de.poker.trainer.games.kuhn;
 
-import de.poker.trainer.solver.vanillacfr.Game;
+import de.poker.trainer.solver.cfr.Game;
 
 public class KuhnGame implements Game<String, String> {
     private String history = "";

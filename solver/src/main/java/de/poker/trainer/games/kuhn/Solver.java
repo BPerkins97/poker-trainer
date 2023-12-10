@@ -1,7 +1,7 @@
 package de.poker.trainer.games.kuhn;
 
-import de.poker.trainer.solver.vanillacfr.InMemoryNodeMap;
-import de.poker.trainer.solver.vanillacfr.VanillaCFR;
+import de.poker.trainer.solver.cfr.InMemoryNodeMap;
+import de.poker.trainer.solver.cfr.VanillaCFR;
 
 public class Solver {
     public static void main(String[] args) {
