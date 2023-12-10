@@ -16,6 +16,7 @@ public class VanillaCFRBenchmark {
     @Benchmark
     public void init(MyState state) {
         VanillaCFR<String, String> cfr = new VanillaCFR<>(state.nodeMap, new KuhnGameFactory(), 2);
+        cfr.setPruningThreshhold(-100);
         cfr.run(10_000);
     }
 

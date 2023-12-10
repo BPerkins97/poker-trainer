@@ -28,8 +28,8 @@ public class KuhnSolverTest {
     public void shouldSolveKuhnWithVanillaCFR() {
         InMemoryNodeMap<String, String> nodeMap = new InMemoryNodeMap<>();
         VanillaCFR<String, String> cfr = new VanillaCFR<>(nodeMap, new KuhnGameFactory(), 2);
-
-        double[] expectedValues = cfr.run(500_000);
+        cfr.setPruningThreshhold(-100);
+        double[] expectedValues = cfr.run(100_000);
         assertEquals(Math.abs(expectedValues[0]), Math.abs(expectedValues[1]));
         assertEquals(1.0 / 18.0, expectedValues[1], 0.01);
         for(int player1Card=0;player1Card<3;player1Card++) {

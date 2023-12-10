@@ -8,6 +8,7 @@ public final class VanillaCFR<ACTION, INFOSET> {
     private final GameFactory<ACTION, INFOSET> gameFactory;
     private final NodeMap<ACTION, INFOSET> nodeMap;
     private final int numPlayers;
+    private double pruningThreshhold = Integer.MIN_VALUE;
 
     public VanillaCFR(NodeMap<ACTION, INFOSET> nodeMap, GameFactory<ACTION, INFOSET> gameFactory, int numPlayers) {
         this.nodeMap = nodeMap;
@@ -44,12 +45,16 @@ public final class VanillaCFR<ACTION, INFOSET> {
         double[] stateUtility = new double[node.actions.length];
         int chosenAction = node.pickRandomActionIndexAccordingToStrategy();
         for (int action = 0; action < node.actions.length; action++) {
+            if (pruningThreshhold > node.regretSum[action] && chosenAction != action) {
+                continue;
+            }
             Game<ACTION, INFOSET> nextGameState = game.takeAction(node.actions[action]);
             double[] nextProbabilities = Arrays.copyOf(probabilities, probabilities.length);
             nextProbabilities[currentPlayer] = nextProbabilities[currentPlayer] * node.strategy[action];
             double[] result = cfr(nextGameState, nextProbabilities);
             actionUtility[action] = result[currentPlayer];
             if (action == chosenAction) {
+                // TODO replace this with systemarraycopy
                 for (int player = 0; player < numPlayers; player++) {
                     stateUtility[player] = result[player];
                 }
@@ -61,5 +66,9 @@ public final class VanillaCFR<ACTION, INFOSET> {
         nodeMap.update(game, node);
 
         return stateUtility;
+    }
+
+    public void setPruningThreshhold(double pruningThreshhold) {
+        this.pruningThreshhold = pruningThreshhold;
     }
 }
