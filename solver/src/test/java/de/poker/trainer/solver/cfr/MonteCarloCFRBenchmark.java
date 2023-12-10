@@ -11,13 +11,13 @@ public class MonteCarloCFRBenchmark {
     }
 
     /**
-     * about ~ 0.75 ops / second
+     * ~ 90 ops / s
      * @param state
      */
     @Benchmark
     public void init(MyState state) {
         MonteCarloCFR<String, String> cfr = new MonteCarloCFR<>(state.nodeMap, new KuhnGameFactory(), 2);
-        cfr.run(1_000_000);
+        cfr.run(10_000);
     }
 
     @State(Scope.Benchmark)

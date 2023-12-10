@@ -83,4 +83,19 @@ public class Node<A> {
         }
         throw new IllegalStateException("Should not be able to reach this point!");
     }
+
+    public void updateRegrets(double[] actionUtilities, double reachProbability) {
+        double expectedValue = 0;
+        for (int i=0;i<actions.length;i++) {
+            expectedValue += actionUtilities[i] * strategy[i];
+        }
+        for (int i=0;i<actions.length;i++) {
+            double regret = actionUtilities[i] - expectedValue;
+            regretSum[i] += regret * reachProbability;
+        }
+        strategy = getStrategy();
+        for (int i=0;i<actions.length;i++) {
+            strategySum[i] += strategy[i];
+        }
+    }
 }

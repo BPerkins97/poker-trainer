@@ -23,7 +23,6 @@ public final class MonteCarloCFR<ACTION, INFOSET> {
                 double[] expectedValue = cfr(game, startProbabilities, player);
                 expectedValues[player] += expectedValue[player];
             }
-            nodeMap.forEachNode(Node::updateStrategy);
         }
 
         for (int i=0;i<numPlayers;i++) {
@@ -52,7 +51,6 @@ public final class MonteCarloCFR<ACTION, INFOSET> {
                 }
             }
 
-            node.reachProbability = probabilities[currentPlayer];
             double accumulatedProbability = 1.0;
             for (int player = 0; player < numPlayers; player++) {
                 if (player != currentPlayer) {
@@ -60,10 +58,7 @@ public final class MonteCarloCFR<ACTION, INFOSET> {
                 }
             }
 
-            for (int action = 0; action < node.actions.length; action++) {
-                double regret = actionUtility[action] - expectedValues[currentPlayer];
-                node.regretSum[action] += regret * accumulatedProbability;
-            }
+            node.updateRegrets(actionUtility, accumulatedProbability);
 
             nodeMap.update(game, node);
         } else {
