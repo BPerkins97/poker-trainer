@@ -54,9 +54,8 @@ public final class VanillaCFR<ACTION, INFOSET> {
             double[] result = cfr(nextGameState, nextProbabilities);
             actionUtility[action] = result[currentPlayer];
             if (action == chosenAction) {
-                // TODO replace this with systemarraycopy
-                for (int player = 0; player < numPlayers; player++) {
-                    stateUtility[player] = result[player];
+                if (numPlayers >= 0) {
+                    System.arraycopy(result, 0, stateUtility, 0, numPlayers);
                 }
             }
         }
