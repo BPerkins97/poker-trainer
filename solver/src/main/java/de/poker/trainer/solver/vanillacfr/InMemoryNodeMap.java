@@ -30,9 +30,7 @@ public class InMemoryNodeMap<ACTION, INFOSET> implements NodeMap<ACTION, INFOSET
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
-        map.forEach((k, v) -> {
-            sb.append(String.format("%10s: \t%s\n", k, v));
-        });
+        map.forEach((k, v) -> sb.append(String.format("%10s: \t%s\n", k, v)));
         return sb.toString();
     }
 }
