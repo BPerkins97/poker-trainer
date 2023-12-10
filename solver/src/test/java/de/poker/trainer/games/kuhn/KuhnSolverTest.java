@@ -1,11 +1,9 @@
 package de.poker.trainer.games.kuhn;
 
-import de.poker.trainer.solver.cfr.MonteCarloCFR;
 import de.poker.trainer.solver.cfr.InMemoryNodeMap;
 import de.poker.trainer.solver.cfr.NodeMap;
 import de.poker.trainer.solver.cfr.VanillaCFR;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import java.util.HashMap;
@@ -39,25 +37,6 @@ public class KuhnSolverTest {
                 if (player1Card != player2Card) {
                     KuhnGame game = new KuhnGame(new int[]{player1Card, player2Card});
                     iterateOverGame(game, nodeMap, SOLUTION, 0.01);
-                }
-            }
-        }
-    }
-
-    @Test
-    @Disabled("This test is too random, Vanilla CFR is much better if it weren't for scalability.")
-    public void shouldSolveKuhnWithMonteCarloCFR() {
-        InMemoryNodeMap<String, String> nodeMap = new InMemoryNodeMap<>();
-        MonteCarloCFR<String, String> cfr = new MonteCarloCFR<>(nodeMap, new KuhnGameFactory(), 2);
-
-        double[] expectedValues = cfr.run(250_000);
-        assertEquals(1.0 / 18.0, expectedValues[1], 0.01);
-
-        for(int player1Card=0;player1Card<3;player1Card++) {
-            for(int player2Card=0;player2Card<3;player2Card++) {
-                if (player1Card != player2Card) {
-                    KuhnGame game = new KuhnGame(new int[]{player1Card, player2Card});
-                    iterateOverGame(game, nodeMap, SOLUTION, 0.1);
                 }
             }
         }
