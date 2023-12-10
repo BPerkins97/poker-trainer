@@ -11,7 +11,7 @@ public class VanillaCFRBenchmark {
     }
 
     /**
-     * ~ 93 ops / s
+     * ~ 97 ops / s
      * @param state
      */
     @Benchmark

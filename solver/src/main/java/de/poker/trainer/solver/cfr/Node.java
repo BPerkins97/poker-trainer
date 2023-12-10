@@ -15,30 +15,10 @@ public class Node<A> {
         this.strategy = new double[actions.length];
         this.regretSum = new double[actions.length];
         this.strategySum = new double[actions.length];
-    }
-
-    public void updateStrategy() {
-        for (int i=0;i<actions.length;i++) {
-            strategySum[i] += strategy[i] * reachProbability;
-        }
-        reachProbability = 0;
-        strategy = getStrategy();
+        updateStrategy();
     }
 
     public double[] getStrategy() {
-        double normalizingSum = 0;
-        for (int i=0;i<actions.length;i++) {
-            strategy[i] = Math.max(0, regretSum[i]);
-            normalizingSum += strategy[i];
-        }
-
-        for (int i=0;i<actions.length;i++) {
-            if (normalizingSum > 0) {
-                strategy[i] /= normalizingSum;
-            } else {
-                strategy[i] = 1.0 / actions.length;
-            }
-        }
         return strategy;
     }
 
@@ -93,9 +73,23 @@ public class Node<A> {
             double regret = actionUtilities[i] - expectedValue;
             regretSum[i] += regret * reachProbability;
         }
-        strategy = getStrategy();
+        updateStrategy();
+    }
+
+    private void updateStrategy() {
+        double normalizingSum = 0;
         for (int i=0;i<actions.length;i++) {
-            strategySum[i] += strategy[i];
+            strategy[i] = Math.max(0, regretSum[i]);
+            normalizingSum += strategy[i];
+        }
+
+        for (int i=0;i<actions.length;i++) {
+            if (normalizingSum > 0) {
+                strategy[i] /= normalizingSum;
+                strategySum[i] += strategy[i];
+            } else {
+                strategy[i] = 1.0 / actions.length;
+            }
         }
     }
 }
