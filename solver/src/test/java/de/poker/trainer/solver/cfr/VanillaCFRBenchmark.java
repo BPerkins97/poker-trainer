@@ -11,7 +11,7 @@ public class VanillaCFRBenchmark {
     }
 
     /**
-     * ~ 97 ops / s
+     * ~ 105 ops / s
      */
     @Benchmark
     public void init(MyState state) {

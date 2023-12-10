@@ -41,23 +41,25 @@ public final class VanillaCFR<ACTION, INFOSET> {
         int currentPlayer = game.getCurrentPlayer();
         Node<ACTION> node = nodeMap.getNode(game);
         double[] actionUtility = new double[node.actions.length];
-        double[] expectedValues = new double[node.actions.length];
+        double[] stateUtility = new double[node.actions.length];
+        int chosenAction = node.pickRandomActionIndexAccordingToStrategy();
         for (int action = 0; action < node.actions.length; action++) {
             Game<ACTION, INFOSET> nextGameState = game.takeAction(node.actions[action]);
             double[] nextProbabilities = Arrays.copyOf(probabilities, probabilities.length);
             nextProbabilities[currentPlayer] = nextProbabilities[currentPlayer] * node.strategy[action];
             double[] result = cfr(nextGameState, nextProbabilities);
             actionUtility[action] = result[currentPlayer];
-            for (int player=0;player<numPlayers;player++) {
-                expectedValues[player] += result[player] * node.strategy[action];
+            if (action == chosenAction) {
+                for (int player = 0; player < numPlayers; player++) {
+                    stateUtility[player] = result[player];
+                }
             }
         }
 
         double accumulatedProbability = MathUtils.product(probabilities) / (probabilities[currentPlayer] == 0 ? 1 : probabilities[currentPlayer]);
-
-        node.updateRegrets(actionUtility, accumulatedProbability);
-
+        node.updateRegrets(actionUtility, chosenAction, accumulatedProbability);
         nodeMap.update(game, node);
-        return expectedValues;
+
+        return stateUtility;
     }
 }
